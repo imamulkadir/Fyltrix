@@ -33,6 +33,9 @@ public class PaletteUiTests
             {
                 var p = new CommandPalette(w, w.PaletteEntries);
                 Sta.ShowOffscreen(p);
+                // Listing completion can precede the background destination-permission check.
+                // The New command is intentionally absent until that existing check finishes.
+                Sta.WaitUntil(() => w.Availability().New, "writable destination before palette New command");
                 p.SetText("nfol");
                 Assert.Equal("New folder", p.Visible[0].Title);
                 p.SetText("markdown");

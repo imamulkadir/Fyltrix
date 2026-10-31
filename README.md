@@ -376,7 +376,7 @@ Portable describes deployment: preferences live in the current Windows user's pr
 
 ## Development and verification
 
-The separate Stage 2 [release-layout proof of concept](docs/RELEASE_LAYOUT.md) prepares an isolated versioned payload and native launcher for future Inno Setup packaging. It does not replace `publish.ps1 -Run` or install/enable updates. Stage approvals and current installation/update work are tracked in [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md).
+The separate [release-layout tooling](docs/RELEASE_LAYOUT.md) builds an isolated versioned payload and native launcher. The Stage 3 [Inno Setup installer](docs/INSTALLER.md) adds per-user installation, with a separate Sandbox identity for testing. Neither build script runs an installer or replaces `publish.ps1 -Run`; automatic updates remain disabled. Stage approvals and current installation/update work are tracked in [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md).
 
 ```powershell
 dotnet restore .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj

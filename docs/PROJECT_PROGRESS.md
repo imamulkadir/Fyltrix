@@ -48,6 +48,47 @@ No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mut
 - Branch cleanup is complete and verified. The owner's later "proceed next" instruction approved resuming Stage 2 directly on `master`; its progress is recorded below.
 - Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
 
+## Stage 3 — Per-user Inno Setup installer
+
+Status: **Completed — stopped for Stage 4 approval.** Authorized by the owner's "proceed next" after Stage 2, with "continue" during verification. Baseline: clean `master` at `778aa9b5bb34569b009ca190aea6b26596c88000`. No commit, push, merge, tag, branch creation, or remote/release mutation was performed.
+
+### Completed tasks
+
+- Added a separate Inno Setup 6 per-user installer and compile-only builder. Sandbox is the default; production has a different permanent AppId, installation folder, registration, and shortcut name. No elevation, automatic launch, automatic installation, startup task, or file-association change is introduced.
+- Validate the complete Stage 2 layout against its ZIP and recorded checksums before compilation. Reject modified/extra files, redirected source paths, protected outputs, and existing output destinations.
+- Guard installation/uninstall with ownership identity/schema checks, protected-data/development-directory checks, junction rejection, locked-file checks, same-identity relocation refusal, shortcut ownership checks, and numeric binary-downgrade refusal. Applications are never force-closed.
+- Install versioned payloads before updating the root launcher/pointer; retain earlier payloads in an appended uninstall log. Uninstall removes logged binaries while retaining unknown files and all application-data directories. No wildcard deletion or user-data migration is present.
+- Added a test-only startup hook in the existing probe and a Windows lifecycle harness. Actual native installer/application processes run on private desktops, with synthetic preferences, isolated browser/cache paths, and an isolated clipboard provider. The hook is not shipped in installer payloads.
+- Preserved application sources, dependencies/defaults, `publish.ps1`, existing portable-release files, and personal roaming-profile bytes. Normal sandbox application launches still share the existing application profile; only the test hook provides profile isolation.
+
+### Files created or modified
+
+- Created `packaging/installer/Fyltrix.iss` and `packaging/installer/INSTALLATION.txt`.
+- Created `tools/Build-Installer.ps1`.
+- Created `tests/installer/test_builder.py`, `tests/installer/verify_installer.py`, its local Python-cache `.gitignore`, and `tests/Fyltrix.PlacementProbe/InstallerStartupHook.cs`.
+- Updated `tests/Fyltrix.Tests/PaletteTests.cs` with a condition wait for the existing asynchronous writable-destination check before asserting the New command. No production command behavior changed.
+- Created `docs/INSTALLER.md`; updated `README.md`, `docs/RELEASE_LAYOUT.md`, and this progress file.
+
+### Executed verification
+
+- Compiled Sandbox installers for `0.1.0` and `0.1.1-stage2`, plus a Production installer for `0.1.1-stage2`. Setup hashes match their sidecars/build records; Windows numeric versions are `0.1.0.0` and `0.1.1.0`. **The Production installer was compiled only, never executed.**
+- **17 lifecycle cases passed**, running non-elevated: protected development/profile/unowned/other-identity destinations; initial installation; wrong ownership and unsupported-schema uninstall refusal; junction and locked-pointer refusal; real installed application startup/preferences/preview for both versions; running-app upgrade/uninstall refusal without terminating the application; relocation refusal; upgrade with old payload retained; numeric downgrade refusal; and final uninstall.
+- Also asserted HKCU-only sandbox registration, Start menu target/working directory, stable launcher behavior, synthetic preference preservation, unknown root/nested-file retention, and removal of logged payloads, sandbox registration, and sandbox shortcut after uninstall.
+- **9 builder guard tests passed**, including actual source-junction rejection, ZIP/payload tampering, unexpected profile files, pointer mismatch, protected/nested outputs, and existing-output preservation.
+- Initial full application run: **353 passed, 1 failed**. The palette assertion raced the existing background destination-permission check while installer verification ran concurrently. Added the test-only condition wait above. Focused recheck: **1 passed**. Final full suite: **354 passed, 0 failed, 0 skipped**. Packaging suite: **28 passed, 0 failed, 0 skipped**.
+- Existing development x64 build: **passed**, with the existing nullable and WinForms DPI warnings. The probe Release build also passed. Both installed application versions launched, listed the test folder, initialized preview, loaded custom preferences, and closed normally.
+- Final hash audit: personal roaming profile and existing portable release unchanged; every original `src/` file and `publish.ps1` unchanged. Git branch remains `master`. No experimental installed copy or sandbox registration/shortcut remains; intentionally retained test sentinel files stay under the external evidence directory.
+
+### Evidence and limits
+
+Evidence directory: `D:\Tools\Fyltrix-stage3-20261031-142110-f3d497a0`. Summary: `stage3-verification.json`; lifecycle results/logs: `sandbox-complete/verification.json`; final test TRX files: `tests/stage3-app-final.trx`, `tests/stage3-packaging.trx`, and `tests/stage3-palette-recheck.trx`. Final installers are in `final-v1`, `final-v2`, and `final-production-not-installed`. Earlier failed attempts/logs are retained, not presented as passing verification.
+
+Installation/upgrade/uninstall were exercised through native silent Setup, not manual interaction with wizard pages. Optional desktop-shortcut selection and a separate standard-user account were not tested. Production identity installation, signing/SmartScreen, power-loss recovery, application-health rollback, prerelease ordering within one numeric version, and safe updater handover remain unverified or unimplemented. Retaining old payloads is not automatic rollback. Checksum consistency is not publisher authentication. The exclusive-file preflight does not replace future coordinated shutdown against a concurrent application launch. No production installer rollout or fully automatic installation is enabled.
+
+Suggested commit message: `feat(installer): add safe per-user Inno Setup installation`.
+
+Next stage, only after explicit approval: Stage 4, read-only GitHub Releases discovery and signed-manifest/package verification, including local-feed and rejection tests. No implementation of that stage has started.
+
 ## Stage 2 — Isolated release packaging and layout
 
 Status: **Completed — stopped for Stage 3 approval.** Authorized by the owner's "proceed next" after completed branch consolidation. Working on `master`; baseline commit `1d71e13`. No Git write operations performed.
@@ -179,11 +220,11 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 ## Planned stages — each requires a separate approval
 
 1. Baseline protection and reference audit — completed and approved by the owner's "go next" instruction.
-2. Separate release packaging/layout proof of concept — completed on `master`; 354 existing and 28 new tests pass. Waiting for Stage 3 approval.
-3. Inno Setup per-user installer and sandbox manual installation/upgrade/uninstall tests, including user-data preservation.
+2. Separate release packaging/layout proof of concept — completed on `master`; approved for Stage 3 by the owner's "proceed next" instruction.
+3. Inno Setup per-user installer — completed on `master`; Sandbox installation/upgrade/uninstall, data-preservation, and actual application startup tests passed. Production installer compiled only. Waiting for Stage 4 approval.
 4. Read-only GitHub release detection and signed-manifest/package verification, with local-feed and rejection tests.
 5. Manual download and safe shutdown/handover, respecting running work, sharing, and cancelled closes.
 6. Out-of-process version switch, health validation, rollback/failure recovery, and compatibility tests for saved data.
 7. End-to-end regression verification and optional automation proposal. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: the owner can review/commit the Stage 2 changes manually. Stop for explicit Stage 3 approval before adding or running an installer. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.
+Next action: the owner can review/commit Stage 3 manually. Stop for explicit Stage 4 approval before implementing release discovery or signed update verification. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.

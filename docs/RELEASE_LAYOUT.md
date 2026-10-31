@@ -2,6 +2,8 @@
 
 This is a packaging/launcher proof of concept for the future Inno Setup installer. It does not install or update Fyltrix, register shortcuts, change startup behavior, migrate data, or publish anything. The normal application project and `publish.ps1 -Run` workflow remain unchanged.
 
+Stage 3 adds a separate [per-user Inno Setup builder and verification harness](INSTALLER.md) that consumes this layout. The layout script itself retains the Stage 2 behavior documented here.
+
 ## Build
 
 On Windows x64, use a .NET 8-compatible SDK plus the Visual Studio C++ build tools and Windows SDK for NativeAOT. The launcher uses only the .NET libraries; there is no third-party update framework.
