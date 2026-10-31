@@ -12,7 +12,7 @@ Last updated: 2026-10-31.
 
 ## Priority task — Master-only branch consolidation
 
-Status: **Completed. Only `master` exists locally and remotely. Update-system development remains paused until explicitly resumed.**
+Status: **Completed. Only `master` exists locally and remotely. The owner subsequently approved resuming Stage 2 directly on `master`.**
 
 ### Findings
 
@@ -45,8 +45,64 @@ No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mut
 
 - Git ancestry, tree equality, commit-head synchronization, working-file preservation, local branch list, remote branch list, and GitHub default/PR status verified.
 - Application source, dependencies, user data, and `publish.ps1 -Run` are unchanged. No application build or test rerun was needed for this Git/documentation-only task; Stage 1's executed result remains 354 passing tests.
-- Branch cleanup is complete and verified. Stage 2 is paused; wait for an explicit instruction to resume development directly on `master`.
+- Branch cleanup is complete and verified. The owner's later "proceed next" instruction approved resuming Stage 2 directly on `master`; its progress is recorded below.
 - Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
+
+## Stage 2 — Isolated release packaging and layout
+
+Status: **Completed — stopped for Stage 3 approval.** Authorized by the owner's "proceed next" after completed branch consolidation. Working on `master`; baseline commit `1d71e13`. No Git write operations performed.
+
+### Completed tasks and scope
+
+- Added an independent .NET 8 NativeAOT launcher, following the reference's stable-launcher/versioned-payload approach without importing its crash supervisor, data model, updater, or signing keys.
+- Added `tools/Publish-Layout.ps1`. It builds the existing WPF application self-contained for win-x64 into a new `app-<version>` payload, copies the native launcher to the layout root, writes a bounded version pointer, and creates a ZIP/checksum/build record.
+- All package build intermediates and outputs are isolated from normal development and `artifacts/Fyltrix`. Existing destinations are refused; application-data overlaps and output junctions are rejected.
+- Preserved the main application's source, dependencies, defaults, data folders, shutdown behavior, and `publish.ps1` byte for byte.
+- Added packaging tests and a release-layout guide. No installer/updater, registration, migration, automatic check/install, remote release operation, or user-profile change is implemented in Stage 2.
+
+### Files created or modified
+
+- Created `src/Fyltrix.Launcher/Fyltrix.Launcher.csproj`, `app.manifest`, `Program.cs`, and `ReleaseLayout.cs`.
+- Created `tests/Fyltrix.Packaging.Tests/Fyltrix.Packaging.Tests.csproj` and `ReleaseLayoutTests.cs`.
+- Created `tools/Publish-Layout.ps1` and `docs/RELEASE_LAYOUT.md`.
+- Updated `README.md` and `docs/PROJECT_PROGRESS.md`.
+
+### Layout and startup contract
+
+```text
+layout/
+  Fyltrix.exe                 Native launcher; future stable shortcut path
+  current.json                { current: version, previous: null }
+  LAYOUT.txt
+  app-<version>/Fyltrix.exe    Existing application with its self-contained dependencies
+```
+
+The root launcher forwards folder arguments without shell parsing and preserves the caller's working directory. It waits for the payload's exit. It reads but never rewrites the pointer or profile. If the current executable is absent, a valid previous pointer can select an existing previous payload; this is not health/crash rollback. Malformed/oversized/ambiguous pointers, unsafe versions, and redirected payloads fail closed.
+
+### Verification
+
+- NativeAOT launcher build/publish: passed on this machine's Windows C++ build tools; launcher size **2,333,184 bytes** (~2.23 MiB).
+- Initial `0.1.0` package: published under an external path containing spaces and `&`; ZIP/checksum verified. ZIP size **85,112,902 bytes** (~81.17 MiB).
+- Full existing application suite: **354 passed, 0 failed, 0 skipped**, duration 2 minutes 54 seconds.
+- New packaging suite: **28 passed, 0 failed, 0 skipped**, including an actual payload-junction rejection test.
+- Actual native-root startup, ZIP extraction/relocation, previous-payload fallback fixture, and read-only-layout startup: passed; correct folder listing, preview readiness, and exit code 0. Folder arguments exercised spaces, `&`, and Unicode.
+- Read-only test used an effective inherited deny-write ACL; write attempt was denied, launch succeeded, and the original package ACL was restored.
+- Previous-payload fallback used the same baseline application bytes under a previous-version folder. No upgrade, downgrade, or health rollback is claimed.
+- Invalid version, numeric prerelease, protected development/profile paths, nested existing release, junction output, and existing-version destination guards: rejection checks passed. Existing output contents stayed unchanged.
+- Existing development x64 build: passed with existing nullable/DPI warnings; actual development launch passed with isolated settings/clipboard.
+- Non-default `0.1.1-stage2` package: build, ZIP/checksum, and actual root-launcher startup passed. Launcher/payload Windows file versions are `0.1.1.0`, with the requested prerelease product version. Numeric components outside Windows metadata limits are rejected before building.
+- Final hashes confirm that all original application/test/tool source files, `publish.ps1`, the existing portable-release contents, and the personal roaming profile are unchanged. Only README/progress documentation changed among previously tracked files. Original layout hashes match after startup/read-only tests. Evidence: `stage2-verification.json`.
+- Inno compilation/install/uninstall and update/rollback were not performed; those belong to later stages.
+
+### Evidence and known limits
+
+Evidence/output directory: `D:\Tools\Fyltrix-stage2-20261031-135758-835ae43f`. It contains test TRX files, the isolated packages/build intermediates, checksum and file-hash records, output-guard results, and private-desktop startup results. Personal profile contents are not copied into repository reports.
+
+The existing development release remains in place. NativeAOT publishing needs Windows C++/SDK tools; end users do not need those tools or a separately installed .NET runtime for the self-contained payload. WebView2 and optional codecs remain separate prerequisites. The package is unsigned and has no installed/managed identity. A future update handover must wait for both launcher/payload processes and respect existing work/sharing/cancelled closes. Small launcher/pointer tests are not proof of future installer safety or automatic rollback.
+
+Suggested commit message: `feat(packaging): add isolated versioned release layout`.
+
+Next stage after completion and explicit approval: Stage 3, Inno Setup per-user installer plus sandbox manual installation/upgrade/uninstall and data-preservation tests.
 
 ## Stage 1 — Baseline protection and DynamicEye reference audit
 
@@ -123,11 +179,11 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 ## Planned stages — each requires a separate approval
 
 1. Baseline protection and reference audit — completed and approved by the owner's "go next" instruction.
-2. Separate release packaging/layout proof of concept, preserving `publish.ps1 -Run`; approved, but paused before implementation by the priority Git cleanup. Resume only on `master` after cleanup and an explicit resume instruction.
+2. Separate release packaging/layout proof of concept — completed on `master`; 354 existing and 28 new tests pass. Waiting for Stage 3 approval.
 3. Inno Setup per-user installer and sandbox manual installation/upgrade/uninstall tests, including user-data preservation.
 4. Read-only GitHub release detection and signed-manifest/package verification, with local-feed and rejection tests.
 5. Manual download and safe shutdown/handover, respecting running work, sharing, and cancelled closes.
 6. Out-of-process version switch, health validation, rollback/failure recovery, and compatibility tests for saved data.
 7. End-to-end regression verification and optional automation proposal. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: the owner can review and commit this final progress update manually. Wait for explicit approval to resume Stage 2. All future implementation uses `master` only; do not create another branch.
+Next action: the owner can review/commit the Stage 2 changes manually. Stop for explicit Stage 3 approval before adding or running an installer. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.
