@@ -12,7 +12,7 @@ Last updated: 2026-10-31.
 
 ## Priority task — Master-only branch consolidation
 
-Status: **Local consolidation completed; remote branch deletion awaits explicit approval. Update-system development is stopped.**
+Status: **Completed. Only `master` exists locally and remotely. Update-system development remains paused until explicitly resumed.**
 
 ### Findings
 
@@ -31,17 +31,21 @@ Status: **Local consolidation completed; remote branch deletion awaits explicit 
 - Compared every backed-up working-file hash after the switch: all files matched before this deliberate progress-document update.
 - Local `master`, `origin/master`, and live GitHub `master` all pointed to `b8f51c2a46ea437c5a5790c5a665b4f3321b3aaf` at verification time. The documentation change below remains uncommitted and is not claimed to be on GitHub.
 
-### Pending GitHub action
+### Approved remote removal and final verification
 
-The remote `feature/auto-update` branch still exists at `ca66593f58381fe179cbac8502ea2aef2c8666d7`. Its work is already incorporated into `master`. Per the owner's requirement to stop before remote/destructive GitHub actions, it has not been deleted automatically. The owner can delete this branch from GitHub's Branches page, or explicitly approve deletion of this exact remote branch after a fresh containment/head check. Do not delete `master`, reopen/close the already-merged PR, or change the default branch.
+The owner approved the proposed remote deletion with "proceed next". Before removal, rechecked that the feature tip remained exactly `ca66593f58381fe179cbac8502ea2aef2c8666d7` and was an ancestor of synchronized `master`. A second all-refs Git bundle was saved before the remote action.
 
-No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mutation, remote deletion, or default-branch change was performed during this cleanup. Fetching and local fast-forward/switch/fully-merged-branch deletion were the only Git mutations.
+Deleted only the remote `feature/auto-update` reference through the authenticated GitHub API, then fetched with pruning. Final local and live remote branch lists each contain only `master`; the stale remote-tracking feature reference is gone. GitHub's default remains `master`. PR #1 remains already merged; no PR mutation was required.
+
+The owner had meanwhile committed and synchronized the previous progress update as `e037d16d585ce970d32d5cfcf1910a3083936f41`. Final local `master`, `origin/master`, and live GitHub `master` match that commit. All tracked working-file hashes matched before this deliberate final documentation edit, which remains uncommitted for the owner.
+
+No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mutation, or default-branch change was performed during this cleanup. Git mutations were limited to fetch/prune, the local fast-forward/switch/fully-merged-branch deletion, and the explicitly approved remote branch deletion. Completion evidence: `remote-consolidation-completed.json` in the backup directory above.
 
 ### Verification and current status
 
 - Git ancestry, tree equality, commit-head synchronization, working-file preservation, local branch list, remote branch list, and GitHub default/PR status verified.
 - Application source, dependencies, user data, and `publish.ps1 -Run` are unchanged. No application build or test rerun was needed for this Git/documentation-only task; Stage 1's executed result remains 354 passing tests.
-- Stage 2 is paused. Complete and verify remote branch cleanup first, then wait for an explicit instruction to resume development directly on `master`.
+- Branch cleanup is complete and verified. Stage 2 is paused; wait for an explicit instruction to resume development directly on `master`.
 - Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
 
 ## Stage 1 — Baseline protection and DynamicEye reference audit
@@ -126,4 +130,4 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 6. Out-of-process version switch, health validation, rollback/failure recovery, and compatibility tests for saved data.
 7. End-to-end regression verification and optional automation proposal. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: obtain approval for the remaining remote feature-branch deletion (or verify the owner's manual deletion). Do not resume Stage 2 automatically. All future implementation uses `master` only.
+Next action: the owner can review and commit this final progress update manually. Wait for explicit approval to resume Stage 2. All future implementation uses `master` only; do not create another branch.
