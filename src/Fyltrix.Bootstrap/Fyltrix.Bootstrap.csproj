@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="AssemblyVersion">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAotCompatible>true</IsAotCompatible>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+  <!-- Preserve the existing layout API/namespace; share it without publishing a referenced executable. -->
+  <ItemGroup>
+    <Compile Include="..\Fyltrix.Launcher\ReleaseLayout.cs" Link="ReleaseLayout.cs" />
+    <Compile Include="..\Fyltrix.Launcher\UpdateProtocol.cs" Link="UpdateProtocol.cs" />
+    <Compile Include="..\Fyltrix.Launcher\TrialConnection.cs" Link="TrialConnection.cs" />
+  </ItemGroup>
+</Project>

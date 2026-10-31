@@ -26,13 +26,21 @@ public static class StartupHook
         PreviewPane.WebDataFolder = Path.Combine(root, "webview2");
         ThumbnailService.DiskCacheFolder = Path.Combine(root, "thumbs");
         MainWindow.ClipboardFactory = () => new IsolatedClipboard();
+        if (Environment.GetEnvironmentVariable("FYLTRIX_SANDBOX_UPDATE_WORKER") == "1")
+        {
+            string dependencyFolder = Path.GetDirectoryName(typeof(StartupHook).Assembly.Location)!;
+            foreach (var name in new[] { "Fyltrix.Bootstrap", "Fyltrix.Updates" })
+                System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(dependencyFolder, name + ".dll"));
+            Environment.Exit(SandboxUpdateStartupProbe.Run(root));
+            return;
+        }
         Action<MainWindow>? handoverTick = null;
         var stage = Environment.GetEnvironmentVariable("FYLTRIX_HANDOVER_TEST_STAGE");
         if (stage != null)
         {
             // Test-only dependencies are loaded from the probe, never added to the application payload.
             string probeFolder = Path.GetDirectoryName(typeof(StartupHook).Assembly.Location)!;
-            foreach (var name in new[] { "Fyltrix.Launcher", "Fyltrix.Updates" })
+            foreach (var name in new[] { "Fyltrix.Bootstrap", "Fyltrix.Updates" })
                 System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(probeFolder, name + ".dll"));
             handoverTick = UpdateHandoverStartupProbe.Create(root, stage,
                 Environment.GetEnvironmentVariable("FYLTRIX_HANDOVER_TEST_KEY") ?? throw new InvalidOperationException("Explicit test public key required."));

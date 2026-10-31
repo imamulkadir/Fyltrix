@@ -126,6 +126,13 @@ public static class UpdateHandover
 
     public static async Task<HandoverResult> WaitForReadyAsync(string requestPath, TimeSpan? waitTimeout = null,
         CancellationToken token = default, IReadOnlyList<string>? explicitTestKeys = null)
+        => await WaitForReadyCoreAsync(requestPath, waitTimeout, token, explicitTestKeys, false).ConfigureAwait(false);
+
+    internal static Task<HandoverResult> WaitForWorkerReadyAsync(string path, CancellationToken token, IReadOnlyList<string>? testKeys = null)
+        => WaitForReadyCoreAsync(path, null, token, testKeys, true);
+
+    private static async Task<HandoverResult> WaitForReadyCoreAsync(string requestPath, TimeSpan? waitTimeout,
+        CancellationToken token, IReadOnlyList<string>? explicitTestKeys, bool currentWorker)
     {
         var timeout = waitTimeout ?? TimeSpan.FromSeconds(30);
         if (timeout <= TimeSpan.Zero || timeout > TimeSpan.FromMinutes(2)) throw new ArgumentOutOfRangeException(nameof(waitTimeout));
@@ -166,6 +173,8 @@ public static class UpdateHandover
             if (await PackageVerifier.VerifyStreamAsync(verified.Verified, request.AssetName, lease, token).ConfigureAwait(false) != VerificationFailure.None)
                 return new(HandoverFailure.PackageRejected);
             if (!LayoutMatches(request)) return new(HandoverFailure.InvalidLayout);
+            if (currentWorker && !Path.GetFullPath(Environment.ProcessPath!).Equals(Path.Combine(request.LayoutRoot, "app-" + request.CurrentVersion, "Fyltrix.exe"), StringComparison.OrdinalIgnoreCase))
+                return new(HandoverFailure.InvalidProcess);
             foreach (var identity in request.Processes)
             {
                 Process process;
@@ -184,7 +193,7 @@ public static class UpdateHandover
             if (System.Text.Encoding.ASCII.GetString(await StagingArea.ReadSmallAsync(Path.Combine(folder, ApprovalName), 32, token).ConfigureAwait(false)) != request.Token)
                 return new(HandoverFailure.CloseCancelled);
             if (!LayoutMatches(request)) return new(HandoverFailure.InvalidLayout);
-            if (Capture(request.LayoutRoot).Count != 0) return new(HandoverFailure.StillRunning);
+            if (Capture(request.LayoutRoot).Any(p => !currentWorker || p.Identity.Id != Environment.ProcessId)) return new(HandoverFailure.StillRunning);
             lease.Position = 0;
             var ready = new ReadyHandover(verified.Verified, request, lease); lease = null;
             return new(HandoverFailure.None, ready);
@@ -195,7 +204,7 @@ public static class UpdateHandover
         finally { lease?.Dispose(); foreach (var process in handles) process.Dispose(); }
     }
 
-    private static Payload? ValidateLayout(string root)
+    internal static Payload? ValidateLayout(string root)
     {
         StagingArea.RejectLinks(root);
         StagingArea.RejectLinks(Path.Combine(root, "Fyltrix.exe"));

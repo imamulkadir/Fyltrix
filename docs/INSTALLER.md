@@ -1,6 +1,6 @@
 # Per-user Inno Setup installer — Stage 3
 
-The installer is separate from portable publishing and the future updater. `publish.ps1 -Run` keeps its existing behavior. Building an installer never runs it, launches Fyltrix, installs dependencies, or publishes a release. Automatic installation remains disabled.
+The installer is separate from portable publishing and the [explicit update backend](APPLY_AND_RECOVERY.md). `publish.ps1 -Run` keeps its existing behavior. Building an installer never runs it, launches Fyltrix, installs dependencies, or publishes a release. Automatic installation remains disabled.
 
 ## Compile
 
@@ -18,7 +18,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\Build-Installer.ps1 `
 
 Optional parameters: `-OutputDirectory` and `-IsccPath`. Default output is `installer-Sandbox` or `installer-Production` inside the release directory. Existing output directories are refused. Output includes Setup, a SHA-256 sidecar, `installer-build.json`, and the installation ownership marker used by Setup.
 
-The builder compares every layout file with its ZIP and checks the ZIP against both recorded checksums. Unexpected files, modified payloads, unsafe paths, and source/output junctions are refused. This detects inconsistent build inputs; it does **not** authenticate a publisher. These installers are unsigned. Signing and authenticated release verification remain future work.
+The builder compares every layout file with its ZIP and checks the ZIP against both recorded checksums. Unexpected files, modified payloads, unsafe paths, and source/output junctions are refused. Current builds require the protocol-aware layout produced by the current packaging script. This detects inconsistent build inputs; it does **not** authenticate a publisher. These installers are unsigned; [signed release verification](UPDATES.md) is separate from Windows Authenticode signing.
 
 ## Identities and paths
 
@@ -39,9 +39,9 @@ Close the installed copy yourself before upgrading or uninstalling. Setup does n
 
 An upgrade copies the new versioned payload, then the root launcher and version pointer. Earlier payloads remain recorded in the appended uninstall log. An older numeric Windows binary version is refused. This check does not order prereleases sharing the same numeric version.
 
-This stage provides ordinary Inno installation behavior, **not** application-health rollback, atomic version switching, or tested recovery from power loss. The installer is not yet suitable for unattended updater handover. Runtime shutdown coordination and verified rollback are separate stages.
+Inno upgrades retain ordinary installer semantics; copied-profile health validation, atomic pointer switching and journal recovery belong to the separate Stage 6 backend. Setup/uninstall now take the same exclusive startup gate and refuse pending update journals. The committed numeric version in the ownership marker also prevents downgrade when the stable launcher was retained by an update. Installer completion refreshes that marker. Older installations need an explicit manual bootstrap installer before managed updates; do not add a capability file to an old payload by hand. Physical power-loss recovery and unattended installation are not certified.
 
-Uninstall removes files recorded by Inno, including payloads recorded by prior upgrades. There are no wildcard deletion rules. Untracked files in the installation tree remain, and can leave directories behind. A missing/mismatched ownership marker, redirected tree, or busy file prevents uninstall rather than relaxing the checks.
+Uninstall removes files recorded by Inno, including payloads recorded by prior upgrades. It also validates the bounded owner-bound `update-files.ini` inventory and removes updater-added files only when their recorded hashes still match. Modified updater-owned and unknown files remain and can leave directories behind. There are no wildcard deletion rules. A missing/mismatched ownership marker, redirected tree, busy file or invalid inventory prevents uninstall rather than relaxing the checks.
 
 Settings and persisted data remain at `%AppData%\FileLens`; caches remain at `%LocalAppData%\FileLens`. Neither installer mode relocates, migrates, resets, or removes them. No machine-specific settings, Recent entries, Favourites, or personal paths are bundled. Existing program-scoped firewall permissions can require reauthorization when an executable path changes; this installer does not change firewall policy. WebView2 and optional codecs retain their existing prerequisite behavior.
 
@@ -68,6 +68,6 @@ Run non-elevated, with no existing Sandbox registration/shortcut and a new exter
 
 Checks include protected/unowned destinations, identity/schema validation, junctions, locked files, running-app refusal, shortcut targeting, numeric downgrade refusal, upgrade retention, actual application startup/preferences/preview, uninstall cleanup, and retention of unknown files and personal profile hashes. Logs and `verification.json` stay in the supplied work directory. Test-added unknown files deliberately remain after uninstall.
 
-Stage 3 tested two Sandbox versions through silent native installation on this Windows machine. The production variant was compiled but not installed. Interactive wizard/optional desktop-shortcut selection, a separate standard-user account, signing/SmartScreen, power-loss recovery, and health rollback have not been verified. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) for executed results and approval gates.
+Stage 3 tested two Sandbox versions through silent native installation on this Windows machine. Stage 6 adds installed apply/rollback/interrupted-worker recovery and inventory-cleanup tests. The production variant is compiled only, never installed by these tests. Interactive wizard/optional desktop-shortcut selection, a separate standard-user account, signing/SmartScreen and physical power-loss recovery remain unverified. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) for executed results and approval gates.
 
 Relevant Inno documentation: [per-user privileges](https://jrsoftware.org/ishelp/topic_setup_privilegesrequired.htm), [application closing](https://jrsoftware.org/ishelp/topic_setup_closeapplications.htm), [script event guards](https://jrsoftware.org/ishelp/topic_scriptevents.htm), and [appended uninstall logs](https://jrsoftware.org/ishelp/topic_setup_uninstalllogmode.htm).

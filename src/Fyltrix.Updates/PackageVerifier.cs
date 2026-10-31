@@ -76,7 +76,7 @@ public static class PackageVerifier
             if (name.Length == 0 || name.Length > 1024 || !names.TryAdd(name, directory)) return false;
             var parts = name.Split('/');
             if (parts.Any(UnsafePart)) return false;
-            if (parts[0] != payload && (parts.Length != 1 || directory || parts[0] is not ("Fyltrix.exe" or "current.json" or "LAYOUT.txt"))) return false;
+            if (parts[0] != payload && (parts.Length != 1 || directory || parts[0] is not ("Fyltrix.exe" or "current.json" or "LAYOUT.txt" or "UPDATE_PROTOCOL" or "startup.lock"))) return false;
             uint attributes = unchecked((uint)entry.ExternalAttributes);
             if (((attributes >> 16) & 0xf000) == 0xa000 || (attributes & 0x400) != 0) return false;
             if (directory && entry.Length != 0) return false;

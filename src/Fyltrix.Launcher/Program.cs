@@ -7,14 +7,19 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
-        var payload = ReleaseLayout.Resolve(AppContext.BaseDirectory);
-        if (payload == null) return Error("The release layout is missing or invalid. Re-extract the complete package or reinstall Fyltrix. Your settings have not been changed.");
         try
         {
+            using var startup = UpdateProtocol.EnterShared(AppContext.BaseDirectory);
+            var payload = ReleaseLayout.Resolve(AppContext.BaseDirectory);
+            if (payload == null) return Error("The release layout is missing or invalid. Re-extract the complete package or reinstall Fyltrix. Your settings have not been changed.");
             using var process = Process.Start(ReleaseLayout.StartInfo(payload, args, Environment.CurrentDirectory));
             if (process == null) return Error("Windows could not start Fyltrix.");
             process.WaitForExit();
             return process.ExitCode;
+        }
+        catch (IOException) when (File.Exists(Path.Combine(AppContext.BaseDirectory, UpdateProtocol.JournalFile)))
+        {
+            return Error("An interrupted Fyltrix update needs recovery before startup. Use the documented update recovery command. Your settings have not been rewritten.");
         }
         catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
         {

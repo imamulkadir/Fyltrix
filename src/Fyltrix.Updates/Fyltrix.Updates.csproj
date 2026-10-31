@@ -1,12 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk" TreatAsLocalProperty="AssemblyVersion">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <PlatformTarget>x64</PlatformTarget>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Fyltrix.Updates.Tests" />
-    <ProjectReference Include="..\Fyltrix.Launcher\Fyltrix.Launcher.csproj" />
+    <InternalsVisibleTo Include="Fyltrix.PlacementProbe" />
+    <ProjectReference Include="..\Fyltrix.Bootstrap\Fyltrix.Bootstrap.csproj" />
   </ItemGroup>
 </Project>

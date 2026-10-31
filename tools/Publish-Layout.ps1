@@ -82,26 +82,31 @@ finally { $env:PATH = $originalPath }
 
 Copy-Item -LiteralPath (Join-Path $launcherOut 'Fyltrix.Launcher.exe') -Destination (Join-Path $layout 'Fyltrix.exe')
 $utf8 = New-Object Text.UTF8Encoding($false)
+[IO.File]::WriteAllText((Join-Path $layout 'UPDATE_PROTOCOL'), "Fyltrix.Update/1`nFileLens.Profile/1`n", $utf8)
+[IO.File]::WriteAllBytes((Join-Path $layout 'startup.lock'), [byte[]]@())
 [IO.File]::WriteAllText((Join-Path $layout 'current.json'), (([ordered]@{ current = $Version; previous = $null } | ConvertTo-Json) + [Environment]::NewLine), $utf8)
 $notes = @"
-Fyltrix release-layout proof of concept ($Version, win-x64)
+Fyltrix versioned release layout ($Version, win-x64)
 
 Launch the root Fyltrix.exe. It forwards folder arguments to app-$Version\Fyltrix.exe.
 Keep this whole layout together. It can be moved or extracted to another writable or read-only directory.
 Settings remain in %AppData%\FileLens; caches remain in %LocalAppData%\FileLens.
 WebView2 Runtime and optional preview codecs are still required separately.
 
-This Stage 2 package has no installer, updater, startup registration, or automatic installation.
-The previous pointer supports a missing-current-payload fallback only; health-based rollback is a later stage.
+This layout supports manual protocol-1 update handover, isolated health checks, and rollback/recovery.
+No startup registration, check scheduler, or automatic installation is enabled.
+Managed updates require owner-pinned signing trust. Use the separate installer for first installation/bootstrap.
+An interrupted transaction blocks startup until explicit authenticated recovery.
 The ZIP checksum detects file changes; it is not a publisher signature or a trusted update manifest.
 "@
 [IO.File]::WriteAllText((Join-Path $layout 'LAYOUT.txt'), $notes, $utf8)
 $zip = Join-Path $release "Fyltrix-$Version-win-x64.zip"
-Compress-Archive -LiteralPath @((Join-Path $layout 'Fyltrix.exe'), (Join-Path $layout 'current.json'), (Join-Path $layout 'LAYOUT.txt'), $payload) -DestinationPath $zip -CompressionLevel Optimal
+Compress-Archive -LiteralPath @((Join-Path $layout 'Fyltrix.exe'), (Join-Path $layout 'current.json'), (Join-Path $layout 'LAYOUT.txt'), (Join-Path $layout 'UPDATE_PROTOCOL'), (Join-Path $layout 'startup.lock'), $payload) -DestinationPath $zip -CompressionLevel Optimal
 $hash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText(($zip + '.sha256'), "$hash  $([IO.Path]::GetFileName($zip))`r`n", $utf8)
 $metadata = [ordered]@{
-    product = 'Fyltrix'; version = $Version; runtime = 'win-x64'; kind = 'stage2-layout-proof-of-concept'
+    product = 'Fyltrix'; version = $Version; runtime = 'win-x64'; kind = 'versioned-layout-protocol1'
+    protocolVersion = 1; profileContract = 1
     launcher = 'layout\Fyltrix.exe'; payload = "layout\app-$Version\Fyltrix.exe"
     sha256 = $hash; installerBuilt = $false; automaticInstallationEnabled = $false
 }

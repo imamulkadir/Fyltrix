@@ -17,8 +17,9 @@ public static class ArchiveBrowser
     private static readonly Dictionary<string, string> Passwords = new(StringComparer.OrdinalIgnoreCase); // session only, never saved
     private static readonly object Gate = new();
 
-    public static string CacheBase { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "ArchiveCache");
-    public static string CacheRoot { get; } = Path.Combine(CacheBase, Environment.ProcessId.ToString());
+    public static string CacheBase { get; private set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "ArchiveCache");
+    public static string CacheRoot { get; private set; } = Path.Combine(CacheBase, Environment.ProcessId.ToString());
+    internal static void SetTrialCache(string folder) { CacheBase = Path.GetFullPath(folder); CacheRoot = Path.Combine(CacheBase, Environment.ProcessId.ToString()); }
 
     /// <summary>Splits a virtual path into the archive file and the folder inside it ('/'-separated, "" = root).</summary>
     public static bool TryParse(string path, out string archiveFile, out string inner)

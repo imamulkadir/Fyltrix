@@ -284,6 +284,15 @@ public sealed class AppSettings
         return new AppSettings();
     }
 
+    // The trial must fail rather than silently falling back to defaults; normal loading remains unchanged.
+    internal static AppSettings LoadForUpdateTrial()
+    {
+        if (!File.Exists(FilePath)) return new AppSettings();
+        if (new FileInfo(FilePath).Length > 8 * 1024 * 1024) throw new InvalidDataException("Settings exceed trial validation limit.");
+        var strict = new JsonSerializerOptions(Options) { UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow };
+        return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath), strict) ?? throw new InvalidDataException("Invalid trial settings.");
+    }
+
     public void Save()
     {
         try

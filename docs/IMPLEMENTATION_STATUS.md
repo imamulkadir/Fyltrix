@@ -4,9 +4,9 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
-Last updated **2026-10-31**. Full identity migration is complete: projects, namespaces, assemblies and executable use **Fyltrix**. Legacy storage, preview origin, manifest and firewall-rule identities remain compatible. **361 application tests pass**. The release is `artifacts\Fyltrix\Fyltrix.exe`; old outputs are backed up externally. See `docs/FYLTRIX_MIGRATION_REPORT.md` for verification and intentional legacy references. Sections below preserve the earlier rounds as history.
+Last updated **2026-11-01**. Full identity migration is complete: projects, namespaces, assemblies and executable use **Fyltrix**. Legacy storage, preview origin, manifest and firewall-rule identities remain compatible. **365 application tests pass**. The release is `artifacts\Fyltrix\Fyltrix.exe`; old outputs are backed up externally. See `docs/FYLTRIX_MIGRATION_REPORT.md` for verification and intentional legacy references. Sections below preserve the earlier rounds as history.
 
-Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Stage 5 adds explicit verified staging and a safe shutdown/handover boundary, with **113 update tests**, **28 packaging tests** and **361 application tests** passing. The application has an internal guarded-close seam but no update UI/startup scheduler; production signing trust is unconfigured and automatic updates remain disabled.
+Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Stage 6 adds verified apply, copied-profile health validation, atomic switching, rollback/recovery and owned-file installer cleanup, with **128 update tests**, **31 packaging tests**, **365 application tests** and nine installer guard tests passing. The application has explicit backend worker/trial modes and a guarded-close seam, but no update UI/startup scheduler; production signing trust is unconfigured and automatic updates remain disabled.
 
 | Round | What | Status |
 |---|---|---|
@@ -29,6 +29,13 @@ Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md
 | 11 | Complete project/namespace/assembly/resource migration to Fyltrix with legacy profile and Windows integration compatibility | Done; 354 tests pass; clean rebuild, normal/single-file publish and actual apphost startups verified |
 | Infrastructure, Stage 4 | Separate GitHub release discovery, signed manifests, local verification/signing tool | Done; 86 update tests, 28 packaging tests and 354 application tests pass; stopped for Stage 5 approval |
 | Infrastructure, Stage 5 | Explicit verified staging, work-preserving close, independent handover readiness | Done; 113 update tests, 361 application tests, 28 packaging tests and nine installer guard tests pass; stopped for Stage 6 approval |
+| Infrastructure, Stage 6 | Verified apply, copied-profile health, pointer rollback/recovery and updater-owned uninstall inventory | Done; 128 update, 365 application, 31 packaging, nine builder tests; four installed update scenarios and 17 Inno lifecycle cases pass; stopped for Stage 7 approval |
+
+## INFRASTRUCTURE STAGE 6 (2026-11-01): isolated apply and recovery
+
+The existing self-contained payload can host the explicit updater worker before WPF/profile startup. The backend reauthenticates the approved handover, excludes new protocol-aware startups, snapshots live data read-only, extracts only a new payload and validates it through a current-user PID-bound health pipe with copied settings and separate caches/clipboard. It switches the version pointer only after health succeeds. The retained old payload supports exact-pointer rollback and authenticated journal recovery; live settings are never restored or overwritten. The stable launcher remains in place. A small shared Bootstrap library avoids executable-reference publish conflicts without adding dependencies or changing the existing layout namespace.
+
+Inno now shares the startup gate, refuses interrupted transactions, tracks the committed version and supplements its uninstall log with a bounded path/hash inventory for updater-added files. Modified and unknown files remain. Production pins are empty, automatic updates are disabled and `publish.ps1` remains unchanged. Installed Sandbox tests exercise commit, incompatible-settings rollback, interrupted switch/commit recovery, actual restart/preview/preferences, downgrade refusal and inventory cleanup. Full application/update/packaging suites pass. Usage, safety limits and test commands: [APPLY_AND_RECOVERY.md](APPLY_AND_RECOVERY.md). Exact evidence, initial failures, remaining manual checks and the Stage 7 approval gate: [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
 
 ## INFRASTRUCTURE STAGE 5 (2026-10-31): manual staging and safe handover
 
@@ -275,7 +282,7 @@ powershell -ExecutionPolicy Bypass -File .\publish.ps1                     # rel
 
 ## Next steps (in order)
 
-Nothing is in progress.
+Feature rounds and installation/update Stage 6 are complete. Wait for explicit Stage 7 approval before end-to-end manual workflow integration/regression and the optional automation proposal; see [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Automatic installation remains disabled. Do not commit, push, merge, tag, publish or create branches; the owner handles Git operations and development remains on `master`.
 
 Waiting on the user (can't be verified without driving the real desktop):
 1. Taskbar icon shows correctly right after start (Round 3).

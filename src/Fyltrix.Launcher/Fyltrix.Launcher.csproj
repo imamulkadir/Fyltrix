@@ -15,4 +15,8 @@
     <Title>Fyltrix launcher</Title>
     <Description>Launches the selected Fyltrix release payload.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="ReleaseLayout.cs;UpdateProtocol.cs;TrialConnection.cs" />
+    <ProjectReference Include="..\Fyltrix.Bootstrap\Fyltrix.Bootstrap.csproj" />
+  </ItemGroup>
 </Project>

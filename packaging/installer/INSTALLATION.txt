@@ -2,10 +2,11 @@ Fyltrix per-user installation
 
 Launch Fyltrix.exe in this installation's root directory. Keep the versioned payload directories with it.
 Settings and saved data remain in %AppData%\FileLens. Caches remain in %LocalAppData%\FileLens.
-Uninstall never deletes those data stores. It removes only files recorded by this installer and retains unknown files.
+Uninstall never deletes those data stores. It uses the installer log plus the owner-bound updater file inventory. Unknown files and modified updater-owned files remain.
 
 Close this installed copy before a manual upgrade or uninstall. Setup never force-closes applications.
-Older payloads are retained on manual upgrade; health-based update/rollback is not implemented in this stage.
+Older payloads are retained. The separate explicit update backend validates copied-profile health before switching versions.
+An interrupted update journal blocks startup and installer changes until authenticated recovery completes; see docs/APPLY_AND_RECOVERY.md in the source repository.
 WebView2 Runtime and optional codecs/preview handlers are still required separately.
 
 Sandbox installers are for isolated testing only. They are never launched automatically.

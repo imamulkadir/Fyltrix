@@ -4,4 +4,5 @@
     <TargetFramework>net8.0</TargetFramework>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
+  <ItemGroup><ProjectReference Include="..\..\src\Fyltrix.Bootstrap\Fyltrix.Bootstrap.csproj" /></ItemGroup>
 </Project>

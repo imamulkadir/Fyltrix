@@ -36,6 +36,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Fyltrix.Updates\Fyltrix.Updates.csproj" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
     <!-- MIT. Reads ZIP/7z/RAR/TAR/GZ/BZ2/XZ; writing uses the .NET built-ins. -->
     <PackageReference Include="SharpCompress" Version="1.0.0" />

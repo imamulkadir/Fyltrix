@@ -48,6 +48,58 @@ No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mut
 - Branch cleanup is complete and verified. The owner's later "proceed next" instruction approved resuming Stage 2 directly on `master`; its progress is recorded below.
 - Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
 
+## Stage 6 — Apply, isolated health, rollback and recovery
+
+Status: **Completed — stopped for Stage 7 approval (2026-11-01)**, authorized by the owner's "proceed" after asking how many stages remained. Starting clean `master`/origin/live master: `4f29ed2d4b636b371c09bc683ded745da6ba7de5`. No commit, push, merge, tag, branch or release operation. Stage 7 has not started.
+
+### Completed tasks
+
+- Added protocol-1 capability and cooperative startup exclusion. Normal root launcher and direct payload startup hold shared leases; apply/installer/uninstaller take exclusive access. Pending journals block normal startup. Older layouts retain normal launch compatibility and require explicit manual bootstrap installation before managed updates.
+- Reused the old self-contained application host for explicit apply/recovery modes before WPF/profile initialization; no separate runtime, service, scheduled task or NuGet dependency. The `Fyltrix.Bootstrap` class library shares the existing `Fyltrix.Launcher` layout namespace/API without an executable-reference publishing conflict. Component assembly identities remain stable while application/file/product versions are stamped per release.
+- Added independently verified ZIP apply after the existing approved-close/process-wait boundary. Retain old code and stable launcher, refuse active processes/existing targets/unsafe paths/no-space, extract a new payload, and record an owner-bound exact path/hash inventory.
+- Hold read-only live-profile leases; create separate snapshot/trial copies and isolated caches. Strict copied-settings loading fails instead of resetting defaults. Trial disables clipboard access/automation, uses an offscreen window and current-user PID/nonce/version-bound named pipe, waits for initial listing, and must close normally with exit zero. Only the worker-owned isolated trial may be terminated on failure.
+- Recheck original profile, processes, code and exact pointer before atomic switching. Flush a transaction journal, retain old version as previous, finish committed metadata, and restart through the root launcher. Precommit failure restores exact code selection without writing live data. Failed trials do not automatically reopen potentially unvalidated live settings.
+- Added explicit authenticated interruption recovery: precommit rollback or postcommit validation/metadata completion; unknown/modified state retains the journal. No guessing, forced user-app shutdown, data restoration or automatic staging/payload pruning.
+- Updated Inno startup coordination, interrupted-transaction refusal, committed-version downgrade guard and uninstall inventory cleanup. Updater-added files are deleted only if recorded paths/hashes still match; modified/unknown files remain. Sandbox/Production identities and existing profile/cache storage remain unchanged.
+- Added unit/integration tests, private-desktop installed Sandbox lifecycle harness and maintenance documentation. Production pins are empty and automatic installation remains disabled; no end-user update UI is wired yet.
+
+### Files created or modified
+
+- Shared bootstrap: `src/Fyltrix.Bootstrap/Fyltrix.Bootstrap.csproj`; `src/Fyltrix.Launcher/UpdateProtocol.cs`, `TrialConnection.cs`, `Program.cs`, `Fyltrix.Launcher.csproj`. Existing `ReleaseLayout.cs` source/API is reused unchanged.
+- Apply library: `src/Fyltrix.Updates/ProfileSnapshot.cs`, `UpdateApplier.cs`, `UpdateRecovery.cs`, `UpdateTransaction.cs`, `UpdateWorker.cs`; existing `UpdateHandover.cs`, `PackageVerifier.cs`, `Fyltrix.Updates.csproj`.
+- Application: `src/Fyltrix/App.cs`, `Fyltrix.csproj`, `Core/AppSettings.cs`, `Core/Archives/ArchiveBrowser.cs`, `UI/FolderView.cs`. Changes are restricted to worker/trial startup, strict copied-profile loading, isolated archive cache and listing readiness; file-management algorithms/defaults are unchanged.
+- Packaging: `tools/Publish-Layout.ps1`, `tools/Build-Installer.ps1`, `packaging/installer/Fyltrix.iss`, `INSTALLATION.txt`.
+- Tests: `tests/Fyltrix.Updates.Tests/ApplyTests.cs`, `HandoverTests.cs`; `tests/Fyltrix.HandoverProbe/TestKeys.cs`, `TrialStub.cs`, `Program.cs`, project file; `tests/Fyltrix.Packaging.Tests/StartupGateTests.cs`; `tests/Fyltrix.Tests/UpdateProfileTests.cs`; `tests/Fyltrix.PlacementProbe/SandboxUpdateStartupProbe.cs`, `InstallerStartupHook.cs`; `tests/installer/verify_apply.py`.
+- Documentation: new `docs/APPLY_AND_RECOVERY.md`; updated `README.md`, `docs/IMPLEMENTATION_STATUS.md`, `INSTALLER.md`, `MANUAL_UPDATES.md`, `RELEASE_LAYOUT.md`, `UPDATES.md`, and this file.
+
+### Executed verification
+
+- Before application changes: x64 development build and private-desktop development/legacy-payload startup passed. Captured personal roaming-profile, existing portable-release and tracked-source hashes.
+- Final application suite: **365 passed, 0 failed, 0 skipped**. Final update suite: **128 passed, 0 failed, 0 skipped**. Packaging suite: **31 passed, 0 failed, 0 skipped**. Installer builder guards: **9 passed**. Tests cover trial crash/timeout/wrong nonce, copied-profile mutation, locked/changed live data, busy gate/existing target, precommit failures, interrupted commit/switch recovery, changed committed candidate and startup exclusion.
+- An earlier full application run failed two existing tests: thumbnail readiness timeout and reading an external robocopy output while still locked. Focused rerun **17/17** and final full **365/365** passed without changing those tests or application algorithms. The earlier run overlapped packaging; no performance-causality claim is made.
+- Final x64 development build: passed with two existing warnings. NativeAOT/self-contained `0.1.0` and `0.1.1` release-layout builds: passed in fresh external output roots. Both Sandbox installers and the Production installer compiled; Production Setup was never executed. Post-change actual development and untouched legacy payloads launched with preview ready and exited zero on private desktops.
+- Final installed apply harness: **four scenarios passed** using real native/WPF payloads, disposable local signing trust and synthetic settings. Verified successful commit; strict incompatible-trial-settings rollback; abrupt worker exit during pointer switch and after commit; journal-blocked direct startup; explicit signed recovery; actual restart on expected version with custom preferences/preview; live-profile byte preservation; unconfigured production-worker refusal while an app remains running; numeric downgrade refusal; uninstall of owned initial/updater payloads while retaining modified owned and unknown files. Tests are non-elevated and never execute Production Setup or change production trust.
+- Final manual Inno lifecycle regression: **17 cases passed**, including protected/unowned/redirected targets, ownership/schema checks, locked pointer/running-app refusal, upgrade retention, actual startup/preferences/preview, downgrade refusal and uninstall cleanup. Sandbox registration/shortcut were removed and unknown files retained.
+- Final preservation audit passed: personal roaming-profile files and all **488 existing portable-release files** match pre-stage hashes; every original tracked file remains; `publish.ps1` and production trust source are byte-identical. `master` HEAD/origin remain at the starting commit, whitespace checks and current documentation links pass. Evidence: `stage6-verification.json`. No user process, real clipboard, Recycle Bin, desktop input or production installer was used by tests.
+
+### Corrections made during verification
+
+- Initial executable-to-executable project references caused duplicate publish apphosts/runtimeconfig files (`NETSDK1152`); shared code now resides in a small class library. Stable component AssemblyVersion fixed an installed probe binding mismatch; fresh builds and actual launches passed.
+- Fixed Inno API argument counts and compiler issues before successful compilation. Added safe repeated preparation/uninstall authorization cleanup guards.
+- The first uninstall assertion raced Inno's temporary uninstaller: its bootstrap can exit before owned-file cleanup finishes. Inspection confirmed cleanup completed; the harness now waits for the inventory/payload cleanup, and subsequent four-scenario runs passed. Failed/intermediate packages and evidence remain outside the checkout rather than being overwritten.
+
+### Evidence, risks and next stage
+
+Evidence root: `D:\Tools\Fyltrix-stage6-20261031-234537-c4e7f8f6`. Final source builds are `packages-verified`; installed tests use `installer-acceptance-0.1.0`, `installer-verified-0.1.1`, `sandbox-acceptance` and `installer-lifecycle-final`. Production compilation is under `installer-production-compile-only`. TRX/logs are retained under `tests` and the evidence root. Earlier successful lifecycle evidence is also retained under `sandbox-lifecycle` and `sandbox-final`; incomplete attempts are not release artifacts.
+
+Live data is never restored/overwritten by the worker. Snapshots/staging can contain private profile data and must not be published. Old/failed payloads and evidence are retained; partial interrupted extraction can require manual review. The launcher is retained during managed update; protocol upgrades need manual installer bootstrap. Registry display-version refresh is best effort. Strict settings validation deliberately rejects unknown fields instead of silently dropping them. Startup health does not certify every codec/integration or physical power loss.
+
+Not performed: Production installation, owner-key/live-public-release authentication, Authenticode/SmartScreen, interactive wizard, a separate Windows account, physical power-loss testing, or a fresh five-run performance comparison. Existing portable output and `publish.ps1 -Run` are protected rather than rebuilt in place. Broader workflow/performance regression and the explicit user update action belong to Stage 7; fully automatic installation requires separate approval after all gates pass.
+
+Suggested commit message: `feat(updater): add isolated health checks and recoverable update apply`.
+
+Next stage, only after explicit approval: Stage 7, end-to-end manual workflow integration/regression and optional automation proposal. The owner handles all Git/release operations. Do not resume implementation automatically.
+
 ## Stage 5 — Manual staging and safe shutdown/handover
 
 Status: **Completed — stopped for Stage 6 approval.** Authorized by the owner's "pushed, proceed", followed by "continue please from where you left off" during verification. Starting branch was clean `master` at `e9998306c9fe70c3957ca9a207ceabe0ea3e4d96`, matching origin and live GitHub master. No Git write, branch, release, installer, or production trust operation was performed.
@@ -309,8 +361,8 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 2. Separate release packaging/layout proof of concept — completed on `master`; approved for Stage 3 by the owner's "proceed next" instruction.
 3. Inno Setup per-user installer — completed on `master`; approved for Stage 4 by the owner's "pushed, continue" instruction. Production installer compiled only.
 4. Read-only GitHub release detection and signed-manifest/package verification — completed on `master`; approved for Stage 5 by the owner's "pushed, proceed" instruction. Production trust remains unconfigured.
-5. Manual staging and safe shutdown/handover — completed on `master`; 113 update tests, 361 application tests, real-process/UI-thread handover and preservation checks passed. Waiting for Stage 6 approval.
-6. Out-of-process version switch, health validation, rollback/failure recovery, and compatibility tests for saved data.
+5. Manual staging and safe shutdown/handover — completed on `master`; approved for Stage 6 by the owner's "proceed" instruction.
+6. Out-of-process apply, isolated health validation, rollback/recovery and saved-data preservation — completed on `master`; stopped for explicit Stage 7 approval. See the Stage 6 report above.
 7. End-to-end regression verification and optional automation proposal. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: the owner can review/commit Stage 5 manually. Stop for explicit Stage 6 approval before implementing apply/version switching, health validation or rollback. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.
+Next action: wait for explicit Stage 7 approval. One planned stage remains: end-to-end manual workflow integration/regression and optional automation proposal. Fully automatic installation needs separate approval. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.

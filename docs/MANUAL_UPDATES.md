@@ -1,8 +1,8 @@
 # Manual staging and safe handover — Stage 5
 
-Stage 5 extends the separate [release verification library and tool](UPDATES.md). It adds an explicit download/staging operation and a verified handover boundary. **It does not apply an update.** Version switching, installation, application health checks, rollback and recovery belong to Stage 6, which requires separate approval.
+Stage 5 extends the separate [release verification library and tool](UPDATES.md). Its download/staging and verified handover APIs do not apply an update. Stage 6 adds a separate [verified apply, isolated health, rollback and recovery backend](APPLY_AND_RECOVERY.md). The complete end-user workflow remains gated on Stage 7.
 
-There is no new startup scheduler, service, settings key, or automatic check/download/install. The application does not reference the update library or expose an update UI yet. Its only production-code changes are the internal update-close guard and small counters needed to keep update shutdown from interrupting existing work. Ordinary closing and `publish.ps1 -Run` retain their behavior.
+There is no new startup scheduler, service, settings key, or automatic check/download/install. The application now references the update library for explicit Stage 6 worker/trial modes, but exposes no update UI. Ordinary closing, active-work guards and `publish.ps1 -Run` retain their behavior.
 
 ## Manual downloads
 
@@ -52,7 +52,7 @@ When preflight succeeds, the method calls normal `Window.Close()`. Existing tab 
 
 `WaitForReadyAsync` is the out-of-process consumer boundary. It independently checks bounded request/evidence files and signing trust, obtains a read-only package lease that denies writers/deletion on Windows, verifies the package again, then waits for all recorded processes to exit using `WaitForExitAsync`. Timeout defaults to 30 seconds; cancellation/timeout never kill a process. It checks process identities, unchanged request/approval/current layout, and scans once more for a newly started instance of this layout before returning `ReadyHandover`.
 
-The returned lease must be disposed by its consumer. **Readiness is not installation, rollback, or a lock on the entire application directory.** Stage 6 must retain/revalidate the package handle, coordinate any newly starting application, secure installation writes, preserve user data, and implement recovery. No installer or executable is launched by this stage.
+The returned lease must be disposed by its consumer. **Readiness is not installation, rollback, or a lock on the entire application directory.** The Stage 6 consumer revalidates the held package, obtains an exclusive cooperative startup gate, preserves user data and implements recovery. The staging/readiness APIs themselves do not launch an installer or executable.
 
 ## Tool commands
 
@@ -79,4 +79,4 @@ The update suite covers authenticated transport/copy, truncated/oversized/corrup
 
 A private-desktop integration stages a real release ZIP with a disposable key, starts the actual native launcher and WPF payload, calls the normal update-close seam, and verifies a separate helper reports readiness only after both exit. It asserts the layout and synthetic preferences remain intact. It does not install a new version or certify upgrade/rollback compatibility.
 
-Production signing trust, real authenticated live releases, application update UI, install/apply, interrupted-apply recovery, health rollback and automatic installation remain gated. The Stage 3 Production installer and the existing portable/development copy are not replaced. Executed results and evidence: [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+Stage 6 separately verifies installed Sandbox apply, interrupted recovery and health rollback; see [APPLY_AND_RECOVERY.md](APPLY_AND_RECOVERY.md). Production signing trust, real authenticated live releases, application update UI and automatic installation remain gated. The Production installation and existing portable/development copy are not replaced. Executed results and evidence: [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).

@@ -94,11 +94,11 @@ if (-not $IsccPath) { throw 'Inno Setup 6 ISCC.exe is required. Supply -IsccPath
 $utf8 = New-Object Text.UTF8Encoding($false)
 $id = if ($Mode -eq 'Sandbox') { 'Fyltrix.Sandbox.PerUser' } else { 'Fyltrix.PerUser' }
 $marker = Join-Path $OutputDirectory 'installer-identity.ini'
-[IO.File]::WriteAllText($marker, "[Installation]`r`nSchema=1`r`nAppId=$id`r`nMode=$Mode`r`n", $utf8)
+[IO.File]::WriteAllText($marker, "[Installation]`r`nSchema=1`r`nAppId=$id`r`nMode=$Mode`r`nVersionMajor=$($core[0])`r`nVersionMinor=$($core[1])`r`nVersionPatch=$($core[2])`r`n", $utf8)
 $ms = ([uint32]$core[0] * 65536) + [uint32]$core[1]
 $ls = [uint32]$core[2] * 65536
 $binaryVersion = ($core -join '.') + '.0'
-$arguments = @('/Qp',"/DAppVersion=$version","/DBinaryVersion=$binaryVersion","/DLayoutDir=$layout","/DMarkerFile=$marker","/DOutputDir=$OutputDirectory","/DVersionMS=$ms","/DVersionLS=$ls")
+$arguments = @('/Qp',"/DAppVersion=$version","/DBinaryVersion=$binaryVersion","/DLayoutDir=$layout","/DMarkerFile=$marker","/DOutputDir=$OutputDirectory","/DVersionMS=$ms","/DVersionLS=$ls","/DVersionMajor=$($core[0])","/DVersionMinor=$($core[1])","/DVersionPatch=$($core[2])")
 if ($Mode -eq 'Sandbox') { $arguments += '/DSandbox=1' }
 $arguments += (Join-Path $root 'packaging\installer\Fyltrix.iss')
 & $IsccPath @arguments

@@ -528,6 +528,8 @@ public sealed partial class FolderView : Grid
         return LoadAsync(keep, resetScroll: false, keepScroll: !explicitSelect);
     }
 
+    private int _publishedLoadVersion = -1;
+    internal bool StartupListingReady => _loadVersion > 0 && _publishedLoadVersion == _loadVersion;
     private async Task LoadAsync(IList<string>? select, bool resetScroll, bool keepScroll = false)
     {
         int v = ++_loadVersion;
@@ -567,6 +569,7 @@ public sealed partial class FolderView : Grid
         var scroller = keepScroll ? VisualTree.FindDescendant<ScrollViewer>(List) : null;
         double offset = scroller?.VerticalOffset ?? 0;
         SetItems(SortItems(items), select, scrollToSelection: !keepScroll);
+        _publishedLoadVersion = v;
         if (scroller != null && offset > 0)
             _ = Dispatcher.BeginInvoke(new Action(() => scroller.ScrollToVerticalOffset(offset)), DispatcherPriority.Loaded);
         if (resetScroll && Items.Count > 0 && (select == null || select.Count == 0))

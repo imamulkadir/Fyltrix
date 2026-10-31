@@ -380,14 +380,14 @@ The separate [release-layout tooling](docs/RELEASE_LAYOUT.md) builds an isolated
 
 Stage 4 adds separate [release discovery and signed package verification tooling](docs/UPDATES.md), with offline test feeds. It is not connected to application startup or settings. Production signing trust remains unconfigured.
 
-Stage 5 adds explicit [manual download/staging and safe handover tooling](docs/MANUAL_UPDATES.md), plus internal shutdown guards that preserve active work and existing close confirmations. Application update UI, applying updates, and rollback remain later work. No automatic updates are enabled; production downloads require an owner-supplied signing key to be pinned first.
+Stage 5 adds explicit [manual download/staging and safe handover tooling](docs/MANUAL_UPDATES.md), plus internal shutdown guards that preserve active work and existing close confirmations. Stage 6 adds the [verified apply, isolated health trial, rollback and recovery backend](docs/APPLY_AND_RECOVERY.md), with installed Sandbox tests and owned-file uninstall cleanup. The application update UI and final end-to-end approval remain Stage 7 work. No automatic updates are enabled; production verification/download/apply require an owner-supplied signing key to be pinned first.
 
 ```powershell
 dotnet restore .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj
 dotnet test .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj -p:Platform=x64
 ```
 
-The latest verified application suite has **361 passing tests**, covering core operations, offscreen UI behavior, and safe update closing. Separate suites cover release verification/staging and packaging. UI tests render real windows without taking desktop focus; clipboard tests use isolated providers. Tests do not certify every codec, shell handler, or network environment.
+The latest verified application suite has **365 passing tests**, covering core operations, offscreen UI behavior, safe update closing and strict copied-profile compatibility. Separate suites cover release verification/staging/apply/recovery and packaging. UI tests render real windows without taking desktop focus; clipboard tests use isolated providers. Tests do not certify every codec, shell handler, or network environment.
 
 `tests/Fyltrix.PlacementProbe` provides native placement checks, theme renders, and resource benchmarks. Build it before use:
 

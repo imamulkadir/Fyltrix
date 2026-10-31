@@ -35,7 +35,7 @@ public sealed class HandoverTests : IDisposable
         Directory.CreateDirectory(directory);
         string assembly = Assembly.Load("Fyltrix.HandoverProbe").Location;
         string source = Path.GetDirectoryName(assembly)!;
-        foreach (string file in new[] { "Fyltrix.HandoverProbe.dll", "Fyltrix.HandoverProbe.deps.json", "Fyltrix.HandoverProbe.runtimeconfig.json" })
+        foreach (string file in new[] { "Fyltrix.HandoverProbe.dll", "Fyltrix.HandoverProbe.deps.json", "Fyltrix.HandoverProbe.runtimeconfig.json", "Fyltrix.Bootstrap.dll" })
             File.Copy(Path.Combine(source, file), Path.Combine(directory, file));
         File.Copy(Path.ChangeExtension(assembly, ".exe"), Path.Combine(directory, "Fyltrix.exe"));
         var info = new ProcessStartInfo(Path.Combine(directory, "Fyltrix.exe")) { UseShellExecute = false, CreateNoWindow = true,

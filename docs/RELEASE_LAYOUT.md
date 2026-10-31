@@ -2,7 +2,7 @@
 
 This is a packaging/launcher proof of concept for the future Inno Setup installer. It does not install or update Fyltrix, register shortcuts, change startup behavior, migrate data, or publish anything. The normal application project and `publish.ps1 -Run` workflow remain unchanged.
 
-Stage 3 adds a separate [per-user Inno Setup builder and verification harness](INSTALLER.md) that consumes this layout. The layout script itself retains the Stage 2 behavior documented here.
+Stage 3 adds a separate [per-user Inno Setup builder and verification harness](INSTALLER.md) that consumes this layout. Stage 6 adds a bounded protocol capability and startup gate for the [explicit apply/recovery backend](APPLY_AND_RECOVERY.md). Packaging itself never installs or starts an update.
 
 ## Build
 
@@ -27,6 +27,8 @@ artifacts/distribution/<version>/
   layout/
     Fyltrix.exe                  NativeAOT launcher; stable future shortcut path
     current.json                 { "current": "<version>", "previous": null }
+    UPDATE_PROTOCOL              Update/profile contract, currently version 1
+    startup.lock                 Empty cooperative startup gate
     LAYOUT.txt                   Package instructions and limitations
     app-<version>/
       Fyltrix.exe                Existing WPF application payload
@@ -51,6 +53,7 @@ The ordinary portable output at `artifacts/Fyltrix` is not replaced. There is no
 - Start `app-<current>/Fyltrix.exe`. If that executable is missing and a valid previous payload exists, start the previous one.
 - Forward argument boundaries through `ProcessStartInfo.ArgumentList`, without a shell; preserve the caller's working directory. Relative folder arguments retain their existing meaning.
 - Wait for the payload and return its exit code. The launcher has no polling loop, background service, automatic restart, or crash supervisor.
+- For protocol-aware layouts, hold a shared startup lease while running. Refuse startup during an exclusive update/installer operation or when an interrupted transaction journal requires recovery. Direct payload startup follows the same gate. Legacy layouts without the capability retain their startup behavior.
 - Do not write to the layout or application-data stores. A missing/invalid layout produces a recovery message rather than recursively launching the root executable.
 
 The previous-pointer behavior is a **missing-payload fallback**, not health-based rollback. A payload that exists but crashes, lacks dependencies, or is blocked by security policy is not automatically replaced by the previous version in Stage 2. A corrupt pointer fails closed rather than guessing a version. Stable root and payload processes both use the Fyltrix executable name; a future shutdown/handover stage must account for both processes.
@@ -70,4 +73,4 @@ dotnet test .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj
 
 Stage 2 evidence is recorded in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Unit tests cover pointer parsing, version/path rejection, fallback, junction rejection, and argument forwarding. Integration probes launch the actual native root executable on a private desktop with isolated settings, WebView2, and clipboard providers; tests do not interact with the user's desktop.
 
-The checksum file detects archive changes. It is **not** a publisher signature, signed update manifest, or authorization to install an update. This proof of concept is unsigned. Installer behavior, installation/upgrade/uninstall, authenticated releases, safe shutdown, health acknowledgement, and update/rollback recovery remain later stages and require separate approval.
+The checksum file detects archive changes. It is **not** a publisher signature, signed update manifest, or authorization to install an update. The package remains unsigned unless separately signed. Installer, signed verification, safe handover and apply/recovery components are documented separately; production trust and automatic installation remain unconfigured. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) for verified stages and approval gates.
