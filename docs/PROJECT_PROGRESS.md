@@ -5,9 +5,44 @@ Last updated: 2026-10-31.
 ## Execution agreement
 
 - Work one stage at a time, build/test it, report the evidence, and stop for explicit approval before the next stage.
+- Use **`master` exclusively** for future Fyltrix development. Do not create feature, development, release, or temporary branches.
 - No commits, pushes, merges, tags, remote changes, or GitHub Release creation/publication. The owner handles Git operations.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
+
+## Priority task — Master-only branch consolidation
+
+Status: **Local consolidation completed; remote branch deletion awaits explicit approval. Update-system development is stopped.**
+
+### Findings
+
+- GitHub default branch is `master`, confirmed through repository metadata and the live remote HEAD.
+- PR #1 (`https://github.com/imamulkadir/Fyltrix/pull/1`) was already merged before this audit. Its existing merge commit is `b8f51c2a46ea437c5a5790c5a665b4f3321b3aaf`.
+- The feature tip `ca66593f58381fe179cbac8502ea2aef2c8666d7` adds only this progress document to baseline `c951bc6`. It is an ancestor of remote `master` and has no unique commits remaining outside it. The feature and remote-master file trees are identical.
+- There were no uncommitted changes when the consolidation audit started. The interrupted Stage 2 had only inspected the reference; no packaging/launcher implementation had been written.
+
+### Preservation and local changes
+
+- Backed up all pre-cleanup Git refs in `all-refs-before.bundle`, plus index/worktree patches, branch/status information, and copies/hashes of all 192 tracked/untracked working files.
+- Backup directory: `D:\Tools\Fyltrix-branch-consolidation-20261031-134427-5e89f485`.
+- Advanced local `master` to the already-existing remote merge commit with a normal fast-forward-only fetch ref update. No new merge or commit was created.
+- Switched the working directory to `master`.
+- Confirmed the feature commit was contained in `master`, then removed the local feature branch using non-forced `git branch -d`.
+- Compared every backed-up working-file hash after the switch: all files matched before this deliberate progress-document update.
+- Local `master`, `origin/master`, and live GitHub `master` all pointed to `b8f51c2a46ea437c5a5790c5a665b4f3321b3aaf` at verification time. The documentation change below remains uncommitted and is not claimed to be on GitHub.
+
+### Pending GitHub action
+
+The remote `feature/auto-update` branch still exists at `ca66593f58381fe179cbac8502ea2aef2c8666d7`. Its work is already incorporated into `master`. Per the owner's requirement to stop before remote/destructive GitHub actions, it has not been deleted automatically. The owner can delete this branch from GitHub's Branches page, or explicitly approve deletion of this exact remote branch after a fresh containment/head check. Do not delete `master`, reopen/close the already-merged PR, or change the default branch.
+
+No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mutation, remote deletion, or default-branch change was performed during this cleanup. Fetching and local fast-forward/switch/fully-merged-branch deletion were the only Git mutations.
+
+### Verification and current status
+
+- Git ancestry, tree equality, commit-head synchronization, working-file preservation, local branch list, remote branch list, and GitHub default/PR status verified.
+- Application source, dependencies, user data, and `publish.ps1 -Run` are unchanged. No application build or test rerun was needed for this Git/documentation-only task; Stage 1's executed result remains 354 passing tests.
+- Stage 2 is paused. Complete and verify remote branch cleanup first, then wait for an explicit instruction to resume development directly on `master`.
+- Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
 
 ## Stage 1 — Baseline protection and DynamicEye reference audit
 
@@ -16,7 +51,7 @@ Status: **Completed — stopped for approval.** No installer or updater feature 
 ### Completed tasks
 
 - Verified that the working application was already committed as `c951bc6` (`initial stable release`) with a clean working tree before feature work.
-- The branch was `master` at that point. Created and switched to `feature/auto-update` before implementation and before the owner's later instruction reserving Git operations. No commit or remote write was made. No further Git mutations will be performed.
+- The branch was `master` at that point. Created and switched to `feature/auto-update` before implementation and before the owner's later instruction reserving Git operations. No commit or remote write was made in Stage 1. This historical branch arrangement was superseded by the priority master-only consolidation above.
 - Built and launched the original development application successfully before implementation. The launch used a private desktop, isolated settings/WebView2 data, and a read-only test clipboard provider; folder listing and preview readiness passed, with exit code 0.
 - Inspected the reference repository at `D:\Tools\DynamicEye` (its GitHub project is spelled `DyanamicEye`). It uses Inno Setup 6, a separate packaging script, versioned payloads, a stable launcher, signed release manifests, and an out-of-process update/rollback helper.
 - Confirmed Inno Setup 6 compiler availability at `C:\Program Files (x86)\Inno Setup 6\ISCC.exe`.
@@ -83,12 +118,12 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 
 ## Planned stages — each requires a separate approval
 
-1. Baseline protection and reference audit — completed; waiting for approval.
-2. Separate release packaging/layout proof of concept, preserving `publish.ps1 -Run`; build and launch only an isolated copy.
+1. Baseline protection and reference audit — completed and approved by the owner's "go next" instruction.
+2. Separate release packaging/layout proof of concept, preserving `publish.ps1 -Run`; approved, but paused before implementation by the priority Git cleanup. Resume only on `master` after cleanup and an explicit resume instruction.
 3. Inno Setup per-user installer and sandbox manual installation/upgrade/uninstall tests, including user-data preservation.
 4. Read-only GitHub release detection and signed-manifest/package verification, with local-feed and rejection tests.
 5. Manual download and safe shutdown/handover, respecting running work, sharing, and cancelled closes.
 6. Out-of-process version switch, health validation, rollback/failure recovery, and compatibility tests for saved data.
 7. End-to-end regression verification and optional automation proposal. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next planned stage: Stage 2. Do not start it until the owner explicitly approves Stage 1 and the next step.
+Next action: obtain approval for the remaining remote feature-branch deletion (or verify the owner's manual deletion). Do not resume Stage 2 automatically. All future implementation uses `master` only.
