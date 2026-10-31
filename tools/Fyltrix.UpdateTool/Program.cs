@@ -89,7 +89,7 @@ try
             trust = "Explicit owner-supplied test key; not application pinning" }));
         return failure == VerificationFailure.None ? 0 : 2;
     }
-    if (args.Length >= 6 && args[0] == "sign")
+    if (args.Length >= 6 && args[0] is "sign" or "sign-release")
     {
         var version = ReleaseVersion.Parse(args[1]) ?? throw new ArgumentException("Invalid release version.");
         if (version.IsPrerelease) throw new ArgumentException("Only stable releases are supported by this stage.");
@@ -99,6 +99,11 @@ try
             if (Directory.Exists(Path.Combine(parent.FullName, ".git")) || File.Exists(Path.Combine(parent.FullName, ".git")))
                 throw new ArgumentException("Keep the private signing key outside Git checkouts.");
         var publicKey = await ReadKey(args[3]);
+        if (args[0] == "sign-release" && !ReleasePolicy.PinnedPublicKeys.Contains(publicKey, StringComparer.Ordinal))
+        {
+            Console.Error.WriteLine("Release signing refused: the public key is not pinned in this application build.");
+            return 2;
+        }
         using var key = ECDsa.Create();
         key.ImportFromPem(Encoding.UTF8.GetString(await ReadSmall(privateFile, 16 * 1024)));
         if (!SignedManifest.IsP256(key) || Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) != publicKey)
@@ -126,7 +131,7 @@ try
         Console.WriteLine("Signed manifest created locally. No upload, release, or installation performed.");
         return 0;
     }
-    Console.Error.WriteLine("Commands:\n  check <installed-version> [local-release.json]\n  verify <release.json> <manifest.json> <signature> <package> <public-key.txt>\n  sign <version> <private-key.pem> <public-key.txt> <new-output-dir> <package> [package]\n  download <installed-version> <staging-root>\n  stage-local <installed-version> <release.json> <manifest> <signature> <package> <public-key.txt> <staging-root>\n  prepare <staging-directory> <layout-root> [test-public-key.txt]\n  wait <handover.json> [test-public-key.txt]");
+    Console.Error.WriteLine("Commands:\n  check <installed-version> [local-release.json]\n  verify <release.json> <manifest.json> <signature> <package> <public-key.txt>\n  sign <version> <private-key.pem> <public-key.txt> <new-output-dir> <package> [package]\n  sign-release <version> <private-key.pem> <pinned-public-key.txt> <new-output-dir> <package> [package]\n  download <installed-version> <staging-root>\n  stage-local <installed-version> <release.json> <manifest> <signature> <package> <public-key.txt> <staging-root>\n  prepare <staging-directory> <layout-root> [test-public-key.txt]\n  wait <handover.json> [test-public-key.txt]");
     return 1;
 }
 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or CryptographicException or HttpRequestException)

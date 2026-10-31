@@ -8,6 +8,8 @@ Last updated **2026-11-01**. Full identity migration is complete: projects, name
 
 Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Stage 6 adds verified apply, copied-profile health validation, atomic switching, rollback/recovery and owned-file installer cleanup, with **128 update tests**, **31 packaging tests**, **365 application tests** and nine installer guard tests passing. The application has explicit backend worker/trial modes and a guarded-close seam, but no update UI/startup scheduler; production signing trust is unconfigured and automatic updates remain disabled.
 
+The owner has authorized Stage 7A release automation following DyanamicEye. A pushed stable version tag now has a configured GitHub workflow for tests, ZIP/Inno packaging, provenance and a changelog-based draft; local helpers prepare the version and complete signing/publication only on owner invocation. No tag, hosted workflow or remote release operation was executed during implementation. The production key/bootstrap and first hosted run remain owner validation gates. See [RELEASING.md](RELEASING.md) and the Stage 7A report in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md); application-update UI/final regression remain Stage 7B.
+
 | Round | What | Status |
 |---|---|---|
 | 1 (phases 0–6) | Archives, New menu/templates, media previews, image tools, batch rename, duplicates, folder sizes, search, tags, PDF tools, conversion, folder compare/sync, palette, automation, sharing, custom actions | Done (`docs/IMPLEMENTATION_REPORT.md`) |
@@ -30,6 +32,7 @@ Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md
 | Infrastructure, Stage 4 | Separate GitHub release discovery, signed manifests, local verification/signing tool | Done; 86 update tests, 28 packaging tests and 354 application tests pass; stopped for Stage 5 approval |
 | Infrastructure, Stage 5 | Explicit verified staging, work-preserving close, independent handover readiness | Done; 113 update tests, 361 application tests, 28 packaging tests and nine installer guard tests pass; stopped for Stage 6 approval |
 | Infrastructure, Stage 6 | Verified apply, copied-profile health, pointer rollback/recovery and updater-owned uninstall inventory | Done; 128 update, 365 application, 31 packaging, nine builder tests; four installed update scenarios and 17 Inno lifecycle cases pass; stopped for Stage 7 approval |
+| Infrastructure, Stage 7A | Tag/changelog release automation, version preparation and owner-local completion | Locally complete; 365 application, 129 update, 31 packaging, 13 release and nine installer guard tests pass; workflow lint and ZIP/Production installer compilation pass; hosted/tag/key validation pending |
 
 ## INFRASTRUCTURE STAGE 6 (2026-11-01): isolated apply and recovery
 
@@ -282,7 +285,7 @@ powershell -ExecutionPolicy Bypass -File .\publish.ps1                     # rel
 
 ## Next steps (in order)
 
-Feature rounds and installation/update Stage 6 are complete. Wait for explicit Stage 7 approval before end-to-end manual workflow integration/regression and the optional automation proposal; see [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Automatic installation remains disabled. Do not commit, push, merge, tag, publish or create branches; the owner handles Git operations and development remains on `master`.
+Feature rounds, installation/update Stage 6 and local Stage 7A release automation verification are complete. Stop for owner validation of the first hosted tag run/key bootstrap. Stage 7B application manual-update integration/final regression needs explicit approval; see [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Automatic installation remains disabled. Do not commit, push, merge, tag, publish or create branches; the owner handles Git operations and development remains on `master`.
 
 Waiting on the user (can't be verified without driving the real desktop):
 1. Taskbar icon shows correctly right after start (Round 3).

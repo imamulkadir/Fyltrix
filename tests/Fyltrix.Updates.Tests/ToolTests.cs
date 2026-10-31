@@ -25,6 +25,21 @@ public sealed class ToolTests : IDisposable
         return (process.ExitCode, await output + await error);
     }
     [Fact]
+    public async Task Production_signing_refuses_an_unpinned_key_without_writing_outputs()
+    {
+        using var fixture = new Fixture();
+        string key = Path.Combine(root, "release test.pem"), pub = Path.Combine(root, "public release test.txt"),
+            setup = Path.Combine(root, fixture.Name), signed = Path.Combine(root, "production-signature");
+        await File.WriteAllTextAsync(key, fixture.Key.ExportPkcs8PrivateKeyPem());
+        await File.WriteAllTextAsync(pub, fixture.PublicKey);
+        await File.WriteAllBytesAsync(setup, fixture.Package);
+        var result = await Run("sign-release", Fixture.Version, key, pub, signed, setup);
+        Assert.Equal(2, result.ExitCode);
+        Assert.Contains("not pinned", result.Output);
+        Assert.False(Directory.Exists(signed));
+        Assert.Equal(fixture.Package, await File.ReadAllBytesAsync(setup));
+    }
+    [Fact]
     public async Task Signing_tool_and_offline_verifier_interoperate_and_preserve_inputs()
     {
         using var fixture = new Fixture();

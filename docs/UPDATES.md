@@ -85,6 +85,8 @@ dotnet $tool verify 'D:\Update tests\release.json' `
 
 `verify` never fetches URLs and reports that its public key is an explicit owner-supplied test override. It cannot configure production pins or install a package. Successful checks/verification exit 0; rejected inputs/transport outcomes exit 2; usage errors exit 1. Discovery availability is metadata only: check the separate verification field before treating any release as authenticated.
 
+For production release preparation, `sign-release` accepts the same arguments as `sign` but additionally requires the supplied public key to be pinned in this build. The [tag/changelog release workflow and owner completion helper](RELEASING.md) use this guarded mode. The existing `sign` command remains explicitly offline/test trust. Neither CLI command uploads or publishes; the completion helper performs those actions only when invoked by the owner, and publication requires its `-Publish` switch.
+
 ## Verification and next gate
 
 ```powershell

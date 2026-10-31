@@ -1,6 +1,6 @@
 # Installation and update infrastructure progress
 
-Last updated: 2026-10-31.
+Last updated: 2026-11-01.
 
 ## Execution agreement
 
@@ -47,6 +47,42 @@ No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mut
 - Application source, dependencies, user data, and `publish.ps1 -Run` are unchanged. No application build or test rerun was needed for this Git/documentation-only task; Stage 1's executed result remains 354 passing tests.
 - Branch cleanup is complete and verified. The owner's later "proceed next" instruction approved resuming Stage 2 directly on `master`; its progress is recorded below.
 - Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
+
+## Stage 7A — Tag/changelog release automation
+
+Status: **Completed locally — stopped for owner validation/next-stage approval (2026-11-01)**. The owner requested mostly automated releases matching DyanamicEye, authorizing this release-tooling substage. Starting checkout: clean `master` at `4d40c41` (owner's Stage 6 commit). Application-update UI integration remains a separate Stage 7B gate; it is not being implemented here. Hosted release execution is explicitly unverified.
+
+### Implemented tasks
+
+- Inspected DyanamicEye's actual `release.yml`, `CHANGELOG.md`, `Get-ReleaseNotes.ps1`, `Complete-Release.ps1` and ADR 0038. Reused its owner-pushed-tag → CI draft → local signing/publication model with Fyltrix's own package names, .NET 8 projects, installer builder and existing signing CLI. No reference application/key files were copied into Fyltrix.
+- Added stable `vX.Y.Z` tag-triggered Windows release automation. Validate tag/master ancestry/all three application version fields and one nonempty matching changelog section before tests/builds. Run Release application/update/packaging tests, installer guards and release-tooling tests; package versioned ZIP and compile Production Inno Setup without running it. Attest exact package provenance, then create a draft with changelog notes/checksums. Full-SHA-pinned actions; scoped permissions; no release private-key secret or automatic publication.
+- Added read-only release-note/tag validation and an explicit local version-preparation helper. Version preparation requires notes, refuses non-newer/inconsistent/ambiguous versions, atomically updates only the three application version fields and performs no Git writes. The actual application version remains `0.1.0`; no tag was created.
+- Added owner-run completion: require clean `master` at the exact existing local/remote tag, validate stable draft assets, download/check hashes and repository/workflow/tag/commit-bound GitHub provenance, use the standalone CLI to sign with an application-pinned key, upload without overwriting, and publish only with explicit `-Publish`. Retain its private diagnostic workspace; never copy/upload the key or execute Setup. Existing/partial manifests require review rather than clobbering.
+- Added `sign-release` CLI mode requiring pinned trust. Existing offline/test `sign` stays compatible. Production pins remain empty, so production signing refuses until the owner reviews a dedicated key and ships a tested bootstrap build.
+- Added changelog, owner-facing release instructions and tests. Kept application behavior, data, `publish.ps1 -Run` and previous stages unchanged. No Git/remote/release mutation was performed.
+
+### Files created or modified
+
+- Created `.github/workflows/release.yml`, `CHANGELOG.md`.
+- Created `tools/Get-ReleaseNotes.ps1`, `Test-Release.ps1`, `Set-ReleaseVersion.ps1`, `Complete-Release.ps1`.
+- Modified only the existing standalone signing tool: `tools/Fyltrix.UpdateTool/Program.cs`; added its unpinned-production-key refusal test in `tests/Fyltrix.Updates.Tests/ToolTests.cs`.
+- Created `tests/release/test_tools.py`, `tests/release/.gitignore`.
+- Created `docs/RELEASING.md`; updated `README.md`, `docs/UPDATES.md`, `docs/IMPLEMENTATION_STATUS.md`, and this file.
+
+### Executed verification and limitations
+
+- **13 release-tooling tests passed**, including positive note extraction/version preparation, duplicate/missing/empty/oversized notes, headings inside fences, invalid/overflow tags, version mismatches/ambiguity, downgrade refusal, paths with spaces/Unicode, default paths from another working directory and completion refusing invalid tags before external operations.
+- **129 Release update tests**, **31 Release packaging tests**, and **nine installer builder guards passed**. Existing signing/verification interoperability still passes; the new production mode refuses an unpinned key without writing output or changing inputs.
+- `actionlint 1.7.12` passed the workflow. Downloaded into external evidence and checked against its upstream SHA-256 checksum; no application/test dependency added. Verified the three pinned official action revisions and Windows runner prerequisites against their primary sources.
+- Initial script verification caught native Windows PowerShell default-path handling and null-string File.Replace binding; corrected both and reran all 13 release tests successfully. An initial full Release application run had one existing thumbnail keyboard-selection assertion fail (364 passed); the focused thumbnail suite then passed 4/4 without source/test changes. Final full Release rerun: **365 passed, 0 failed, 0 skipped**. Existing application code and thumbnail tests were not changed; occasional UI-test timing failures remain a first-hosted-run risk to investigate rather than bypass.
+- Final isolated self-contained application/NativeAOT launcher/ZIP build passed; Production Inno installer compiled successfully and was **not executed**. This exercises the workflow's packaging commands locally without modifying the current portable output. Existing warnings remain; no claim of a warning-free build or a new interactive launch is made for this tooling-only stage.
+- Final preservation audit passed: all **488 existing portable files**, personal roaming-profile hashes, all application/installer sources, `publish.ps1` and the production trust source are unchanged. Local `master`/origin heads remain at `4d40c41ccb22ba5dfd2a70863a8461e0c9444bcb`. Workflow lint, whitespace checks and documentation links pass. Evidence: `verification.json` in the evidence root below.
+
+Evidence: `D:\Tools\Fyltrix-release-automation-20261101-011007`. No tag/push/draft/upload/publication or production-key configuration was executed. Hosted Actions, actual attestation verification and owner signing/upload/publication require an owner-approved first tagged run and remain unverified. Do not claim the complete application-update feature or Stage 7B is finished. Fully automatic installation remains disabled.
+
+Suggested commit message: `feat(release): automate tag-built drafts with changelog notes`.
+
+Next action: stop. Owner commits/pushes tooling and approves/performs the first tagged-run/key-bootstrap validation. Stage 7B manual application-update workflow integration/final regression requires explicit approval. No later implementation starts automatically.
 
 ## Stage 6 — Apply, isolated health, rollback and recovery
 
@@ -363,6 +399,6 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 4. Read-only GitHub release detection and signed-manifest/package verification — completed on `master`; approved for Stage 5 by the owner's "pushed, proceed" instruction. Production trust remains unconfigured.
 5. Manual staging and safe shutdown/handover — completed on `master`; approved for Stage 6 by the owner's "proceed" instruction.
 6. Out-of-process apply, isolated health validation, rollback/recovery and saved-data preservation — completed on `master`; stopped for explicit Stage 7 approval. See the Stage 6 report above.
-7. End-to-end regression verification and optional automation proposal. Fully automatic installation remains disabled unless separately approved after the gates pass.
+7. Release automation and end-to-end workflow/regression: Stage 7A tag/changelog automation is locally complete following the owner's request, with first hosted tag/key/signing validation pending. Stage 7B application manual-update workflow integration/final regression has not started and requires explicit approval. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: wait for explicit Stage 7 approval. One planned stage remains: end-to-end manual workflow integration/regression and optional automation proposal. Fully automatic installation needs separate approval. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.
+Next action: stop after Stage 7A. The owner handles commits/pushes/tags and the first hosted release/key-bootstrap validation. Wait for explicit approval before Stage 7B application manual-update workflow integration/final regression. Fully automatic installation needs separate approval. All implementation uses `master` only; do not create another branch.

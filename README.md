@@ -382,6 +382,8 @@ Stage 4 adds separate [release discovery and signed package verification tooling
 
 Stage 5 adds explicit [manual download/staging and safe handover tooling](docs/MANUAL_UPDATES.md), plus internal shutdown guards that preserve active work and existing close confirmations. Stage 6 adds the [verified apply, isolated health trial, rollback and recovery backend](docs/APPLY_AND_RECOVERY.md), with installed Sandbox tests and owned-file uninstall cleanup. The application update UI and final end-to-end approval remain Stage 7 work. No automatic updates are enabled; production verification/download/apply require an owner-supplied signing key to be pinned first.
 
+[Release automation](docs/RELEASING.md) follows DyanamicEye: update [CHANGELOG.md](CHANGELOG.md), prepare the version and push a `vX.Y.Z` tag yourself. GitHub then tests/builds/packages and prepares a draft with changelog notes. An owner-run local helper verifies provenance, signs with a pinned Fyltrix key and optionally publishes. Production trust is still unconfigured; the hosted workflow's first tag run remains an owner verification gate.
+
 ```powershell
 dotnet restore .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj
 dotnet test .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj -p:Platform=x64
