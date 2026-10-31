@@ -48,6 +48,46 @@ No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mut
 - Branch cleanup is complete and verified. The owner's later "proceed next" instruction approved resuming Stage 2 directly on `master`; its progress is recorded below.
 - Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
 
+## Stage 4 — Read-only release discovery and signed verification
+
+Status: **Completed — stopped for Stage 5 approval.** Authorized by the owner's "pushed, continue" instruction after Stage 3. Clean starting branch: `master` at `b66adc2c9bb29cffca43958f11058595bf6b48f0`; local, origin tracking, and live remote master matched. No Git write or release operation was performed.
+
+### Completed tasks
+
+- Inspected DynamicEye's signed-manifest, release-source, version, and package-validation implementation as a design reference. Used .NET's built-in cryptography/HTTP/ZIP libraries and Fyltrix's existing layout version/pointer parser; added no runtime package dependency.
+- Added a separate `Fyltrix.Updates` library: one-shot stable GitHub Releases discovery, SemVer precedence, strict/bounded repository/tag/asset metadata, ETags, rate-limit reporting, cancellation, timeout, and bounded HTTPS asset redirects. No background scheduler or profile persistence.
+- Added exact-byte ECDSA NIST P-256/SHA-256/IEEE P1363 signed-manifest verification. Bind product/schema/version, package names, sizes, hashes, and GitHub asset metadata. Reject duplicate/unknown fields, wrong keys/curves, tampering, Sandbox names, and unsupported packages.
+- Added read-only verification of supplied package bytes through one file handle, followed by basic PE or bounded versioned-layout ZIP validation. No package is downloaded, extracted, executed, or installed.
+- Added a standalone owner/developer CLI for live/offline checks, explicitly keyed offline verification, and local manifest signing. Signing requires a matching owner-supplied public/private key pair outside Git and new outputs; it never uploads, publishes, or configures application pins.
+- The production pin list remains empty. No Fyltrix production key was created; no reference/test key was pinned. Without a pin, manifest authentication fails closed before any manifest asset requests. The WPF application/startup/settings do not reference this functionality yet.
+
+### Files created or modified
+
+- Created `src/Fyltrix.Updates/Fyltrix.Updates.csproj`, `ReleaseVersion.cs`, `ReleaseMetadata.cs`, `SignedManifest.cs`, `GitHubReleaseClient.cs`, and `PackageVerifier.cs`.
+- Created `tools/Fyltrix.UpdateTool/Fyltrix.UpdateTool.csproj` and `Program.cs`.
+- Created `tests/Fyltrix.Updates.Tests/Fyltrix.Updates.Tests.csproj`, `Fixtures.cs`, `ReleaseTests.cs`, `ClientTests.cs`, `PackageTests.cs`, and `ToolTests.cs`.
+- Created `docs/UPDATES.md`; updated `README.md`, `docs/IMPLEMENTATION_STATUS.md`, and this progress file.
+
+### Executed verification
+
+- New CLI/library build: **passed**, zero warnings/errors. An initial CLI compile error from passing a span across an await was corrected before testing; final builds pass.
+- Update suite: **86 passed, 0 failed, 0 skipped**. Includes actual CLI signing/check/verification interoperability, repeated-output and key-mismatch refusal, wrong signatures/DER/curve, strict manifest/metadata rejection, SemVer large numeric prereleases, altered bytes/lengths, corrupt/unsafe ZIPs, ETags, HTTP errors/rate limits, redirect bounds, response-size bounds without Content-Length, stalled-body timeout, and caller cancellation. No real clipboard/profile or network listener is used.
+- Full existing application suite: **354 passed, 0 failed, 0 skipped**, duration 2 minutes 8 seconds. Packaging suite: **28 passed, 0 failed, 0 skipped**. Existing installer builder guards: **9 passed**.
+- Existing development x64 build: **passed**, with the existing nullable and WinForms DPI warnings. No application code, dependencies, defaults, publish workflow, or installer source changed.
+- Live read-only CLI check against the actual GitHub repository returned **NoRelease**. No release was created, and no authenticated live update is claimed.
+- Additional external integration: locally signed and verified the actual **85,112,902-byte Stage 2 `0.1.0` archive** with a disposable P-256 test key. Actual CLI verification passed signature, length, SHA-256, and layout checks. Archive bytes were read only; the temporary private key was deleted afterward. Nothing was extracted or installed.
+- Final preservation audit compares all original tracked source/tool/test files, personal roaming-profile hashes, and existing portable-release hashes with the pre-stage snapshot. Only deliberate documentation edits are allowed among original tracked files. `publish.ps1`, original sources and dependencies remain unchanged; work remains uncommitted on `master` for the owner.
+
+### Evidence and remaining gates
+
+External evidence: `D:\Tools\Fyltrix-stage4-20261031-173257-288d5257`. Test reports: `tests/stage4-updates-final.trx`, `tests/stage4-app.trx`, and `tests/stage4-packaging.trx`. Actual-archive result: `real-archive-verification.json`. Final preservation/build/test summary: `stage4-verification.json`. The external one-off integration runner is evidence, not application tooling.
+
+This stage does not provide an in-app update UI, download/staging, coordinated shutdown, installer handover, health rollback, or automatic installation. Stable releases only; checksums/basic PE structure do not replace publisher authentication or compatibility tests. Before production verification can succeed, the owner must independently create/protect a Fyltrix signing key and supply its public SPKI value for reviewed pinning. No private key should enter Git or chat. Authenticode/SmartScreen and a real authenticated published release remain untested. The existing installer/development installations were not replaced or rerun in this read-only stage.
+
+Suggested commit message: `feat(updater): add signed GitHub release verification`.
+
+Next stage, only after explicit approval: Stage 5, manual package download/staging and safe shutdown/handover that respects active work, sharing, and cancelled closes. Stage 6 still owns health validation and rollback. Fully automatic installation remains disabled.
+
 ## Stage 3 — Per-user Inno Setup installer
 
 Status: **Completed — stopped for Stage 4 approval.** Authorized by the owner's "proceed next" after Stage 2, with "continue" during verification. Baseline: clean `master` at `778aa9b5bb34569b009ca190aea6b26596c88000`. No commit, push, merge, tag, branch creation, or remote/release mutation was performed.
@@ -221,10 +261,10 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 
 1. Baseline protection and reference audit — completed and approved by the owner's "go next" instruction.
 2. Separate release packaging/layout proof of concept — completed on `master`; approved for Stage 3 by the owner's "proceed next" instruction.
-3. Inno Setup per-user installer — completed on `master`; Sandbox installation/upgrade/uninstall, data-preservation, and actual application startup tests passed. Production installer compiled only. Waiting for Stage 4 approval.
-4. Read-only GitHub release detection and signed-manifest/package verification, with local-feed and rejection tests.
+3. Inno Setup per-user installer — completed on `master`; approved for Stage 4 by the owner's "pushed, continue" instruction. Production installer compiled only.
+4. Read-only GitHub release detection and signed-manifest/package verification — completed on `master`; 86 update tests, offline CLI and real-archive verification passed. Production trust is unconfigured. Waiting for Stage 5 approval.
 5. Manual download and safe shutdown/handover, respecting running work, sharing, and cancelled closes.
 6. Out-of-process version switch, health validation, rollback/failure recovery, and compatibility tests for saved data.
 7. End-to-end regression verification and optional automation proposal. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: the owner can review/commit Stage 3 manually. Stop for explicit Stage 4 approval before implementing release discovery or signed update verification. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.
+Next action: the owner can review/commit Stage 4 manually. Stop for explicit Stage 5 approval before implementing package download or application shutdown/handover. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.

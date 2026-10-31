@@ -378,6 +378,8 @@ Portable describes deployment: preferences live in the current Windows user's pr
 
 The separate [release-layout tooling](docs/RELEASE_LAYOUT.md) builds an isolated versioned payload and native launcher. The Stage 3 [Inno Setup installer](docs/INSTALLER.md) adds per-user installation, with a separate Sandbox identity for testing. Neither build script runs an installer or replaces `publish.ps1 -Run`; automatic updates remain disabled. Stage approvals and current installation/update work are tracked in [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md).
 
+Stage 4 adds separate [release discovery and signed package verification tooling](docs/UPDATES.md), with offline test feeds. It is not connected to application startup or settings. Production signing trust remains unconfigured; no package download or installation is enabled.
+
 ```powershell
 dotnet restore .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj
 dotnet test .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj -p:Platform=x64
