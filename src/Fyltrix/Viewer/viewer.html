@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'">
+<title>Fyltrix viewer</title>
+<link rel="stylesheet" href="lib/hljs-dark.css">
+<link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+<div id="toolbar" hidden></div>
+<main id="root"><div class="msg">Loading…</div></main>
+<!-- libraries are loaded on demand by viewer.js (need()) -->
+<script src="viewer.js"></script>
+</body>
+</html>

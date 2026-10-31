@@ -1,0 +1,104 @@
+{
+  "sourceCheckpoint": "D:\\Tools\\Fyltrix-rebrand-backup-20261031-113955-d9174001",
+  "originalPortablePackageBackup": "D:\\Tools\\Fyltrix-rebrand-work-20261031-b107b3d4\\original-package",
+  "changedSourceFiles": [
+    "README.md",
+    "docs/IMPLEMENTATION_STATUS.md",
+    "docs/REBRANDING_AUDIT.json",
+    "docs/REBRANDING_BENCHMARK.json",
+    "docs/REBRANDING_REPORT.md",
+    "publish.ps1",
+    "src/FileLens/App.cs",
+    "src/FileLens/Core/Diagnostics.cs",
+    "src/FileLens/Core/ProductBranding.cs",
+    "src/FileLens/Core/Sharing/ShareHost.cs",
+    "src/FileLens/Core/Sharing/ShareNetwork.cs",
+    "src/FileLens/FileLens.csproj",
+    "src/FileLens/Preview/PreviewPane.cs",
+    "src/FileLens/UI/AppIcon.cs",
+    "src/FileLens/UI/ArchiveDialogs.cs",
+    "src/FileLens/UI/AutomationWindow.cs",
+    "src/FileLens/UI/ChecksumWindow.cs",
+    "src/FileLens/UI/ConvertWindow.cs",
+    "src/FileLens/UI/FolderSizeWindow.cs",
+    "src/FileLens/UI/MainWindow.Palette.cs",
+    "src/FileLens/UI/MainWindow.Places.cs",
+    "src/FileLens/UI/MainWindow.Sharing.cs",
+    "src/FileLens/UI/MainWindow.Tools.cs",
+    "src/FileLens/UI/MainWindow.cs",
+    "src/FileLens/UI/SearchDialog.cs",
+    "src/FileLens/UI/SettingsWindow.cs",
+    "src/FileLens/UI/ShareWindow.cs",
+    "src/FileLens/UI/SharesWindow.cs",
+    "src/FileLens/UI/Shell.cs",
+    "src/FileLens/Viewer/viewer.html",
+    "tests/FileLens.Tests/DiagnosticsTests.cs",
+    "tests/FileLens.Tests/RebrandingTests.cs",
+    "tests/FileLens.Tests/ShareServerTests.cs"
+  ],
+  "protectedFilesUnchanged": [
+    "src/FileLens/Core/AppSettings.cs",
+    "src/FileLens/Core/ApplicationDefaults.cs",
+    "src/FileLens/Core/PreviewUrls.cs",
+    "src/FileLens/Core/FileOps.cs",
+    "src/FileLens/Core/FileKinds.cs",
+    "src/FileLens/Core/ClipboardFiles.cs",
+    "src/FileLens/Core/CustomActions.cs",
+    "src/FileLens/Core/IdeIntegration.cs",
+    "src/FileLens/Core/Tools/TagStore.cs",
+    "src/FileLens/Core/Automation/AutomationEngine.cs",
+    "src/FileLens/Core/Archives/ArchiveBrowser.cs",
+    "src/FileLens/Core/Archives/ArchiveService.cs",
+    "src/FileLens/UI/Theme.cs",
+    "src/FileLens/UI/FolderView.cs",
+    "src/FileLens/UI/MainWindow.View.cs",
+    "src/FileLens/UI/MainWindow.Clipboard.cs",
+    "src/FileLens/UI/MainWindow.Commands.cs",
+    "src/FileLens/UI/MainWindow.TitleBar.cs",
+    "src/FileLens/UI/MainWindow.Customize.cs",
+    "src/FileLens/UI/CompareWindow.cs",
+    "src/FileLens/app.manifest"
+  ],
+  "logoAndTemplateFilesUnchanged": [
+    "src/FileLens/Assets/FileLens-1024.png",
+    "src/FileLens/Assets/FileLens-128.png",
+    "src/FileLens/Assets/FileLens-16.png",
+    "src/FileLens/Assets/FileLens-24.png",
+    "src/FileLens/Assets/FileLens-256.png",
+    "src/FileLens/Assets/FileLens-32.png",
+    "src/FileLens/Assets/FileLens-48.png",
+    "src/FileLens/Assets/FileLens-512.png",
+    "src/FileLens/Assets/FileLens-64.png",
+    "src/FileLens/Assets/FileLens.ico",
+    "src/FileLens/Assets/FileLens.svg",
+    "src/FileLens/Templates/blank.docx",
+    "src/FileLens/Templates/blank.pptx",
+    "src/FileLens/Templates/blank.xlsx"
+  ],
+  "realUserSettingsUnchanged": true,
+  "publishedReleaseMatchesTestedPackage": true,
+  "publishedFileCount": 488,
+  "replacementFiles": [
+    "FileLens.exe",
+    "FileLens.dll"
+  ],
+  "packageVerification": {
+    "originalFileCount": 488,
+    "publishedFileCount": 488,
+    "cleanEqualsUpgrade": true,
+    "changedPackageFiles": [
+      "FileLens.dll",
+      "FileLens.exe"
+    ],
+    "testRuns": {
+      "clean": {
+        "exitCode": 0,
+        "output": "VSTest version 18.7.0 (x64)\n\nStarting test execution, please wait...\nA total of 1 test files matched the specified pattern.\n\nPassed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 1 s - FileLens.Tests.dll (net8.0)\n"
+      },
+      "upgrade": {
+        "exitCode": 0,
+        "output": "VSTest version 18.7.0 (x64)\n\nStarting test execution, please wait...\nA total of 1 test files matched the specified pattern.\n\nPassed!  - Failed:     0, Passed:     3, Skipped:     0, Total:     3, Duration: 1 s - FileLens.Tests.dll (net8.0)\n"
+      }
+    }
+  }
+}

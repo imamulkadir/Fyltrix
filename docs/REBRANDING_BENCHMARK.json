@@ -1,0 +1,2343 @@
+{
+  "method": "Five sequential Release runs per version, preview on, same isolated dataset, cloaked windows, empty clipboard provider.",
+  "medians": {
+    "startupToBenchMainMs": {
+      "before": 457.95,
+      "after": 427.34
+    },
+    "ctorFieldsMs": {
+      "before": 184.8,
+      "after": 178.2
+    },
+    "mainWindowCtorMs": {
+      "before": 337.09,
+      "after": 318.02
+    },
+    "ctorSteps.settings/window": {
+      "before": 20.9,
+      "after": 20
+    },
+    "ctorSteps.layout": {
+      "before": 39.6,
+      "after": 38.2
+    },
+    "ctorSteps.events": {
+      "before": 1.8,
+      "after": 1.7
+    },
+    "ctorSteps.tabs": {
+      "before": 80.9,
+      "after": 74.7
+    },
+    "ctorSteps.sidebar": {
+      "before": 4.5,
+      "after": 3.7
+    },
+    "ctorSteps.preview": {
+      "before": 0.6,
+      "after": 0.5
+    },
+    "ctorSteps.shellnew+ide": {
+      "before": 0.6,
+      "after": 0.5
+    },
+    "ctorSteps.automation": {
+      "before": 0.4,
+      "after": 0.4
+    },
+    "ctorSteps.sharing": {
+      "before": 1.8,
+      "after": 1.7
+    },
+    "showMs": {
+      "before": 197.86,
+      "after": 172.4
+    },
+    "startupToListedMs": {
+      "before": 1340.89,
+      "after": 1211.72
+    },
+    "startupToPreviewReadyMs": {
+      "before": 1341.02,
+      "after": 1211.81
+    },
+    "idle.seconds": {
+      "before": 10,
+      "after": 10
+    },
+    "idle.cpuMsPerSec": {
+      "before": 1.56,
+      "after": 0
+    },
+    "idle.childCpuMsPerSec": {
+      "before": 4.67,
+      "after": 7.8
+    },
+    "idle.ioReadBytes": {
+      "before": 0,
+      "after": 0
+    },
+    "idle.ioWriteBytes": {
+      "before": 0,
+      "after": 0
+    },
+    "idle.ioOtherOps": {
+      "before": 0,
+      "after": 0
+    },
+    "idle.ioReadOps": {
+      "before": 0,
+      "after": 0
+    },
+    "idle.ioWriteOps": {
+      "before": 0,
+      "after": 0
+    },
+    "idle.mem.workingSetMB": {
+      "before": 146.4,
+      "after": 145.6
+    },
+    "idle.mem.privateMB": {
+      "before": 89.9,
+      "after": 89.5
+    },
+    "idle.mem.gcHeapMB": {
+      "before": 8.5,
+      "after": 8.4
+    },
+    "idle.mem.threads": {
+      "before": 31,
+      "after": 31
+    },
+    "idle.mem.handles": {
+      "before": 787,
+      "after": 787
+    },
+    "idle.mem.children": {
+      "before": 6,
+      "after": 6
+    },
+    "idle.mem.childrenWorkingSetMB": {
+      "before": 273.4,
+      "after": 268.2
+    },
+    "idle.mem.childrenPrivateMB": {
+      "before": 134,
+      "after": 135.4
+    },
+    "navigateMs.median": {
+      "before": 133.3,
+      "after": 132.1
+    },
+    "navigateMs.p90": {
+      "before": 157.8,
+      "after": 160.8
+    },
+    "navigateMs.max": {
+      "before": 176.5,
+      "after": 168.5
+    },
+    "navigateMs.n": {
+      "before": 30,
+      "after": 30
+    },
+    "bigFolderMs.median": {
+      "before": 274.3,
+      "after": 270.8
+    },
+    "bigFolderMs.p90": {
+      "before": 346.2,
+      "after": 333.5
+    },
+    "bigFolderMs.max": {
+      "before": 346.2,
+      "after": 333.5
+    },
+    "bigFolderMs.n": {
+      "before": 3,
+      "after": 3
+    },
+    "bigFolderItems": {
+      "before": 20000,
+      "after": 20000
+    },
+    "afterBigFolder.workingSetMB": {
+      "before": 197.1,
+      "after": 203.2
+    },
+    "afterBigFolder.privateMB": {
+      "before": 134.6,
+      "after": 145.6
+    },
+    "afterBigFolder.gcHeapMB": {
+      "before": 22.1,
+      "after": 22.1
+    },
+    "afterBigFolder.threads": {
+      "before": 30,
+      "after": 29
+    },
+    "afterBigFolder.handles": {
+      "before": 800,
+      "after": 798
+    },
+    "afterBigFolder.children": {
+      "before": 6,
+      "after": 6
+    },
+    "afterBigFolder.childrenWorkingSetMB": {
+      "before": 275,
+      "after": 270.1
+    },
+    "afterBigFolder.childrenPrivateMB": {
+      "before": 134.8,
+      "after": 136.4
+    },
+    "searchMs.median": {
+      "before": 252.6,
+      "after": 241.3
+    },
+    "searchMs.p90": {
+      "before": 270.8,
+      "after": 253.6
+    },
+    "searchMs.max": {
+      "before": 270.8,
+      "after": 253.6
+    },
+    "searchMs.n": {
+      "before": 3,
+      "after": 3
+    },
+    "searchResults": {
+      "before": 9330,
+      "after": 9330
+    },
+    "searchExpected": {
+      "before": 9330,
+      "after": 9330
+    },
+    "previewEngineWaitMs": {
+      "before": 0.1,
+      "after": 0.11
+    },
+    "previewMs.a.txt #1": {
+      "before": 249.8,
+      "after": 268.3
+    },
+    "previewMs.b.cs #1": {
+      "before": 248.8,
+      "after": 286
+    },
+    "previewMs.c.md #1": {
+      "before": 233,
+      "after": 221.5
+    },
+    "previewMs.d.json #1": {
+      "before": 614.5,
+      "after": 652.3
+    },
+    "previewMs.a.txt #2": {
+      "before": 232.9,
+      "after": 239.7
+    },
+    "previewMs.b.cs #2": {
+      "before": 254.6,
+      "after": 227
+    },
+    "previewMs.c.md #2": {
+      "before": 201.5,
+      "after": 200
+    },
+    "previewMs.d.json #2": {
+      "before": 582,
+      "after": 587
+    },
+    "withPreviews.workingSetMB": {
+      "before": 201.6,
+      "after": 205
+    },
+    "withPreviews.privateMB": {
+      "before": 134.2,
+      "after": 142.3
+    },
+    "withPreviews.gcHeapMB": {
+      "before": 12.6,
+      "after": 21.3
+    },
+    "withPreviews.threads": {
+      "before": 33,
+      "after": 31
+    },
+    "withPreviews.handles": {
+      "before": 831,
+      "after": 808
+    },
+    "withPreviews.children": {
+      "before": 6,
+      "after": 6
+    },
+    "withPreviews.childrenWorkingSetMB": {
+      "before": 617.7,
+      "after": 615
+    },
+    "withPreviews.childrenPrivateMB": {
+      "before": 459.6,
+      "after": 461.9
+    },
+    "previewHidden.workingSetMB": {
+      "before": 195.9,
+      "after": 200.1
+    },
+    "previewHidden.privateMB": {
+      "before": 146,
+      "after": 153.4
+    },
+    "previewHidden.gcHeapMB": {
+      "before": 10.5,
+      "after": 10.4
+    },
+    "previewHidden.threads": {
+      "before": 30,
+      "after": 29
+    },
+    "previewHidden.handles": {
+      "before": 805,
+      "after": 780
+    },
+    "previewHidden.children": {
+      "before": 0,
+      "after": 0
+    },
+    "previewHidden.childrenWorkingSetMB": {
+      "before": 0,
+      "after": 0
+    },
+    "previewHidden.childrenPrivateMB": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.seconds": {
+      "before": 10,
+      "after": 10
+    },
+    "idleAfterWork.cpuMsPerSec": {
+      "before": 1.56,
+      "after": 0
+    },
+    "idleAfterWork.childCpuMsPerSec": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.ioReadBytes": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.ioWriteBytes": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.ioOtherOps": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.ioReadOps": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.ioWriteOps": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.mem.workingSetMB": {
+      "before": 195.7,
+      "after": 200.3
+    },
+    "idleAfterWork.mem.privateMB": {
+      "before": 145.7,
+      "after": 153.3
+    },
+    "idleAfterWork.mem.gcHeapMB": {
+      "before": 10.6,
+      "after": 10.4
+    },
+    "idleAfterWork.mem.threads": {
+      "before": 25,
+      "after": 25
+    },
+    "idleAfterWork.mem.handles": {
+      "before": 791,
+      "after": 769
+    },
+    "idleAfterWork.mem.children": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.mem.childrenWorkingSetMB": {
+      "before": 0,
+      "after": 0
+    },
+    "idleAfterWork.mem.childrenPrivateMB": {
+      "before": 0,
+      "after": 0
+    },
+    "ioWholeRun.readMB": {
+      "before": 1.1,
+      "after": 1.1
+    },
+    "ioWholeRun.writeMB": {
+      "before": 1.3,
+      "after": 1.3
+    },
+    "benchTotalMs": {
+      "before": 49879.32,
+      "after": 48815.45
+    }
+  },
+  "runs": {
+    "before": [
+      {
+        "startupToBenchMainMs": 13792.0251,
+        "ctorFieldsMs": 723.8,
+        "mainWindowCtorMs": 934.4085,
+        "ctorSteps": {
+          "settings/window": 25.9,
+          "layout": 71.6,
+          "events": 2.3,
+          "tabs": 100.8,
+          "sidebar": 5.3,
+          "preview": 0.8,
+          "shellnew+ide": 2,
+          "automation": 0.8,
+          "sharing": 2.2
+        },
+        "showMs": 338.0582,
+        "startupToListedMs": 15713.1277,
+        "startupToPreviewReadyMs": 15713.2189,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 1.56,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 167.4,
+            "privateMB": 103.7,
+            "gcHeapMB": 9.6,
+            "threads": 31,
+            "handles": 793,
+            "children": 6,
+            "childrenWorkingSetMB": 285.4,
+            "childrenPrivateMB": 136.4
+          }
+        },
+        "navigateMs": {
+          "median": 113.5,
+          "p90": 144.3,
+          "max": 167,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 274.3,
+          "p90": 337.3,
+          "max": 337.3,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 197.1,
+          "privateMB": 134.6,
+          "gcHeapMB": 21.3,
+          "threads": 30,
+          "handles": 800,
+          "children": 6,
+          "childrenWorkingSetMB": 286.9,
+          "childrenPrivateMB": 137.3
+        },
+        "searchMs": {
+          "median": 267.1,
+          "p90": 293.6,
+          "max": 293.6,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.0951,
+        "previewMs": {
+          "a.txt #1": 280,
+          "b.cs #1": 266.4,
+          "c.md #1": 220.7,
+          "d.json #1": 638.5,
+          "a.txt #2": 223.3,
+          "b.cs #2": 327.2,
+          "c.md #2": 218.3,
+          "d.json #2": 532
+        },
+        "withPreviews": {
+          "workingSetMB": 200.3,
+          "privateMB": 134.2,
+          "gcHeapMB": 12.6,
+          "threads": 32,
+          "handles": 809,
+          "children": 6,
+          "childrenWorkingSetMB": 617.7,
+          "childrenPrivateMB": 459.6
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 232.9,
+              "privateMB": 180,
+              "gcHeapMB": 33.5,
+              "threads": 32,
+              "handles": 820,
+              "children": 6,
+              "childrenWorkingSetMB": 616.7,
+              "childrenPrivateMB": 458.5
+            },
+            "closed": {
+              "workingSetMB": 209.4,
+              "privateMB": 157.7,
+              "gcHeapMB": 11.3,
+              "threads": 32,
+              "handles": 807,
+              "children": 6,
+              "childrenWorkingSetMB": 617,
+              "childrenPrivateMB": 458.6
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 233.1,
+              "privateMB": 180.3,
+              "gcHeapMB": 41.1,
+              "threads": 31,
+              "handles": 817,
+              "children": 6,
+              "childrenWorkingSetMB": 626,
+              "childrenPrivateMB": 459.9
+            },
+            "closed": {
+              "workingSetMB": 212.2,
+              "privateMB": 158.9,
+              "gcHeapMB": 10.6,
+              "threads": 30,
+              "handles": 799,
+              "children": 6,
+              "childrenWorkingSetMB": 626.2,
+              "childrenPrivateMB": 459.8
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 238.3,
+              "privateMB": 185.1,
+              "gcHeapMB": 40.1,
+              "threads": 30,
+              "handles": 811,
+              "children": 6,
+              "childrenWorkingSetMB": 342.7,
+              "childrenPrivateMB": 175.5
+            },
+            "closed": {
+              "workingSetMB": 217.7,
+              "privateMB": 165.1,
+              "gcHeapMB": 10.6,
+              "threads": 30,
+              "handles": 799,
+              "children": 6,
+              "childrenWorkingSetMB": 342.6,
+              "childrenPrivateMB": 175.4
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 189.8,
+          "privateMB": 141.6,
+          "gcHeapMB": 10.5,
+          "threads": 29,
+          "handles": 780,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 1.56,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 189.6,
+            "privateMB": 141.3,
+            "gcHeapMB": 10.6,
+            "threads": 22,
+            "handles": 766,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 62681.9552
+      },
+      {
+        "startupToBenchMainMs": 854.7165,
+        "ctorFieldsMs": 183.6,
+        "mainWindowCtorMs": 345.5175,
+        "ctorSteps": {
+          "settings/window": 20.9,
+          "layout": 49.4,
+          "events": 1.8,
+          "tabs": 83.4,
+          "sidebar": 4.5,
+          "preview": 0.7,
+          "shellnew+ide": 0.6,
+          "automation": 0.4,
+          "sharing": 1.8
+        },
+        "showMs": 197.8609,
+        "startupToListedMs": 1803.3732,
+        "startupToPreviewReadyMs": 1803.4994,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 1.55,
+          "childCpuMsPerSec": 3.11,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 164.9,
+            "privateMB": 102.1,
+            "gcHeapMB": 8.5,
+            "threads": 32,
+            "handles": 787,
+            "children": 6,
+            "childrenWorkingSetMB": 273.4,
+            "childrenPrivateMB": 134
+          }
+        },
+        "navigateMs": {
+          "median": 117.2,
+          "p90": 155,
+          "max": 155.8,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 267.7,
+          "p90": 305.7,
+          "max": 305.7,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 190.7,
+          "privateMB": 128.2,
+          "gcHeapMB": 22.7,
+          "threads": 30,
+          "handles": 796,
+          "children": 6,
+          "childrenWorkingSetMB": 275,
+          "childrenPrivateMB": 136
+        },
+        "searchMs": {
+          "median": 236.9,
+          "p90": 238.4,
+          "max": 238.4,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.1122,
+        "previewMs": {
+          "a.txt #1": 226.9,
+          "b.cs #1": 248.8,
+          "c.md #1": 234.1,
+          "d.json #1": 650.3,
+          "a.txt #2": 232.9,
+          "b.cs #2": 241.3,
+          "c.md #2": 189.4,
+          "d.json #2": 582
+        },
+        "withPreviews": {
+          "workingSetMB": 201.6,
+          "privateMB": 133.3,
+          "gcHeapMB": 10.9,
+          "threads": 33,
+          "handles": 831,
+          "children": 6,
+          "childrenWorkingSetMB": 620.2,
+          "childrenPrivateMB": 460.5
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 231.8,
+              "privateMB": 176.9,
+              "gcHeapMB": 31.6,
+              "threads": 33,
+              "handles": 842,
+              "children": 6,
+              "childrenWorkingSetMB": 617.2,
+              "childrenPrivateMB": 456.5
+            },
+            "closed": {
+              "workingSetMB": 213.8,
+              "privateMB": 159.8,
+              "gcHeapMB": 10.8,
+              "threads": 33,
+              "handles": 829,
+              "children": 6,
+              "childrenWorkingSetMB": 617.7,
+              "childrenPrivateMB": 456.7
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 236.9,
+              "privateMB": 181.7,
+              "gcHeapMB": 40.6,
+              "threads": 32,
+              "handles": 841,
+              "children": 6,
+              "childrenWorkingSetMB": 617.9,
+              "childrenPrivateMB": 456.7
+            },
+            "closed": {
+              "workingSetMB": 212.8,
+              "privateMB": 158.2,
+              "gcHeapMB": 10.6,
+              "threads": 31,
+              "handles": 823,
+              "children": 6,
+              "childrenWorkingSetMB": 626.9,
+              "childrenPrivateMB": 457.8
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 243.4,
+              "privateMB": 188.1,
+              "gcHeapMB": 40.2,
+              "threads": 31,
+              "handles": 835,
+              "children": 6,
+              "childrenWorkingSetMB": 336,
+              "childrenPrivateMB": 164.7
+            },
+            "closed": {
+              "workingSetMB": 221.3,
+              "privateMB": 167,
+              "gcHeapMB": 10.7,
+              "threads": 31,
+              "handles": 823,
+              "children": 6,
+              "childrenWorkingSetMB": 336.4,
+              "childrenPrivateMB": 165.1
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 192,
+          "privateMB": 142.4,
+          "gcHeapMB": 10.6,
+          "threads": 30,
+          "handles": 804,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 191.8,
+            "privateMB": 142.3,
+            "gcHeapMB": 10.7,
+            "threads": 27,
+            "handles": 797,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 48972.8781
+      },
+      {
+        "startupToBenchMainMs": 445.5978,
+        "ctorFieldsMs": 184.8,
+        "mainWindowCtorMs": 329.3915,
+        "ctorSteps": {
+          "settings/window": 20.8,
+          "layout": 38.8,
+          "events": 1.7,
+          "tabs": 77.5,
+          "sidebar": 4,
+          "preview": 0.6,
+          "shellnew+ide": 0.7,
+          "automation": 0.4,
+          "sharing": 1.8
+        },
+        "showMs": 197.4724,
+        "startupToListedMs": 1280.6299,
+        "startupToPreviewReadyMs": 1280.7614,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 1.56,
+          "childCpuMsPerSec": 7.79,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 145.3,
+            "privateMB": 89.6,
+            "gcHeapMB": 8.5,
+            "threads": 31,
+            "handles": 787,
+            "children": 6,
+            "childrenWorkingSetMB": 264.9,
+            "childrenPrivateMB": 131.2
+          }
+        },
+        "navigateMs": {
+          "median": 133.7,
+          "p90": 161.8,
+          "max": 178.9,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 290.1,
+          "p90": 352.6,
+          "max": 352.6,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 205.5,
+          "privateMB": 146.6,
+          "gcHeapMB": 22.1,
+          "threads": 29,
+          "handles": 798,
+          "children": 6,
+          "childrenWorkingSetMB": 266.8,
+          "childrenPrivateMB": 133.2
+        },
+        "searchMs": {
+          "median": 252.6,
+          "p90": 276.6,
+          "max": 276.6,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.113,
+        "previewMs": {
+          "a.txt #1": 283.1,
+          "b.cs #1": 241.6,
+          "c.md #1": 234.8,
+          "d.json #1": 544,
+          "a.txt #2": 235.5,
+          "b.cs #2": 254.6,
+          "c.md #2": 193.7,
+          "d.json #2": 499.8
+        },
+        "withPreviews": {
+          "workingSetMB": 206.8,
+          "privateMB": 141.7,
+          "gcHeapMB": 21.5,
+          "threads": 33,
+          "handles": 835,
+          "children": 6,
+          "childrenWorkingSetMB": 612.6,
+          "childrenPrivateMB": 459.2
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 246.7,
+              "privateMB": 193.5,
+              "gcHeapMB": 33.3,
+              "threads": 33,
+              "handles": 846,
+              "children": 6,
+              "childrenWorkingSetMB": 611.8,
+              "childrenPrivateMB": 458.2
+            },
+            "closed": {
+              "workingSetMB": 221.3,
+              "privateMB": 168.6,
+              "gcHeapMB": 10.6,
+              "threads": 33,
+              "handles": 833,
+              "children": 6,
+              "childrenWorkingSetMB": 612.2,
+              "childrenPrivateMB": 458.4
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 236.6,
+              "privateMB": 182.8,
+              "gcHeapMB": 40.4,
+              "threads": 31,
+              "handles": 836,
+              "children": 6,
+              "childrenWorkingSetMB": 621.5,
+              "childrenPrivateMB": 459.3
+            },
+            "closed": {
+              "workingSetMB": 218.7,
+              "privateMB": 166.5,
+              "gcHeapMB": 12.6,
+              "threads": 31,
+              "handles": 825,
+              "children": 6,
+              "childrenWorkingSetMB": 621.9,
+              "childrenPrivateMB": 459.7
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 245.1,
+              "privateMB": 191.3,
+              "gcHeapMB": 42.1,
+              "threads": 31,
+              "handles": 837,
+              "children": 6,
+              "childrenWorkingSetMB": 328.2,
+              "childrenPrivateMB": 164.2
+            },
+            "closed": {
+              "workingSetMB": 214.4,
+              "privateMB": 161.9,
+              "gcHeapMB": 12.6,
+              "threads": 31,
+              "handles": 825,
+              "children": 6,
+              "childrenWorkingSetMB": 328.6,
+              "childrenPrivateMB": 164.6
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 195.9,
+          "privateMB": 146,
+          "gcHeapMB": 10.5,
+          "threads": 30,
+          "handles": 806,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 195.7,
+            "privateMB": 145.7,
+            "gcHeapMB": 10.6,
+            "threads": 24,
+            "handles": 791,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 49493.5315
+      },
+      {
+        "startupToBenchMainMs": 435.5009,
+        "ctorFieldsMs": 182,
+        "mainWindowCtorMs": 328.5463,
+        "ctorSteps": {
+          "settings/window": 20.3,
+          "layout": 39.3,
+          "events": 1.8,
+          "tabs": 78.2,
+          "sidebar": 5.2,
+          "preview": 0.5,
+          "shellnew+ide": 0.5,
+          "automation": 0.3,
+          "sharing": 1.7
+        },
+        "showMs": 196.1238,
+        "startupToListedMs": 1265.6608,
+        "startupToPreviewReadyMs": 1265.7757,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 1.56,
+          "childCpuMsPerSec": 6.24,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 145.5,
+            "privateMB": 89.5,
+            "gcHeapMB": 8.4,
+            "threads": 32,
+            "handles": 787,
+            "children": 6,
+            "childrenWorkingSetMB": 265.3,
+            "childrenPrivateMB": 132.7
+          }
+        },
+        "navigateMs": {
+          "median": 138,
+          "p90": 169.7,
+          "max": 178.4,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 299.7,
+          "p90": 346.2,
+          "max": 346.2,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 188.7,
+          "privateMB": 130.1,
+          "gcHeapMB": 23.4,
+          "threads": 30,
+          "handles": 802,
+          "children": 6,
+          "childrenWorkingSetMB": 267.1,
+          "childrenPrivateMB": 133.6
+        },
+        "searchMs": {
+          "median": 241.2,
+          "p90": 245.8,
+          "max": 245.8,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.1004,
+        "previewMs": {
+          "a.txt #1": 225.2,
+          "b.cs #1": 220.4,
+          "c.md #1": 215.6,
+          "d.json #1": 614.5,
+          "a.txt #2": 222.7,
+          "b.cs #2": 487.5,
+          "c.md #2": 201.5,
+          "d.json #2": 675
+        },
+        "withPreviews": {
+          "workingSetMB": 198.7,
+          "privateMB": 133.5,
+          "gcHeapMB": 10.6,
+          "threads": 33,
+          "handles": 834,
+          "children": 6,
+          "childrenWorkingSetMB": 610.7,
+          "childrenPrivateMB": 456.5
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 226.2,
+              "privateMB": 173,
+              "gcHeapMB": 33.1,
+              "threads": 33,
+              "handles": 845,
+              "children": 6,
+              "childrenWorkingSetMB": 608.6,
+              "childrenPrivateMB": 453.8
+            },
+            "closed": {
+              "workingSetMB": 212.3,
+              "privateMB": 160.7,
+              "gcHeapMB": 10.5,
+              "threads": 33,
+              "handles": 832,
+              "children": 6,
+              "childrenWorkingSetMB": 608.8,
+              "childrenPrivateMB": 453.8
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 231.7,
+              "privateMB": 178.1,
+              "gcHeapMB": 40.3,
+              "threads": 31,
+              "handles": 835,
+              "children": 6,
+              "childrenWorkingSetMB": 617.8,
+              "childrenPrivateMB": 454.7
+            },
+            "closed": {
+              "workingSetMB": 210.6,
+              "privateMB": 157.2,
+              "gcHeapMB": 12.4,
+              "threads": 31,
+              "handles": 824,
+              "children": 6,
+              "childrenWorkingSetMB": 336.4,
+              "childrenPrivateMB": 172.5
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 241.7,
+              "privateMB": 188.1,
+              "gcHeapMB": 42,
+              "threads": 31,
+              "handles": 836,
+              "children": 6,
+              "childrenWorkingSetMB": 328.4,
+              "childrenPrivateMB": 164
+            },
+            "closed": {
+              "workingSetMB": 226.1,
+              "privateMB": 173.9,
+              "gcHeapMB": 12.5,
+              "threads": 31,
+              "handles": 824,
+              "children": 6,
+              "childrenWorkingSetMB": 328.7,
+              "childrenPrivateMB": 164
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 203.8,
+          "privateMB": 155.2,
+          "gcHeapMB": 10.4,
+          "threads": 30,
+          "handles": 805,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 3.12,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 202,
+            "privateMB": 152.8,
+            "gcHeapMB": 10.5,
+            "threads": 25,
+            "handles": 790,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 50234.1088
+      },
+      {
+        "startupToBenchMainMs": 457.948,
+        "ctorFieldsMs": 187.8,
+        "mainWindowCtorMs": 337.0896,
+        "ctorSteps": {
+          "settings/window": 21.2,
+          "layout": 39.6,
+          "events": 1.6,
+          "tabs": 80.9,
+          "sidebar": 3.9,
+          "preview": 0.6,
+          "shellnew+ide": 0.5,
+          "automation": 0.4,
+          "sharing": 1.9
+        },
+        "showMs": 262.0109,
+        "startupToListedMs": 1340.8905,
+        "startupToPreviewReadyMs": 1341.0186,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 1.56,
+          "childCpuMsPerSec": 4.67,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 146.4,
+            "privateMB": 89.9,
+            "gcHeapMB": 8.9,
+            "threads": 31,
+            "handles": 792,
+            "children": 6,
+            "childrenWorkingSetMB": 274.2,
+            "childrenPrivateMB": 134.1
+          }
+        },
+        "navigateMs": {
+          "median": 133.3,
+          "p90": 157.8,
+          "max": 176.5,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 271.1,
+          "p90": 355,
+          "max": 355,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 198,
+          "privateMB": 138,
+          "gcHeapMB": 19.3,
+          "threads": 29,
+          "handles": 800,
+          "children": 6,
+          "childrenWorkingSetMB": 275.5,
+          "childrenPrivateMB": 134.8
+        },
+        "searchMs": {
+          "median": 254.7,
+          "p90": 270.8,
+          "max": 270.8,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.087,
+        "previewMs": {
+          "a.txt #1": 249.8,
+          "b.cs #1": 250.7,
+          "c.md #1": 233,
+          "d.json #1": 566.2,
+          "a.txt #2": 247.9,
+          "b.cs #2": 234,
+          "c.md #2": 219,
+          "d.json #2": 638.1
+        },
+        "withPreviews": {
+          "workingSetMB": 204.3,
+          "privateMB": 137.8,
+          "gcHeapMB": 19.7,
+          "threads": 32,
+          "handles": 831,
+          "children": 6,
+          "childrenWorkingSetMB": 618.1,
+          "childrenPrivateMB": 464.2
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 231.4,
+              "privateMB": 176.9,
+              "gcHeapMB": 32.2,
+              "threads": 32,
+              "handles": 842,
+              "children": 6,
+              "childrenWorkingSetMB": 616.7,
+              "childrenPrivateMB": 462
+            },
+            "closed": {
+              "workingSetMB": 216.8,
+              "privateMB": 162.9,
+              "gcHeapMB": 10.6,
+              "threads": 32,
+              "handles": 829,
+              "children": 6,
+              "childrenWorkingSetMB": 616.9,
+              "childrenPrivateMB": 462.1
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 235.4,
+              "privateMB": 181,
+              "gcHeapMB": 40.4,
+              "threads": 30,
+              "handles": 835,
+              "children": 6,
+              "childrenWorkingSetMB": 625.4,
+              "childrenPrivateMB": 463.1
+            },
+            "closed": {
+              "workingSetMB": 211.9,
+              "privateMB": 158.5,
+              "gcHeapMB": 10.4,
+              "threads": 30,
+              "handles": 824,
+              "children": 6,
+              "childrenWorkingSetMB": 625.5,
+              "childrenPrivateMB": 463.1
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 239.6,
+              "privateMB": 184.6,
+              "gcHeapMB": 40,
+              "threads": 30,
+              "handles": 836,
+              "children": 6,
+              "childrenWorkingSetMB": 329.5,
+              "childrenPrivateMB": 165
+            },
+            "closed": {
+              "workingSetMB": 227.2,
+              "privateMB": 172.5,
+              "gcHeapMB": 12.5,
+              "threads": 30,
+              "handles": 824,
+              "children": 6,
+              "childrenWorkingSetMB": 329.6,
+              "childrenPrivateMB": 165.2
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 200.1,
+          "privateMB": 150.1,
+          "gcHeapMB": 10.4,
+          "threads": 29,
+          "handles": 805,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 1.56,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 200.4,
+            "privateMB": 150.3,
+            "gcHeapMB": 10.5,
+            "threads": 25,
+            "handles": 797,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.2
+        },
+        "benchTotalMs": 49879.3248
+      }
+    ],
+    "after": [
+      {
+        "startupToBenchMainMs": 848.845,
+        "ctorFieldsMs": 179.6,
+        "mainWindowCtorMs": 319.8698,
+        "ctorSteps": {
+          "settings/window": 20,
+          "layout": 40,
+          "events": 1.8,
+          "tabs": 73,
+          "sidebar": 3.7,
+          "preview": 0.5,
+          "shellnew+ide": 0.5,
+          "automation": 0.3,
+          "sharing": 1.7
+        },
+        "showMs": 172.4046,
+        "startupToListedMs": 1653.9044,
+        "startupToPreviewReadyMs": 1654.0249,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 1.56,
+          "childCpuMsPerSec": 1.56,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 146.5,
+            "privateMB": 89,
+            "gcHeapMB": 8.5,
+            "threads": 31,
+            "handles": 786,
+            "children": 6,
+            "childrenWorkingSetMB": 265.9,
+            "childrenPrivateMB": 135
+          }
+        },
+        "navigateMs": {
+          "median": 132.1,
+          "p90": 158.9,
+          "max": 160.8,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 266.6,
+          "p90": 320.2,
+          "max": 320.2,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 206.2,
+          "privateMB": 146.6,
+          "gcHeapMB": 21.9,
+          "threads": 29,
+          "handles": 798,
+          "children": 6,
+          "childrenWorkingSetMB": 267.5,
+          "childrenPrivateMB": 136
+        },
+        "searchMs": {
+          "median": 241.3,
+          "p90": 253.6,
+          "max": 253.6,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.1137,
+        "previewMs": {
+          "a.txt #1": 246.5,
+          "b.cs #1": 326.4,
+          "c.md #1": 214.7,
+          "d.json #1": 558.2,
+          "a.txt #2": 239.7,
+          "b.cs #2": 227,
+          "c.md #2": 185.1,
+          "d.json #2": 528.1
+        },
+        "withPreviews": {
+          "workingSetMB": 206.4,
+          "privateMB": 142.3,
+          "gcHeapMB": 20.1,
+          "threads": 32,
+          "handles": 808,
+          "children": 6,
+          "childrenWorkingSetMB": 612.4,
+          "childrenPrivateMB": 459.3
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 226.3,
+              "privateMB": 174.3,
+              "gcHeapMB": 32.6,
+              "threads": 32,
+              "handles": 819,
+              "children": 6,
+              "childrenWorkingSetMB": 611.9,
+              "childrenPrivateMB": 458.3
+            },
+            "closed": {
+              "workingSetMB": 214.7,
+              "privateMB": 164,
+              "gcHeapMB": 10.5,
+              "threads": 32,
+              "handles": 806,
+              "children": 6,
+              "childrenWorkingSetMB": 612.2,
+              "childrenPrivateMB": 458.6
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 232,
+              "privateMB": 179.2,
+              "gcHeapMB": 40.3,
+              "threads": 31,
+              "handles": 816,
+              "children": 6,
+              "childrenWorkingSetMB": 612.6,
+              "childrenPrivateMB": 459
+            },
+            "closed": {
+              "workingSetMB": 210.6,
+              "privateMB": 158.7,
+              "gcHeapMB": 10.3,
+              "threads": 30,
+              "handles": 798,
+              "children": 6,
+              "childrenWorkingSetMB": 621.6,
+              "childrenPrivateMB": 460
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 237.7,
+              "privateMB": 185,
+              "gcHeapMB": 39.9,
+              "threads": 30,
+              "handles": 810,
+              "children": 6,
+              "childrenWorkingSetMB": 328.3,
+              "childrenPrivateMB": 165.5
+            },
+            "closed": {
+              "workingSetMB": 211.2,
+              "privateMB": 159.5,
+              "gcHeapMB": 12.4,
+              "threads": 30,
+              "handles": 798,
+              "children": 6,
+              "childrenWorkingSetMB": 328.8,
+              "childrenPrivateMB": 165.9
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 198,
+          "privateMB": 149.5,
+          "gcHeapMB": 10.3,
+          "threads": 29,
+          "handles": 779,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 1.56,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 198.2,
+            "privateMB": 149.8,
+            "gcHeapMB": 10.4,
+            "threads": 25,
+            "handles": 769,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 48815.4458
+      },
+      {
+        "startupToBenchMainMs": 427.3393,
+        "ctorFieldsMs": 175.6,
+        "mainWindowCtorMs": 314.9358,
+        "ctorSteps": {
+          "settings/window": 19.7,
+          "layout": 36.2,
+          "events": 1.7,
+          "tabs": 75.7,
+          "sidebar": 3.6,
+          "preview": 0.6,
+          "shellnew+ide": 0.5,
+          "automation": 0.4,
+          "sharing": 2
+        },
+        "showMs": 168.8417,
+        "startupToListedMs": 1211.716,
+        "startupToPreviewReadyMs": 1211.8102,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 9.35,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 145.6,
+            "privateMB": 89.3,
+            "gcHeapMB": 8.4,
+            "threads": 31,
+            "handles": 787,
+            "children": 6,
+            "childrenWorkingSetMB": 268,
+            "childrenPrivateMB": 133.3
+          }
+        },
+        "navigateMs": {
+          "median": 120.1,
+          "p90": 150.2,
+          "max": 168.5,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 266.5,
+          "p90": 333.7,
+          "max": 333.7,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 203.9,
+          "privateMB": 145.6,
+          "gcHeapMB": 22.1,
+          "threads": 29,
+          "handles": 796,
+          "children": 6,
+          "childrenWorkingSetMB": 269.6,
+          "childrenPrivateMB": 134.3
+        },
+        "searchMs": {
+          "median": 226.8,
+          "p90": 240.1,
+          "max": 240.1,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.1098,
+        "previewMs": {
+          "a.txt #1": 245.7,
+          "b.cs #1": 266.7,
+          "c.md #1": 221.5,
+          "d.json #1": 652.3,
+          "a.txt #2": 225.4,
+          "b.cs #2": 235.1,
+          "c.md #2": 192.6,
+          "d.json #2": 587
+        },
+        "withPreviews": {
+          "workingSetMB": 205.4,
+          "privateMB": 142.6,
+          "gcHeapMB": 21.6,
+          "threads": 31,
+          "handles": 805,
+          "children": 6,
+          "childrenWorkingSetMB": 615,
+          "childrenPrivateMB": 460.8
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 244,
+              "privateMB": 194.1,
+              "gcHeapMB": 33.3,
+              "threads": 31,
+              "handles": 816,
+              "children": 6,
+              "childrenWorkingSetMB": 610.3,
+              "childrenPrivateMB": 455.6
+            },
+            "closed": {
+              "workingSetMB": 218.5,
+              "privateMB": 169.2,
+              "gcHeapMB": 10.7,
+              "threads": 31,
+              "handles": 803,
+              "children": 6,
+              "childrenWorkingSetMB": 610.6,
+              "childrenPrivateMB": 455.6
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 234.3,
+              "privateMB": 183.6,
+              "gcHeapMB": 40.5,
+              "threads": 30,
+              "handles": 815,
+              "children": 6,
+              "childrenWorkingSetMB": 610.8,
+              "childrenPrivateMB": 455.8
+            },
+            "closed": {
+              "workingSetMB": 213.9,
+              "privateMB": 164.7,
+              "gcHeapMB": 12.6,
+              "threads": 29,
+              "handles": 797,
+              "children": 6,
+              "childrenWorkingSetMB": 619.5,
+              "childrenPrivateMB": 456.6
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 239.1,
+              "privateMB": 188.3,
+              "gcHeapMB": 42.2,
+              "threads": 29,
+              "handles": 809,
+              "children": 6,
+              "childrenWorkingSetMB": 330.6,
+              "childrenPrivateMB": 165.8
+            },
+            "closed": {
+              "workingSetMB": 215.4,
+              "privateMB": 166.1,
+              "gcHeapMB": 12.6,
+              "threads": 29,
+              "handles": 797,
+              "children": 6,
+              "childrenWorkingSetMB": 330.7,
+              "childrenPrivateMB": 166
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 200.1,
+          "privateMB": 154,
+          "gcHeapMB": 10.5,
+          "threads": 28,
+          "handles": 778,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 200.3,
+            "privateMB": 154.2,
+            "gcHeapMB": 10.6,
+            "threads": 24,
+            "handles": 767,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 48592.0376
+      },
+      {
+        "startupToBenchMainMs": 421.1108,
+        "ctorFieldsMs": 178.5,
+        "mainWindowCtorMs": 322.1016,
+        "ctorSteps": {
+          "settings/window": 20,
+          "layout": 40.1,
+          "events": 1.7,
+          "tabs": 75.9,
+          "sidebar": 4.3,
+          "preview": 0.6,
+          "shellnew+ide": 0.5,
+          "automation": 0.3,
+          "sharing": 1.7
+        },
+        "showMs": 193.1128,
+        "startupToListedMs": 1197.541,
+        "startupToPreviewReadyMs": 1197.6319,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 6.24,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 163.9,
+            "privateMB": 103.8,
+            "gcHeapMB": 8.5,
+            "threads": 31,
+            "handles": 787,
+            "children": 6,
+            "childrenWorkingSetMB": 275.6,
+            "childrenPrivateMB": 135.4
+          }
+        },
+        "navigateMs": {
+          "median": 115.1,
+          "p90": 160.8,
+          "max": 163.2,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 270.8,
+          "p90": 299.2,
+          "max": 299.2,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 189.7,
+          "privateMB": 129.3,
+          "gcHeapMB": 23.3,
+          "threads": 29,
+          "handles": 798,
+          "children": 6,
+          "childrenWorkingSetMB": 277.4,
+          "childrenPrivateMB": 136.4
+        },
+        "searchMs": {
+          "median": 249.2,
+          "p90": 280.4,
+          "max": 280.4,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.097,
+        "previewMs": {
+          "a.txt #1": 300.1,
+          "b.cs #1": 286,
+          "c.md #1": 242.4,
+          "d.json #1": 537.6,
+          "a.txt #2": 228.5,
+          "b.cs #2": 247,
+          "c.md #2": 202.7,
+          "d.json #2": 595.5
+        },
+        "withPreviews": {
+          "workingSetMB": 204.7,
+          "privateMB": 137.8,
+          "gcHeapMB": 20.1,
+          "threads": 31,
+          "handles": 828,
+          "children": 6,
+          "childrenWorkingSetMB": 615,
+          "childrenPrivateMB": 462.6
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 228.2,
+              "privateMB": 173.9,
+              "gcHeapMB": 32.6,
+              "threads": 31,
+              "handles": 839,
+              "children": 6,
+              "childrenWorkingSetMB": 615.9,
+              "childrenPrivateMB": 462.9
+            },
+            "closed": {
+              "workingSetMB": 213.8,
+              "privateMB": 159.8,
+              "gcHeapMB": 10.6,
+              "threads": 32,
+              "handles": 829,
+              "children": 6,
+              "childrenWorkingSetMB": 616.2,
+              "childrenPrivateMB": 463.1
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 228.3,
+              "privateMB": 173.7,
+              "gcHeapMB": 39.1,
+              "threads": 32,
+              "handles": 843,
+              "children": 6,
+              "childrenWorkingSetMB": 616.3,
+              "childrenPrivateMB": 463
+            },
+            "closed": {
+              "workingSetMB": 210.5,
+              "privateMB": 156.1,
+              "gcHeapMB": 12.4,
+              "threads": 30,
+              "handles": 823,
+              "children": 6,
+              "childrenWorkingSetMB": 625.2,
+              "childrenPrivateMB": 463.9
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 240.6,
+              "privateMB": 185.8,
+              "gcHeapMB": 42,
+              "threads": 30,
+              "handles": 835,
+              "children": 6,
+              "childrenWorkingSetMB": 329.3,
+              "childrenPrivateMB": 166.1
+            },
+            "closed": {
+              "workingSetMB": 211.1,
+              "privateMB": 157.4,
+              "gcHeapMB": 12.5,
+              "threads": 30,
+              "handles": 823,
+              "children": 6,
+              "childrenWorkingSetMB": 329.6,
+              "childrenPrivateMB": 166.5
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 196,
+          "privateMB": 145.6,
+          "gcHeapMB": 8.8,
+          "threads": 29,
+          "handles": 804,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 194.9,
+            "privateMB": 144.5,
+            "gcHeapMB": 8.9,
+            "threads": 26,
+            "handles": 797,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 48575.0664
+      },
+      {
+        "startupToBenchMainMs": 436.3743,
+        "ctorFieldsMs": 178.2,
+        "mainWindowCtorMs": 318.017,
+        "ctorSteps": {
+          "settings/window": 20,
+          "layout": 37.5,
+          "events": 1.7,
+          "tabs": 74.7,
+          "sidebar": 4,
+          "preview": 0.5,
+          "shellnew+ide": 0.5,
+          "automation": 0.4,
+          "sharing": 1.6
+        },
+        "showMs": 174.6317,
+        "startupToListedMs": 1174.6083,
+        "startupToPreviewReadyMs": 1174.704,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 7.8,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 145.3,
+            "privateMB": 90.8,
+            "gcHeapMB": 8.4,
+            "threads": 31,
+            "handles": 787,
+            "children": 6,
+            "childrenWorkingSetMB": 278,
+            "childrenPrivateMB": 135.5
+          }
+        },
+        "navigateMs": {
+          "median": 133.3,
+          "p90": 164.8,
+          "max": 209.3,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 280.2,
+          "p90": 333.5,
+          "max": 333.5,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 202.8,
+          "privateMB": 145.7,
+          "gcHeapMB": 22.1,
+          "threads": 29,
+          "handles": 799,
+          "children": 6,
+          "childrenWorkingSetMB": 279.6,
+          "childrenPrivateMB": 136.4
+        },
+        "searchMs": {
+          "median": 240.3,
+          "p90": 253.4,
+          "max": 253.4,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.1236,
+        "previewMs": {
+          "a.txt #1": 268.3,
+          "b.cs #1": 304.9,
+          "c.md #1": 203.1,
+          "d.json #1": 679.5,
+          "a.txt #2": 331.4,
+          "b.cs #2": 213.2,
+          "c.md #2": 200,
+          "d.json #2": 560.7
+        },
+        "withPreviews": {
+          "workingSetMB": 205,
+          "privateMB": 143.2,
+          "gcHeapMB": 22.5,
+          "threads": 32,
+          "handles": 809,
+          "children": 6,
+          "childrenWorkingSetMB": 619.8,
+          "childrenPrivateMB": 463.6
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 220.3,
+              "privateMB": 170.9,
+              "gcHeapMB": 34.2,
+              "threads": 32,
+              "handles": 820,
+              "children": 6,
+              "childrenWorkingSetMB": 619,
+              "childrenPrivateMB": 461.9
+            },
+            "closed": {
+              "workingSetMB": 211.6,
+              "privateMB": 162.5,
+              "gcHeapMB": 10.5,
+              "threads": 32,
+              "handles": 807,
+              "children": 6,
+              "childrenWorkingSetMB": 619.2,
+              "childrenPrivateMB": 461.9
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 233.6,
+              "privateMB": 184,
+              "gcHeapMB": 40.3,
+              "threads": 30,
+              "handles": 810,
+              "children": 6,
+              "childrenWorkingSetMB": 628.2,
+              "childrenPrivateMB": 462.9
+            },
+            "closed": {
+              "workingSetMB": 209.2,
+              "privateMB": 160.6,
+              "gcHeapMB": 10.4,
+              "threads": 30,
+              "handles": 799,
+              "children": 6,
+              "childrenWorkingSetMB": 343.2,
+              "childrenPrivateMB": 176.9
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 238.6,
+              "privateMB": 188.8,
+              "gcHeapMB": 40,
+              "threads": 30,
+              "handles": 811,
+              "children": 6,
+              "childrenWorkingSetMB": 343.2,
+              "childrenPrivateMB": 176.9
+            },
+            "closed": {
+              "workingSetMB": 226,
+              "privateMB": 176.3,
+              "gcHeapMB": 12.4,
+              "threads": 30,
+              "handles": 799,
+              "children": 6,
+              "childrenWorkingSetMB": 343.2,
+              "childrenPrivateMB": 176.9
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 201.2,
+          "privateMB": 156.1,
+          "gcHeapMB": 10.4,
+          "threads": 29,
+          "handles": 780,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 201,
+            "privateMB": 155.9,
+            "gcHeapMB": 10.4,
+            "threads": 25,
+            "handles": 772,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 49377.7343
+      },
+      {
+        "startupToBenchMainMs": 425.356,
+        "ctorFieldsMs": 175.9,
+        "mainWindowCtorMs": 313.3486,
+        "ctorSteps": {
+          "settings/window": 19.7,
+          "layout": 38.2,
+          "events": 1.7,
+          "tabs": 71.8,
+          "sidebar": 3.7,
+          "preview": 0.5,
+          "shellnew+ide": 0.5,
+          "automation": 0.4,
+          "sharing": 2
+        },
+        "showMs": 169.1105,
+        "startupToListedMs": 1232.9532,
+        "startupToPreviewReadyMs": 1233.1004,
+        "idle": {
+          "seconds": 10,
+          "cpuMsPerSec": 3.12,
+          "childCpuMsPerSec": 15.61,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 145.3,
+            "privateMB": 89.5,
+            "gcHeapMB": 8.4,
+            "threads": 31,
+            "handles": 787,
+            "children": 6,
+            "childrenWorkingSetMB": 268.2,
+            "childrenPrivateMB": 136.5
+          }
+        },
+        "navigateMs": {
+          "median": 135.7,
+          "p90": 166.1,
+          "max": 227.3,
+          "n": 30
+        },
+        "bigFolderMs": {
+          "median": 317.2,
+          "p90": 361.4,
+          "max": 361.4,
+          "n": 3
+        },
+        "bigFolderItems": 20000,
+        "afterBigFolder": {
+          "workingSetMB": 203.2,
+          "privateMB": 145.1,
+          "gcHeapMB": 22.1,
+          "threads": 29,
+          "handles": 802,
+          "children": 6,
+          "childrenWorkingSetMB": 270.1,
+          "childrenPrivateMB": 137.5
+        },
+        "searchMs": {
+          "median": 284.1,
+          "p90": 319.1,
+          "max": 319.1,
+          "n": 3
+        },
+        "searchResults": 9330,
+        "searchExpected": 9330,
+        "previewEngineWaitMs": 0.136,
+        "previewMs": {
+          "a.txt #1": 281.4,
+          "b.cs #1": 249.6,
+          "c.md #1": 249.7,
+          "d.json #1": 660,
+          "a.txt #2": 323.2,
+          "b.cs #2": 224,
+          "c.md #2": 223.1,
+          "d.json #2": 711.5
+        },
+        "withPreviews": {
+          "workingSetMB": 204.4,
+          "privateMB": 142.1,
+          "gcHeapMB": 21.3,
+          "threads": 31,
+          "handles": 808,
+          "children": 6,
+          "childrenWorkingSetMB": 619.5,
+          "childrenPrivateMB": 461.9
+        },
+        "tabCycles": [
+          {
+            "open": {
+              "workingSetMB": 238,
+              "privateMB": 187.7,
+              "gcHeapMB": 34.2,
+              "threads": 31,
+              "handles": 819,
+              "children": 6,
+              "childrenWorkingSetMB": 616.9,
+              "childrenPrivateMB": 458.8
+            },
+            "closed": {
+              "workingSetMB": 208.4,
+              "privateMB": 158.5,
+              "gcHeapMB": 10.6,
+              "threads": 31,
+              "handles": 806,
+              "children": 6,
+              "childrenWorkingSetMB": 616.9,
+              "childrenPrivateMB": 458.8
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 233.6,
+              "privateMB": 182.6,
+              "gcHeapMB": 40.4,
+              "threads": 29,
+              "handles": 811,
+              "children": 6,
+              "childrenWorkingSetMB": 625.9,
+              "childrenPrivateMB": 459.7
+            },
+            "closed": {
+              "workingSetMB": 213.3,
+              "privateMB": 163.9,
+              "gcHeapMB": 12.5,
+              "threads": 29,
+              "handles": 800,
+              "children": 6,
+              "childrenWorkingSetMB": 626.2,
+              "childrenPrivateMB": 459.9
+            }
+          },
+          {
+            "open": {
+              "workingSetMB": 237.2,
+              "privateMB": 186.2,
+              "gcHeapMB": 42.1,
+              "threads": 29,
+              "handles": 812,
+              "children": 6,
+              "childrenWorkingSetMB": 336.2,
+              "childrenPrivateMB": 168.7
+            },
+            "closed": {
+              "workingSetMB": 222.3,
+              "privateMB": 173.6,
+              "gcHeapMB": 12.5,
+              "threads": 29,
+              "handles": 800,
+              "children": 6,
+              "childrenWorkingSetMB": 336.6,
+              "childrenPrivateMB": 169
+            }
+          }
+        ],
+        "previewHidden": {
+          "workingSetMB": 200.7,
+          "privateMB": 153.4,
+          "gcHeapMB": 10.5,
+          "threads": 28,
+          "handles": 781,
+          "children": 0,
+          "childrenWorkingSetMB": 0,
+          "childrenPrivateMB": 0
+        },
+        "idleAfterWork": {
+          "seconds": 10,
+          "cpuMsPerSec": 0,
+          "childCpuMsPerSec": 0,
+          "ioReadBytes": 0,
+          "ioWriteBytes": 0,
+          "ioOtherOps": 0,
+          "ioReadOps": 0,
+          "ioWriteOps": 0,
+          "mem": {
+            "workingSetMB": 200.5,
+            "privateMB": 153.3,
+            "gcHeapMB": 10.5,
+            "threads": 24,
+            "handles": 768,
+            "children": 0,
+            "childrenWorkingSetMB": 0,
+            "childrenPrivateMB": 0
+          }
+        },
+        "ioWholeRun": {
+          "readMB": 1.1,
+          "writeMB": 1.3
+        },
+        "benchTotalMs": 49846.9237
+      }
+    ]
+  }
+}

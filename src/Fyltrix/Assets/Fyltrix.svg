@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>Fyltrix</title>
+  <defs>
+    <linearGradient id="g0" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#E9A21F"/><stop offset="1" stop-color="#F6BE45"/></linearGradient>
+    <linearGradient id="g1" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFC94D"/><stop offset="1" stop-color="#FFDF8A"/></linearGradient>
+    <linearGradient id="g3" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#E0EEFF"/><stop offset="1" stop-color="#BBD7FF"/></linearGradient>
+  </defs>
+  <g transform="matrix(1.15 0 0 1.15 -24.65 -31.56)">
+    <path d="M24,64 A16,16 0 0 1 40,48 H94 A16,16 0 0 1 105.3,52.7 L122.7,70 H216 A16,16 0 0 1 232,86 V190 A16,16 0 0 1 216,206 H40 A16,16 0 0 1 24,190 Z" fill="url(#g0)"/>
+    <path d="M24,104 A16,16 0 0 1 40,88 H216 A16,16 0 0 1 232,104 V190 A16,16 0 0 1 216,206 H40 A16,16 0 0 1 24,190 Z" fill="url(#g1)"/>
+    <path d="M190,178 L228,216" fill="none" stroke="#1E3A8A" stroke-width="26" stroke-linecap="round"/>
+    <path d="M98,140 A52,52 0 1 0 202,140 A52,52 0 1 0 98,140 Z" fill="url(#g3)" fill-opacity="0.96"/>
+    <path d="M121,128 A32,32 0 0 1 150,110" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-opacity="0.9"/>
+    <path d="M98,140 A52,52 0 1 0 202,140 A52,52 0 1 0 98,140 Z" fill="none" stroke="#2563EB" stroke-width="16" stroke-linecap="round"/>
+  </g>
+</svg>
