@@ -16,7 +16,13 @@ public sealed class VerifiedRelease
 {
     public ReleaseInfo Release { get; }
     public IReadOnlyList<ManifestFile> Files { get; }
-    internal VerifiedRelease(ReleaseInfo release, List<ManifestFile> files) { Release = release; Files = files.AsReadOnly(); }
+    internal ReadOnlyMemory<byte> ManifestBytes { get; }
+    internal ReadOnlyMemory<byte> SignatureBytes { get; }
+    internal VerifiedRelease(ReleaseInfo release, List<ManifestFile> files, ReadOnlyMemory<byte> manifest, ReadOnlySpan<byte> signature)
+    {
+        Release = release; Files = files.AsReadOnly();
+        ManifestBytes = manifest.ToArray(); SignatureBytes = signature.ToArray();
+    }
 }
 public sealed record ManifestVerification(VerificationFailure Failure, VerifiedRelease? Verified = null);
 
@@ -78,7 +84,7 @@ public static class SignedManifest
                 if (asset == null || asset.Size != size) return new(VerificationFailure.AssetMismatch);
                 files.Add(new(name, size, hash));
             }
-            return new(VerificationFailure.None, new(release, files));
+            return new(VerificationFailure.None, new(release, files, manifest, signature));
         }
         catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException) { return new(VerificationFailure.InvalidManifest); }
     }

@@ -6,6 +6,51 @@ using Fyltrix.Updates;
 // Explicit owner/developer commands. Not referenced by or shipped with the WPF application.
 try
 {
+    if (args.Length == 3 && args[0] == "download")
+    {
+        var current = ReleaseVersion.Parse(args[1]) ?? throw new ArgumentException("Invalid current version.");
+        using var http = GitHubReleaseClient.CreateHttpClient();
+        var client = new GitHubReleaseClient(http);
+        var check = await client.CheckAsync(current);
+        if (check.Status != CheckStatus.Available)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(new { check = check.Status.ToString(), staged = false, installed = false }));
+            return check.Status is CheckStatus.NoRelease or CheckStatus.UpToDate ? 0 : 2;
+        }
+        var result = await new UpdateDownloader(client).DownloadAsync(check.Release!, current, ReleasePolicy.ZipName(check.Release!.Version.Text), args[2]);
+        Console.WriteLine(JsonSerializer.Serialize(new { download = result.Failure.ToString(), verification = result.Verification.ToString(),
+            directory = result.Staged?.Directory, installed = false }));
+        return result.Failure == DownloadFailure.None ? 0 : 2;
+    }
+    if (args.Length == 8 && args[0] == "stage-local")
+    {
+        var current = ReleaseVersion.Parse(args[1]) ?? throw new ArgumentException("Invalid current version.");
+        var release = ReleaseInfo.Parse(await ReadSmall(args[2], ReleasePolicy.MaxMetadataBytes)) ?? throw new ArgumentException("Invalid metadata.");
+        var manifest = await ReadSmall(args[3], ReleasePolicy.MaxManifestBytes);
+        var signature = await ReadSmall(args[4], ReleasePolicy.MaxSignatureBytes);
+        using var http = GitHubReleaseClient.CreateHttpClient();
+        var result = await new UpdateDownloader(new GitHubReleaseClient(http)).StageLocalAsync(release, current, manifest, signature,
+            args[5], await ReadKey(args[6]), args[7]);
+        Console.WriteLine(JsonSerializer.Serialize(new { download = result.Failure.ToString(), verification = result.Verification.ToString(),
+            directory = result.Staged?.Directory, installed = false, trust = "Explicit offline test/owner key; not production pinning" }));
+        return result.Failure == DownloadFailure.None ? 0 : 2;
+    }
+    if (args.Length is 3 or 4 && args[0] == "prepare")
+    {
+        string[]? testKeys = args.Length == 4 ? [await ReadKey(args[3])] : null;
+        var stage = await UpdateHandover.LoadStageAsync(args[1], testKeys) ?? throw new ArgumentException("Untrusted or invalid staged package.");
+        var result = await UpdateHandover.PrepareAsync(stage, args[2]);
+        Console.WriteLine(JsonSerializer.Serialize(new { handover = result.Failure.ToString(), request = result.Preparation?.RequestPath, installed = false }));
+        return result.Failure == HandoverFailure.None ? 0 : 2;
+    }
+    if (args.Length is 2 or 3 && args[0] == "wait")
+    {
+        string[]? testKeys = args.Length == 3 ? [await ReadKey(args[2])] : null;
+        var result = await UpdateHandover.WaitForReadyAsync(args[1], explicitTestKeys: testKeys);
+        using var ready = result.Ready;
+        Console.WriteLine(JsonSerializer.Serialize(new { handover = result.Failure.ToString(), ready = ready != null, installed = false }));
+        return result.Failure == HandoverFailure.None ? 0 : 2;
+    }
     if (args.Length is 2 or 3 && args[0] == "check")
     {
         var current = ReleaseVersion.Parse(args[1]) ?? throw new ArgumentException("Invalid current version.");
@@ -81,7 +126,7 @@ try
         Console.WriteLine("Signed manifest created locally. No upload, release, or installation performed.");
         return 0;
     }
-    Console.Error.WriteLine("Commands:\n  check <installed-version> [local-release.json]\n  verify <release.json> <manifest.json> <signature> <package> <public-key.txt>\n  sign <version> <private-key.pem> <public-key.txt> <new-output-dir> <package> [package]");
+    Console.Error.WriteLine("Commands:\n  check <installed-version> [local-release.json]\n  verify <release.json> <manifest.json> <signature> <package> <public-key.txt>\n  sign <version> <private-key.pem> <public-key.txt> <new-output-dir> <package> [package]\n  download <installed-version> <staging-root>\n  stage-local <installed-version> <release.json> <manifest> <signature> <package> <public-key.txt> <staging-root>\n  prepare <staging-directory> <layout-root> [test-public-key.txt]\n  wait <handover.json> [test-public-key.txt]");
     return 1;
 }
 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or CryptographicException or HttpRequestException)

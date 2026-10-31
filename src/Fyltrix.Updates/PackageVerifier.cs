@@ -15,6 +15,19 @@ public static class PackageVerifier
         try
         {
             await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, true);
+            return await VerifyStreamAsync(release, assetName, stream, token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+        { return VerificationFailure.InvalidPackage; }
+    }
+
+    internal static async Task<VerificationFailure> VerifyStreamAsync(VerifiedRelease release, string assetName, Stream stream, CancellationToken token)
+    {
+        var signed = release.Files.FirstOrDefault(f => f.Name == assetName);
+        if (signed == null) return VerificationFailure.AssetMismatch;
+        try
+        {
+            stream.Position = 0;
             if (stream.Length != signed.Size) return VerificationFailure.PackageMismatch;
             using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
             byte[] buffer = new byte[64 * 1024];

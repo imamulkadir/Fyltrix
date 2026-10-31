@@ -334,6 +334,7 @@ public sealed class AutomationEngine : IDisposable
 
     public async Task<AutomationLogEntry> ProcessAsync(AutomationRule rule, string path, bool dryRun, CancellationToken ct)
     {
+        using var updateWork = UpdateWork.Track();
         await _gate.WaitAsync(ct);
         try
         {

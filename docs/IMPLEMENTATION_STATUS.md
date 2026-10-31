@@ -4,9 +4,9 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
-Last updated **2026-10-31**. Full identity migration is complete: projects, namespaces, assemblies and executable use **Fyltrix**. Legacy storage, preview origin, manifest and firewall-rule identities remain compatible. **354 tests pass**. The release is `artifacts\Fyltrix\Fyltrix.exe`; old outputs are backed up externally. See `docs/FYLTRIX_MIGRATION_REPORT.md` for verification and intentional legacy references. Sections below preserve the earlier rounds as history.
+Last updated **2026-10-31**. Full identity migration is complete: projects, namespaces, assemblies and executable use **Fyltrix**. Legacy storage, preview origin, manifest and firewall-rule identities remain compatible. **361 application tests pass**. The release is `artifacts\Fyltrix\Fyltrix.exe`; old outputs are backed up externally. See `docs/FYLTRIX_MIGRATION_REPORT.md` for verification and intentional legacy references. Sections below preserve the earlier rounds as history.
 
-Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Stage 4 now adds standalone read-only release discovery and signed-package verification, with **86 update tests** and **28 packaging tests** passing alongside the 354 application tests. The application does not invoke this tooling; production signing trust is unconfigured, and automatic updates remain disabled.
+Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Stage 5 adds explicit verified staging and a safe shutdown/handover boundary, with **113 update tests**, **28 packaging tests** and **361 application tests** passing. The application has an internal guarded-close seam but no update UI/startup scheduler; production signing trust is unconfigured and automatic updates remain disabled.
 
 | Round | What | Status |
 |---|---|---|
@@ -28,6 +28,13 @@ Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md
 | 10 | Project-directory relocation audit and complete README feature guide | Done; 346 tests pass; restore/build/publish and offscreen startup verified; see `docs/PROJECT_RELOCATION_REPORT.md` |
 | 11 | Complete project/namespace/assembly/resource migration to Fyltrix with legacy profile and Windows integration compatibility | Done; 354 tests pass; clean rebuild, normal/single-file publish and actual apphost startups verified |
 | Infrastructure, Stage 4 | Separate GitHub release discovery, signed manifests, local verification/signing tool | Done; 86 update tests, 28 packaging tests and 354 application tests pass; stopped for Stage 5 approval |
+| Infrastructure, Stage 5 | Explicit verified staging, work-preserving close, independent handover readiness | Done; 113 update tests, 361 application tests, 28 packaging tests and nine installer guard tests pass; stopped for Stage 6 approval |
+
+## INFRASTRUCTURE STAGE 5 (2026-10-31): manual staging and safe handover
+
+Added separate bounded, authenticated downloads/offline staging and a handover boundary that returns a verified package read lease after normal close approval and launcher/payload exit. The application gains only update-specific shutdown guards and tiny work scopes to avoid interrupting jobs, sharing, automation or writes that outlive tools. Ordinary closing, preferences, dependencies and `publish.ps1 -Run` retain their behavior. A test-only sharing-expiry synchronization fix waits for the existing asynchronous notification/listener completion; sharing logic is unchanged.
+
+All 113 update tests, 361 application tests, 28 packaging tests and nine installer guards passed. Private-desktop checks exercised the final native launcher/WPF payload, actual UI-thread close/atomic approval, a separate readiness helper, current development binaries, and older-payload probe compatibility. Personal roaming-profile and portable-release preservation are recorded externally. No installation, apply, health rollback, production key, update UI or automatic scheduler is enabled. Usage and limits: [MANUAL_UPDATES.md](MANUAL_UPDATES.md); stage evidence and approval gate: [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
 
 ## INFRASTRUCTURE STAGE 4 (2026-10-31): release verification
 

@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Fyltrix\Fyltrix.csproj" />
+    <ProjectReference Include="..\..\src\Fyltrix.Updates\Fyltrix.Updates.csproj" />
   </ItemGroup>
 
 </Project>

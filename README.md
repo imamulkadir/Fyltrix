@@ -378,14 +378,16 @@ Portable describes deployment: preferences live in the current Windows user's pr
 
 The separate [release-layout tooling](docs/RELEASE_LAYOUT.md) builds an isolated versioned payload and native launcher. The Stage 3 [Inno Setup installer](docs/INSTALLER.md) adds per-user installation, with a separate Sandbox identity for testing. Neither build script runs an installer or replaces `publish.ps1 -Run`; automatic updates remain disabled. Stage approvals and current installation/update work are tracked in [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md).
 
-Stage 4 adds separate [release discovery and signed package verification tooling](docs/UPDATES.md), with offline test feeds. It is not connected to application startup or settings. Production signing trust remains unconfigured; no package download or installation is enabled.
+Stage 4 adds separate [release discovery and signed package verification tooling](docs/UPDATES.md), with offline test feeds. It is not connected to application startup or settings. Production signing trust remains unconfigured.
+
+Stage 5 adds explicit [manual download/staging and safe handover tooling](docs/MANUAL_UPDATES.md), plus internal shutdown guards that preserve active work and existing close confirmations. Application update UI, applying updates, and rollback remain later work. No automatic updates are enabled; production downloads require an owner-supplied signing key to be pinned first.
 
 ```powershell
 dotnet restore .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj
 dotnet test .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj -p:Platform=x64
 ```
 
-The latest verified suite has **354 passing tests**, covering core operations and offscreen UI behavior. UI tests render real windows without taking desktop focus; clipboard tests use isolated providers. Tests do not certify every codec, shell handler, or network environment.
+The latest verified application suite has **361 passing tests**, covering core operations, offscreen UI behavior, and safe update closing. Separate suites cover release verification/staging and packaging. UI tests render real windows without taking desktop focus; clipboard tests use isolated providers. Tests do not certify every codec, shell handler, or network environment.
 
 `tests/Fyltrix.PlacementProbe` provides native placement checks, theme renders, and resource benchmarks. Build it before use:
 

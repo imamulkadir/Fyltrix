@@ -73,24 +73,36 @@ public sealed class GitHubReleaseClient
 
     private async Task<byte[]?> ReadAssetAsync(ReleaseAsset asset, int limit, CancellationToken token)
     {
-        var url = asset.Url;
+        using var response = await OpenDownloadAsync(asset.Url, token).ConfigureAwait(false);
+        if (response == null) return null;
+        var bytes = await ReadBoundedAsync(response.Content, limit, token).ConfigureAwait(false);
+        return bytes?.LongLength == asset.Size ? bytes : null;
+    }
+
+    internal async Task<HttpResponseMessage?> OpenDownloadAsync(Uri url, CancellationToken token)
+    {
         for (int redirects = 0; redirects <= 4; redirects++)
         {
             using var request = Request(url, false);
-            using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
-            if (response.RequestMessage?.RequestUri is { } final && !AllowedDownload(final)) return null;
-            if (response.StatusCode is HttpStatusCode.MovedPermanently or HttpStatusCode.Redirect or HttpStatusCode.SeeOther
-                or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect)
+            var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+            bool retained = false;
+            try
             {
-                if (response.Headers.Location == null) return null;
-                try { url = new Uri(url, response.Headers.Location); }
-                catch (UriFormatException) { return null; }
-                if (!AllowedDownload(url)) return null;
-                continue;
+                if (response.RequestMessage?.RequestUri is { } final && !AllowedDownload(final)) return null;
+                if (response.StatusCode is HttpStatusCode.MovedPermanently or HttpStatusCode.Redirect or HttpStatusCode.SeeOther
+                    or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect)
+                {
+                    if (response.Headers.Location == null) return null;
+                    try { url = new Uri(url, response.Headers.Location); }
+                    catch (UriFormatException) { return null; }
+                    if (!AllowedDownload(url)) return null;
+                    continue;
+                }
+                if (response.StatusCode != HttpStatusCode.OK) return null;
+                retained = true;
+                return response;
             }
-            if (response.StatusCode != HttpStatusCode.OK) return null;
-            var bytes = await ReadBoundedAsync(response.Content, limit, token).ConfigureAwait(false);
-            return bytes?.LongLength == asset.Size ? bytes : null;
+            finally { if (!retained) response.Dispose(); }
         }
         return null;
     }

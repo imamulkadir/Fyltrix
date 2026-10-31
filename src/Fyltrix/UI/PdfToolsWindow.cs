@@ -274,6 +274,7 @@ public sealed class PdfToolsWindow : ToolWindow
 
     private async void ExportPng()
     {
+        using var updateWork = UpdateWork.Track();
         var sel = Selected();
         if (sel.Count == 0) sel = _pages.ToList();
         var dir = Path.GetDirectoryName(_path)!;

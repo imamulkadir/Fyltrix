@@ -171,6 +171,7 @@ public sealed class AutomationWindow : ToolWindow
 
     private async Task RunSelected(bool dryRun)
     {
+        using var updateWork = UpdateWork.Track();
         if (Selected is not { } r) { Dialogs.Error(this, "Automation", "Select a rule first."); return; }
         var engine = _engine();
         bool temporary = engine == null;

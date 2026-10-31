@@ -102,7 +102,8 @@ public class ShareServerTests
         host.Changed += (_, _) => Interlocked.Increment(ref changes);
         var url = host.Urls(s)[0];
         Assert.Equal("x", await Http.GetStringAsync(url + "0/"));
-        await WaitFor(() => s.State == ShareState.Expired, 5000);
+        // State is set before the timer publishes Changed and releases the listener.
+        await WaitFor(() => s.State == ShareState.Expired && Volatile.Read(ref changes) > 0 && !host.Listening, 5000);
         Assert.True(changes > 0);
         Assert.Equal(TimeSpan.Zero, s.Remaining);
         Assert.False(host.Listening); // nothing shared: nothing listening

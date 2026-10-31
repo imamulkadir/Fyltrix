@@ -316,6 +316,7 @@ public sealed class ImageToolsWindow : Window
 
     internal async Task<string?> SaveAsync()
     {
+        using var updateWork = UpdateWork.Track();
         if (_image == null) return null;
         var name = _name.Text.Trim();
         var err = FileOps.ValidateName(name);

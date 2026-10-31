@@ -37,6 +37,12 @@ public sealed class ReleaseInfo
     private ReleaseInfo(ReleaseVersion version, string tag, Uri page, string notes, List<ReleaseAsset> assets)
     { Version = version; Tag = tag; Page = page; Notes = notes; Assets = assets.AsReadOnly(); }
 
+    internal byte[] SerializeEvidence() => JsonSerializer.SerializeToUtf8Bytes(new
+    {
+        tag_name = Tag, html_url = Page.AbsoluteUri, draft = false, prerelease = false, body = "",
+        assets = Assets.Select(a => new { name = a.Name, size = a.Size, state = "uploaded", browser_download_url = a.Url.AbsoluteUri })
+    });
+
     public static ReleaseInfo? Parse(ReadOnlyMemory<byte> json)
     {
         if (json.Length is 0 or > ReleasePolicy.MaxMetadataBytes) return null;

@@ -126,6 +126,7 @@ public sealed class ConvertWindow : ToolWindow
 
     internal async Task RunAsync()
     {
+        using var updateWork = UpdateWork.Track();
         if (_cts != null) { _cts.Cancel(); return; }
         var folder = _folder.Text.Trim();
         if (!Directory.Exists(folder)) { _status.Text = "The output folder doesn't exist."; return; }

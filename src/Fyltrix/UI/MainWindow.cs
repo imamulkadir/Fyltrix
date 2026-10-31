@@ -86,6 +86,8 @@ public sealed partial class MainWindow : Window, IFolderHost
         Closing += (_, e) =>
         {
             if (!_exitForReal && Settings.ConfirmCloseTabs && _tabs.Count > 1 && !ConfirmCloseTabs(_tabs.Count, closingWindow: true)) { e.Cancel = true; return; }
+            // A modal confirmation can pump messages; recheck update-only safety after it returns.
+            if (_updateCloseRequested && UpdateCloseProblem() != null) { e.Cancel = true; return; }
             if (KeepSharingInsteadOfClosing(e)) return;
             SaveSettings();
         };
@@ -978,7 +980,7 @@ public sealed partial class MainWindow : Window, IFolderHost
     }
 
     internal Task PasteTask { get; private set; } = Task.CompletedTask;
-    private void PasteInto(string targetDir) => PasteTask = PasteIntoAsync(targetDir);
+    private void PasteInto(string targetDir) => PasteTask = RunUpdateTrackedPasteAsync(targetDir);
 
     private async Task PasteIntoAsync(string targetDir)
     {
@@ -1026,6 +1028,7 @@ public sealed partial class MainWindow : Window, IFolderHost
 
     private void Transfer(IList<string> files, string targetDir, bool move)
     {
+        using var updateWork = TrackUpdateWork();
         if (files.Count == 0) return;
         if (move) ReleasePreviews(files);
         var result = FileOps.Transfer(files, targetDir, move, Hwnd, target => ConflictDialog.Ask(this, target));
@@ -1053,6 +1056,7 @@ public sealed partial class MainWindow : Window, IFolderHost
 
     private void DeleteSelection(bool permanent)
     {
+        using var updateWork = TrackUpdateWork();
         if (View == null || !CanExecute("delete")) return;
         if (View.IsArchive) { SetStatus("Archives are read-only here. Items inside them can't be deleted."); return; }
         var sel = View.SelectedItems.Where(i => !i.IsDrive).ToList();
@@ -1085,6 +1089,7 @@ public sealed partial class MainWindow : Window, IFolderHost
 
     private void Undo()
     {
+        using var updateWork = TrackUpdateWork();
         if (!_undo.CanUndo) { SetStatus("Nothing to undo."); return; }
         _preview.Clear();
         _quickView?.Close();

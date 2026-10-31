@@ -1,6 +1,6 @@
 # Release discovery and verification — Stage 4
 
-This stage provides an independent .NET 8 library and an explicit command-line tool. The WPF application does not reference them yet: there is no startup check, new settings key, timer, background service, package download, installation, version switch, or profile migration. Portable publishing and the Stage 3 installer retain their existing behavior.
+Stage 4 introduced the independent .NET 8 release-verification library and command-line tool documented here. Stage 5 adds [manual staging and safe handover](MANUAL_UPDATES.md). The WPF application does not reference the library yet: there is no startup check, new settings key, timer, background service, installation, version switch, or profile migration. Portable publishing and the Stage 3 installer retain their existing behavior.
 
 ## Discovery
 
@@ -95,6 +95,6 @@ dotnet test .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj
 
 Tests generate disposable keys, sign fixtures, exercise the actual command-line tool, reject altered/wrong-key manifests and package bytes, validate unsafe ZIP cases, and cover transport limits, redirect policy, rate limits, ETags, timeouts and cancellation. Test keys never become production pins. Executed results and external evidence are recorded in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
 
-Stage 5 requires separate approval before adding manual download and application shutdown/handover. Installer rollout, Authenticode/SmartScreen, authenticated live-release verification with an owner key, health rollback, and automatic installation have not passed their later gates.
+Stage 5's separately approved manual staging and shutdown/handover boundary is documented in [MANUAL_UPDATES.md](MANUAL_UPDATES.md). Stage 6 requires separate approval before applying updates and adding health/rollback recovery. Installer rollout, Authenticode/SmartScreen, authenticated live-release verification with an owner key, health rollback, and automatic installation have not passed their later gates.
 
 Sources: [GitHub Releases API](https://docs.github.com/en/rest/releases/releases?apiVersion=latest), [Microsoft ECDSA verification](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.ecdsa.verifydata?view=net-8.0), and the local reference's `docs/ADR/0034-signed-release-manifest.md` in the DynamicEye checkout. Fyltrix has its own protocol/product identity and trust root.

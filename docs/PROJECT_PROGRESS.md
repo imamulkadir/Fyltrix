@@ -48,6 +48,52 @@ No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mut
 - Branch cleanup is complete and verified. The owner's later "proceed next" instruction approved resuming Stage 2 directly on `master`; its progress is recorded below.
 - Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
 
+## Stage 5 — Manual staging and safe shutdown/handover
+
+Status: **Completed — stopped for Stage 6 approval.** Authorized by the owner's "pushed, proceed", followed by "continue please from where you left off" during verification. Starting branch was clean `master` at `e9998306c9fe70c3957ca9a207ceabe0ea3e4d96`, matching origin and live GitHub master. No Git write, branch, release, installer, or production trust operation was performed.
+
+### Completed tasks
+
+- Added explicit authenticated package download and offline staging. Manifest trust/newer-version gates run before package requests or directory creation. Reused the Stage 4 HTTPS redirect policy and the existing package verifier through the same exclusive staging handle.
+- Stream into a unique token-owned stage with a 64 KiB buffer, signed-length limits, content/hash verification, 200 MiB disk reserve, 30-second inactivity timeout, caller cancellation, and bounded progress updates. Successful stages retain exact signed evidence; failures clean only their own known files. No automatic pruning or profile migration.
+- Default updater-only storage is `%LocalAppData%\Fyltrix\Updates`; existing `%AppData%\FileLens` settings and `%LocalAppData%\FileLens` caches retain their identities. Reject application/development/data overlaps, junctions, and unsafe staging paths; expand 8.3 aliases before protected-path comparisons.
+- Added bounded handover preparation/consumption. Capture launcher and payload process identities/start times, reverify evidence/package, wait without killing, reject changed layout/request/process identity, and return a read-only verified package lease. No version switch, extraction, executable launch, installation, or rollback is implemented.
+- Added close approval only after successful normal window closure and a final cancellation check, using a flushed temporary token and atomic rename. Cancelled closes remain unapproved even if request removal is blocked. The helper never treats process exit alone as authorization.
+- Added an internal MainWindow update-close seam, retaining ordinary tab confirmation, cancellation, settings save and cleanup. It refuses active jobs, pastes, synchronous operations, sharing/background mode, automation and open tools. Tiny work scopes cover conversion/image/PDF/manual automation and automation-engine writes that can outlive their windows/engine. Ordinary closing behavior is unchanged; no application update UI or startup hook is enabled for end users.
+- Extended the standalone CLI with explicit `download`, `stage-local`, `prepare`, and readiness-only `wait` commands. Production pins remain empty and fail closed. Test trust is explicit and never added to application defaults.
+
+### Files created or modified
+
+- Created `src/Fyltrix.Updates/StagingArea.cs`, `UpdateDownloader.cs`, and `UpdateHandover.cs`; updated that project's file, shared HTTP transport, verifier, release metadata and signed-evidence model.
+- Created `src/Fyltrix/Core/UpdateWork.cs` and `src/Fyltrix/UI/MainWindow.UpdateShutdown.cs`.
+- Added only work-tracking scopes/update-only close guards to existing `Core/Automation/AutomationEngine.cs`, `UI/MainWindow.cs`, `AutomationWindow.cs`, `ConvertWindow.cs`, `ImageToolsWindow.cs`, and `PdfToolsWindow.cs`. Existing file-management algorithms/dependencies/defaults were not rewritten.
+- Updated `tools/Fyltrix.UpdateTool/Program.cs`.
+- Created `tests/Fyltrix.HandoverProbe/Fyltrix.HandoverProbe.csproj` and `Program.cs`, plus update-suite `DownloadTests.cs` and `HandoverTests.cs`; updated its project and CLI interoperability test.
+- Created `tests/Fyltrix.Tests/UpdateShutdownTests.cs`; synchronized the existing sharing-expiry test with its actual notification/listener-completion conditions.
+- Extended the test-only PlacementProbe project/startup hook and added `UpdateHandoverStartupProbe.cs` to exercise approval on the real application's UI thread. This dependency/hook is never shipped in the application payload.
+- Created `docs/MANUAL_UPDATES.md`; updated `README.md`, `docs/UPDATES.md`, `docs/IMPLEMENTATION_STATUS.md`, and this file.
+
+### Executed verification
+
+- Final update suite: **113 passed, 0 failed, 0 skipped**, covering authenticated transfer/offline CLI staging, size/hash corruption, stalls, cancellation, no-space refusal, protected/junction paths, staging evidence, process waiting, PID reuse, changed inputs, cancellation during close, locked-request cancellation, and a package lease that denies writers.
+- Final application suite: **361 passed, 0 failed, 0 skipped** (354 existing + seven new shutdown tests). Packaging suite: **28 passed**; installer builder guards: **9 passed**. New WPF tests prove tab/event cancellation, active-job/share/automation/tool refusal, modal-state recheck, image saves after tool closure, and writes after automation disposal. Real clipboard, Recycle Bin, desktop input and LAN listeners were not used.
+- An initial full run had one existing sharing-expiry assertion fail after observing `Expired` but before its asynchronous `Changed` notification. Confirmed the ordering in unchanged sharing source; the test now waits for all already-asserted outcomes. Focused recheck and full rerun passed. Initial transfer-fault fixtures and a junction command-quoting issue were corrected; final tests create and reject a real junction. Early compile errors were fixed before successful builds.
+- Existing x64 development build, independent update tool/library, Release probe, and isolated self-contained release-layout builds: **passed**, with the existing application nullable/DPI warnings. An interrupted initial packaging attempt was retained; fresh output roots were used instead of overwriting partial output. Final application source was packaged separately under `release-verified/0.1.0`.
+- Final actual-app integration: a real **85,113,586-byte** `0.1.1` archive was signed with a disposable key and staged through the actual CLI. Started the final `0.1.0` native launcher/WPF payload on a private desktop with synthetic profile/browser/clipboard data. The application itself prepared the request and called the guarded normal-close/atomic-approval method on its UI thread; a separate CLI helper verified readiness after both processes exited. The layout remained byte-identical, custom preferences/preview worked, and launcher exit was 0. No package was extracted, applied, installed, or restarted.
+- An earlier external test bridge wrote approval after the application exited and was correctly refused. Replaced that test bridge with the actual in-application UI-thread sequence above; no waiting-for-approval bypass was added. The final report explicitly records `approvalWrittenOnApplicationUiThread: true`.
+- Additional private-desktop smoke checks: current x64 development binaries launched/listed/initialized preview and accepted guarded close; the updated probe also worked with an untouched older Stage 2 payload using the legacy close path. Both exited 0.
+- One local real-archive copy/verification run took about 0.6 seconds; this is local staging throughput, not an internet or startup benchmark. Buffers/progress are bounded; no new idle task, polling loop, startup networking or renderer was added. Existing source dependency lists, app startup, `publish.ps1`, portable release and personal roaming-profile hashes were preserved.
+
+### Evidence and remaining gates
+
+External evidence: `D:\Tools\Fyltrix-stage5-20261031-205214-600f070b`. Final reports: `tests/stage5-updates-complete.trx`, `tests/stage5-app-complete.trx`, `tests/stage5-packaging.trx`, `real-handover-verification.json`, `development-and-legacy-smoke.json`, and `stage5-verification.json`. The final real-app run is `real-handover-ui`; earlier attempts are retained as evidence, not counted as passing runs. Disposable private keys were removed; no production key was generated/pinned.
+
+The CLI and internal shutdown seam are developer/manual boundaries, not an end-user update UI. Production downloads remain unavailable without a reviewed owner signing pin. Stage 6 must implement application-directory coordination, apply/switch, health validation, rollback and abort recovery; readiness alone is not installation safety. A process starting after the final scan must still be handled at that stage. Fully automatic installation, live authenticated releases, signing/SmartScreen, power-loss recovery and production installer rollout have not passed their later gates. Existing installed/development/portable copies were not replaced and no personal settings were migrated.
+
+Suggested commit message: `feat(updater): add verified staging and safe shutdown handover`.
+
+Next stage, only after explicit approval: Stage 6, out-of-process apply/version switch, health validation, rollback/failure recovery and saved-data compatibility tests. No implementation of that stage has started.
+
 ## Stage 4 — Read-only release discovery and signed verification
 
 Status: **Completed — stopped for Stage 5 approval.** Authorized by the owner's "pushed, continue" instruction after Stage 3. Clean starting branch: `master` at `b66adc2c9bb29cffca43958f11058595bf6b48f0`; local, origin tracking, and live remote master matched. No Git write or release operation was performed.
@@ -262,9 +308,9 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 1. Baseline protection and reference audit — completed and approved by the owner's "go next" instruction.
 2. Separate release packaging/layout proof of concept — completed on `master`; approved for Stage 3 by the owner's "proceed next" instruction.
 3. Inno Setup per-user installer — completed on `master`; approved for Stage 4 by the owner's "pushed, continue" instruction. Production installer compiled only.
-4. Read-only GitHub release detection and signed-manifest/package verification — completed on `master`; 86 update tests, offline CLI and real-archive verification passed. Production trust is unconfigured. Waiting for Stage 5 approval.
-5. Manual download and safe shutdown/handover, respecting running work, sharing, and cancelled closes.
+4. Read-only GitHub release detection and signed-manifest/package verification — completed on `master`; approved for Stage 5 by the owner's "pushed, proceed" instruction. Production trust remains unconfigured.
+5. Manual staging and safe shutdown/handover — completed on `master`; 113 update tests, 361 application tests, real-process/UI-thread handover and preservation checks passed. Waiting for Stage 6 approval.
 6. Out-of-process version switch, health validation, rollback/failure recovery, and compatibility tests for saved data.
 7. End-to-end regression verification and optional automation proposal. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: the owner can review/commit Stage 4 manually. Stop for explicit Stage 5 approval before implementing package download or application shutdown/handover. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.
+Next action: the owner can review/commit Stage 5 manually. Stop for explicit Stage 6 approval before implementing apply/version switching, health validation or rollback. The owner handles commits and all remote Git/release operations. All implementation uses `master` only; do not create another branch.

@@ -26,6 +26,17 @@ public static class StartupHook
         PreviewPane.WebDataFolder = Path.Combine(root, "webview2");
         ThumbnailService.DiskCacheFolder = Path.Combine(root, "thumbs");
         MainWindow.ClipboardFactory = () => new IsolatedClipboard();
+        Action<MainWindow>? handoverTick = null;
+        var stage = Environment.GetEnvironmentVariable("FYLTRIX_HANDOVER_TEST_STAGE");
+        if (stage != null)
+        {
+            // Test-only dependencies are loaded from the probe, never added to the application payload.
+            string probeFolder = Path.GetDirectoryName(typeof(StartupHook).Assembly.Location)!;
+            foreach (var name in new[] { "Fyltrix.Launcher", "Fyltrix.Updates" })
+                System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(Path.Combine(probeFolder, name + ".dll"));
+            handoverTick = UpdateHandoverStartupProbe.Create(root, stage,
+                Environment.GetEnvironmentVariable("FYLTRIX_HANDOVER_TEST_KEY") ?? throw new InvalidOperationException("Explicit test public key required."));
+        }
         var watch = Stopwatch.StartNew();
         bool ready = false;
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
@@ -46,6 +57,15 @@ public static class StartupHook
                 if (File.Exists(Path.Combine(root, "release-app")) || watch.Elapsed > TimeSpan.FromSeconds(90))
                 {
                     timer.Stop(); window.Settings.ConfirmCloseTabs = false; window.Close();
+                }
+                else if (handoverTick != null) handoverTick(window);
+                else if (File.Exists(Path.Combine(root, "release-for-update")) && !File.Exists(Path.Combine(root, "update-close.json")))
+                {
+                    // Reflection keeps Stage 3's probe usable with older payloads lacking this Stage 5 seam.
+                    var close = typeof(MainWindow).GetMethod("TryCloseForUpdate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                    bool accepted = close != null && (bool)close.Invoke(window, null)!;
+                    if (accepted) timer.Stop();
+                    File.WriteAllText(Path.Combine(root, "update-close.json"), JsonSerializer.Serialize(new { accepted }));
                 }
             }
             else if (watch.Elapsed > TimeSpan.FromSeconds(45))

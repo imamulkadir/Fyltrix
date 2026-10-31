@@ -46,6 +46,11 @@ public sealed class ToolTests : IDisposable
         Assert.Equal("None", JsonNode.Parse(verify.Output)!["verification"]!.GetValue<string>());
         Assert.False(JsonNode.Parse(verify.Output)!["installed"]!.GetValue<bool>());
         Assert.Equal(fixture.Package, await File.ReadAllBytesAsync(setup));
+        var staged = await Run("stage-local", "0.1.0", feed, manifestPath, sigPath, setup, pub, Path.Combine(root, "offline staging"));
+        Assert.True(staged.ExitCode == 0, staged.Output);
+        var stageFolder = JsonNode.Parse(staged.Output)!["directory"]!.GetValue<string>();
+        Assert.Equal(fixture.Package, await File.ReadAllBytesAsync(Path.Combine(stageFolder, fixture.Name)));
+        Assert.False(JsonNode.Parse(staged.Output)!["installed"]!.GetValue<bool>());
         var repeat = await Run("sign", Fixture.Version, key, pub, signed, setup);
         Assert.NotEqual(0, repeat.ExitCode);
         Assert.Equal(data, await File.ReadAllBytesAsync(manifestPath));

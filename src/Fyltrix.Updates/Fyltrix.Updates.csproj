@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Fyltrix.Updates.Tests" />
     <ProjectReference Include="..\Fyltrix.Launcher\Fyltrix.Launcher.csproj" />
   </ItemGroup>
 </Project>
