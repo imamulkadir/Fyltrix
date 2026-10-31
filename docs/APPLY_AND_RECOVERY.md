@@ -1,6 +1,6 @@
 # Verified apply and recovery — Stage 6
 
-This stage adds the update backend to the existing self-contained application. Inno Setup remains the separate installer; no update framework, service, scheduled task, automatic check, or automatic installation is added. Production signing pins remain empty, so production workers refuse untrusted packages. The end-user update action and broader end-to-end approval belong to Stage 7.
+This stage adds the update backend to the existing self-contained application. Inno Setup remains the separate installer; no update framework, service, scheduled task, automatic check, or automatic installation is added. The current source pins the dedicated owner-managed Fyltrix public key, and production workers continue to refuse untrusted packages. Earlier builds without pins require manual bootstrap installation. The end-user update action and broader end-to-end approval belong to Stage 7.
 
 ## Compatibility boundary
 

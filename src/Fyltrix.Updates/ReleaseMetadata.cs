@@ -14,8 +14,13 @@ public static partial class ReleasePolicy
     public const int MaxManifestBytes = 64 * 1024;
     public const int MaxSignatureBytes = 1024;
     public const long MaxPackageBytes = 1024L * 1024 * 1024;
-    // Intentionally empty. Never take trust keys from a release/feed, and never reuse DynamicEye's key.
-    public static IReadOnlyList<string> PinnedPublicKeys { get; } = Array.AsReadOnly(Array.Empty<string>());
+    // Dedicated Fyltrix production public key. Private key remains owner-local, outside Git.
+    // SPKI SHA-256: 3665b71c7619dc19d986f94b7e46bd3b39618fb9c47bfa129254ae76fb955c0d
+    // Never take trust keys from a release/feed or reuse DynamicEye's key.
+    public static IReadOnlyList<string> PinnedPublicKeys { get; } = Array.AsReadOnly(new[]
+    {
+        "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUAILnPjW33nmfrUzLGcaiCLDcaVFAA5o5aSxqCN5EDJpiE+gNuaBxtoVTa9tIpGUO2JZd6qE4VLg5URiQxQ+vA=="
+    });
     public static string ZipName(string version) => $"Fyltrix-{version}-win-x64.zip";
     public static bool IsPackage(string name, string version) => name == SetupName || name == ZipName(version);
     public static bool SafeName(string name) => name.Length <= 128 && NamePattern().IsMatch(name)

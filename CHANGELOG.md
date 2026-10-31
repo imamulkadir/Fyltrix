@@ -13,12 +13,14 @@ The release workflow uses that exact section as the GitHub release notes.
 - Update backend with copied-profile health checks, atomic version selection,
   rollback and authenticated interruption recovery.
 - Tag-triggered release builds and draft release notes from this changelog.
+- Dedicated release-signing trust, protected owner-local key creation and verified encrypted backups.
 
 ### Safety and availability
 
 - Existing preferences and legacy FileLens data locations are preserved.
-- Production signing trust is not configured. The in-app update action and
-  automatic installation are not enabled.
+- A dedicated production public key is pinned. Existing installations need a
+  tested manual bootstrap build; the in-app update action and automatic
+  installation are not enabled yet.
 
 ## [0.1.0]
 

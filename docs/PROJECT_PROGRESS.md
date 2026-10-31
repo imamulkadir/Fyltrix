@@ -48,6 +48,40 @@ No commit, push, merge, tag, force-push, reset, GitHub Release operation, PR mut
 - Branch cleanup is complete and verified. The owner's later "proceed next" instruction approved resuming Stage 2 directly on `master`; its progress is recorded below.
 - Suggested commit message for this document update: `docs(workflow): record master-only branch consolidation`.
 
+## Stage 7A.1 — Dedicated signing trust and encrypted backup
+
+Status: **Completed locally — stopped for Stage 7B approval (2026-11-01)**. The owner confirmed the tooling was pushed and requested key creation, public-key configuration, remaining integration and first release validation. Per the stage-by-stage agreement, this substage handles signing setup only and stops before Stage 7B application integration. The owner selected `D:\Fyltrix-Key-Backups` for the encrypted backup. Starting clean local/origin/live `master`: `4a00e5381d70a085fcfec832df6e335913ada358`. No Git writes or remote mutations.
+
+### Completed tasks
+
+- Added owner-only .NET 8 key setup and a PowerShell wrapper. Generate a new ECDSA P-256 key outside every checkout/application copy/legacy profile, refuse existing/overlapping/link destinations, apply protected current-account/SYSTEM ACLs before secret writes, create files exclusively and flush them. Retain partial outputs for review instead of deleting a key.
+- Created the dedicated production key in `%LocalAppData%\Fyltrix-Signing`, with the owner's selected encrypted backup in `D:\Fyltrix-Key-Backups`. The backup uses password-encrypted PKCS#8 (AES-256-CBC, PBKDF2-SHA256, 600,000 iterations) and a random 256-bit recovery password held separately in the protected primary directory. The password and private key were never printed, placed in Git, copied into build outputs or supplied to GitHub.
+- Verified actual backup decryption, matching public key, random sign/verify challenge and file permissions. This is a verified **local** backup; no independent/off-device copy or password-manager storage is claimed. Owner instructions are in `docs/SIGNING_SETUP.md`.
+- Pinned only its public SPKI in `src/Fyltrix.Updates/ReleaseMetadata.cs`. SHA-256 fingerprint: `3665b71c7619dc19d986f94b7e46bd3b39618fb9c47bfa129254ae76fb955c0d`. No reference/test key reuse. Existing binaries are not replaced; they need a tested manual bootstrap to acquire the new trust. Automatic checks/download/install remain disabled and no application settings/defaults were changed.
+- Kept no-trust tests meaningful by explicitly passing an empty trust set; the configured default now rejects unrelated signatures instead of pretending to have no pins. Added key-setup permission/restore/overwrite/path tests and production-public-key validity/unrelated-signer rejection. Existing offline signing remains compatible.
+
+### Files created or modified
+
+- Created `tools/Fyltrix.UpdateTool/SigningKeySetup.cs`, `tools/New-ReleaseSigningKey.ps1`, `docs/SIGNING_SETUP.md`.
+- Modified `src/Fyltrix.Updates/ReleaseMetadata.cs`, `tools/Fyltrix.UpdateTool/Program.cs`.
+- Modified `tests/Fyltrix.Updates.Tests/ToolTests.cs`, `ReleaseTests.cs`, `ClientTests.cs`, `DownloadTests.cs`.
+- Updated `README.md`, `CHANGELOG.md`, `docs/UPDATES.md`, `MANUAL_UPDATES.md`, `APPLY_AND_RECOVERY.md`, `RELEASING.md`, `IMPLEMENTATION_STATUS.md`, and this file to distinguish configured source trust from older unpinned binaries and pending rollout.
+
+### Executed verification
+
+- Owner-tool build passed. Four focused CLI tests passed. Final Release suites: **132 update tests, 365 application tests and 31 packaging tests passed**, with zero failures/skips. A first update run found one remaining test assuming global empty pins; changed it to an explicit empty-trust fixture, preserving its no-network/no-staging assertion, then reran the full suite successfully. Windows permission checks in the new tests are explicitly guarded; no new analyzer warning remains in the final update build.
+- Real production key generation/backup restore and permissions passed. Public metadata only: `signing-setup-public.json` in the external evidence root. No secret contents are in evidence reports.
+- Fresh source-pinned self-contained/NativeAOT layout build and Production installer compilation passed; Setup was never executed. Used the actual production private key locally to sign the fresh ZIP/installer. A separate offline probe referencing the **actual packaged** update library accepted the signature using its default source pin with no test-key override, verified both packages, rejected changed manifest bytes, and checked the exact public fingerprint. Evidence: `payload-trust-verification.json`. Signed test artifacts stay external/unpublished.
+- Actual native launcher and newly pinned WPF payload startup passed on a private desktop with synthetic profile/cache/clipboard: preview ready, normal close, exit zero. Only a separate Sandbox-marked test copy was launched; production outputs and the current development/portable copy were not installed or replaced. Evidence: `bootstrap-smoke.json`.
+- Final Release totals: **132 update tests, 365 application tests, 31 packaging tests, 13 release-tooling tests, nine installer-builder tests**, all passed. Final preservation audit: personal roaming profile and all **488 existing portable files** unchanged; application/UI/launcher/installer/publish workflow sources unchanged; only intended release-policy/tool/test/docs changes. No secret-key/password files or PEM secret contents in Git changes. Documentation links and whitespace checks pass; `master`/origin remain at the starting commit. Evidence: `verification.json`.
+- Not performed: independent/off-device backup, production installation, manual bootstrap rollout, in-app update integration, hosted Actions, live authenticated GitHub release or publication. No user desktop input, real clipboard, Recycle Bin or arbitrary process termination was used.
+
+Evidence root: `D:\Tools\Fyltrix-signing-setup-20261101-013611`. Existing `publish.ps1 -Run`, file-management/UI behavior, user data and previous portable binaries are protected. Current application version stays `0.1.0`; no tag, commit, push, merge, release creation/publication or production installation is performed.
+
+Known owner action: copy the encrypted backup to independent offline storage and store its recovery password separately; a local backup cannot establish recovery after loss of this PC. The agent does not request secrets in chat. Next stage after signing verification and explicit approval: Stage 7B manual application-update UI/workflow integration and regression. Tagging/first hosted release validation stays later, after the required tests and owner approval.
+
+Suggested commit message: `feat(updater): configure dedicated release signing trust`.
+
 ## Stage 7A — Tag/changelog release automation
 
 Status: **Completed locally — stopped for owner validation/next-stage approval (2026-11-01)**. The owner requested mostly automated releases matching DyanamicEye, authorizing this release-tooling substage. Starting checkout: clean `master` at `4d40c41` (owner's Stage 6 commit). Application-update UI integration remains a separate Stage 7B gate; it is not being implemented here. Hosted release execution is explicitly unverified.
@@ -399,6 +433,6 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 4. Read-only GitHub release detection and signed-manifest/package verification — completed on `master`; approved for Stage 5 by the owner's "pushed, proceed" instruction. Production trust remains unconfigured.
 5. Manual staging and safe shutdown/handover — completed on `master`; approved for Stage 6 by the owner's "proceed" instruction.
 6. Out-of-process apply, isolated health validation, rollback/recovery and saved-data preservation — completed on `master`; stopped for explicit Stage 7 approval. See the Stage 6 report above.
-7. Release automation and end-to-end workflow/regression: Stage 7A tag/changelog automation is locally complete following the owner's request, with first hosted tag/key/signing validation pending. Stage 7B application manual-update workflow integration/final regression has not started and requires explicit approval. Fully automatic installation remains disabled unless separately approved after the gates pass.
+7. Release automation and end-to-end workflow/regression: Stage 7A tag/changelog automation and Stage 7A.1 dedicated signing/key-backup setup are locally complete. Owner independent backup, manual bootstrap and first hosted tag/signing/publication validation remain pending. Stage 7B application manual-update workflow integration/final regression has not started and requires explicit approval. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: stop after Stage 7A. The owner handles commits/pushes/tags and the first hosted release/key-bootstrap validation. Wait for explicit approval before Stage 7B application manual-update workflow integration/final regression. Fully automatic installation needs separate approval. All implementation uses `master` only; do not create another branch.
+Next action: stop after Stage 7A.1 signing setup. The owner completes independent offline backup/password storage and handles commits/pushes/tags. Wait for explicit approval before Stage 7B application manual-update workflow integration/final regression. Manual bootstrap and first hosted release validation follow the required testing/approval gates; tagging does not start automatically. Fully automatic installation needs separate approval. All implementation uses `master` only; do not create another branch.

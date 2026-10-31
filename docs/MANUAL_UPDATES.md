@@ -6,7 +6,7 @@ There is no new startup scheduler, service, settings key, or automatic check/dow
 
 ## Manual downloads
 
-`UpdateDownloader.DownloadAsync` requires a newer stable release and authenticates its manifest using application-pinned keys **before** requesting package bytes or creating staging directories. The production pin list is still empty, so production downloads fail closed with `NoTrustedKey` until the owner supplies a Fyltrix-specific public key for review. No production private key was created and no test/reference key is pinned.
+`UpdateDownloader.DownloadAsync` requires a newer stable release and authenticates its manifest using application-pinned keys **before** requesting package bytes or creating staging directories. The current source pins the dedicated owner-managed Fyltrix public key; unknown signatures remain refused. Earlier builds without pins return `NoTrustedKey` and need manual bootstrap installation. The private key is never shipped; no test/reference key is pinned. See [SIGNING_SETUP.md](SIGNING_SETUP.md).
 
 The downloader reuses Stage 4's HTTPS/redirect policy. It checks available disk space against the signed package size plus 200 MiB, then streams to a new `.partial` file using a 64 KiB buffer. It rejects contradictory Content-Length, early EOF, excess bytes, invalid hashes and invalid PE/ZIP contents. Unknown Content-Length is supported. There is a 30-second inactivity timeout, not a whole-download deadline; caller cancellation propagates separately. Progress reports are limited to roughly ten per second plus completion.
 

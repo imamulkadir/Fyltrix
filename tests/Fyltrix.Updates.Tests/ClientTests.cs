@@ -85,7 +85,7 @@ public class ClientTests
         using var fixture = new Fixture();
         using var handler = new Handler((_, _) => throw new Exception("Network must not be used"));
         using var http = new HttpClient(handler);
-        Assert.Equal(VerificationFailure.NoTrustedKey, (await new GitHubReleaseClient(http).VerifyManifestAsync(fixture.Release())).Failure);
+        Assert.Equal(VerificationFailure.NoTrustedKey, (await new GitHubReleaseClient(http).VerifyManifestAsync(fixture.Release(), Array.Empty<string>())).Failure);
         Assert.Empty(handler.Requests);
     }
     [Fact]

@@ -40,6 +40,48 @@ public sealed class ToolTests : IDisposable
         Assert.Equal(fixture.Package, await File.ReadAllBytesAsync(setup));
     }
     [Fact]
+    public async Task Signing_setup_creates_a_private_key_and_restorable_encrypted_backup_without_printing_secrets()
+    {
+        if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("Windows key setup requires Windows.");
+        string primary = Path.Combine(root, "signing & unicode বাংলা"), backup = Path.Combine(root, "encrypted backup");
+        var result = await Run("create-signing-key", primary, backup);
+        Assert.True(result.ExitCode == 0, result.Output);
+        var info = JsonNode.Parse(result.Output)!;
+        Assert.True(info["encryptedBackupVerified"]!.GetValue<bool>());
+        Assert.False(info["offlineBackupVerified"]!.GetValue<bool>());
+        string password = await File.ReadAllTextAsync(Path.Combine(primary, "backup-recovery-password.txt"));
+        Assert.DoesNotContain(password, result.Output);
+        Assert.DoesNotContain("PRIVATE KEY", result.Output);
+        using var restored = System.Security.Cryptography.ECDsa.Create();
+        restored.ImportFromEncryptedPem(await File.ReadAllTextAsync(Path.Combine(backup, "fyltrix-release-private.encrypted.pem")), password);
+        Assert.Equal(info["publicKey"]!.GetValue<string>(), Convert.ToBase64String(restored.ExportSubjectPublicKeyInfo()));
+        Assert.False(File.Exists(Path.Combine(backup, "backup-recovery-password.txt")));
+        var acl = System.IO.FileSystemAclExtensions.GetAccessControl(new DirectoryInfo(primary));
+        Assert.True(acl.AreAccessRulesProtected);
+        using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+        var user = identity.User!;
+        var system = new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.LocalSystemSid, null);
+        foreach (System.Security.AccessControl.FileSystemAccessRule rule in acl.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier)))
+            Assert.True(rule.IdentityReference.Equals(user) || rule.IdentityReference.Equals(system));
+        var again = await Run("create-signing-key", primary, Path.Combine(root, "new backup"));
+        Assert.Equal(2, again.ExitCode);
+        Assert.False(Directory.Exists(Path.Combine(root, "new backup")));
+        Assert.Equal(password, await File.ReadAllTextAsync(Path.Combine(primary, "backup-recovery-password.txt")));
+    }
+    [Fact]
+    public async Task Signing_setup_refuses_existing_backup_or_overlapping_destinations_without_writing_a_key()
+    {
+        string primary = Path.Combine(root, "never-created");
+        var existing = await Run("create-signing-key", primary, root);
+        Assert.Equal(2, existing.ExitCode); Assert.False(Directory.Exists(primary));
+        var same = await Run("create-signing-key", primary, primary);
+        Assert.Equal(2, same.ExitCode); Assert.False(Directory.Exists(primary));
+        var checkout = Path.Combine(root, "checkout"); Directory.CreateDirectory(Path.Combine(checkout, ".git"));
+        var insideGit = await Run("create-signing-key", Path.Combine(checkout, "keys"), Path.Combine(root, "safe backup"));
+        Assert.Equal(2, insideGit.ExitCode); Assert.False(Directory.Exists(Path.Combine(checkout, "keys")));
+        Assert.False(Directory.Exists(Path.Combine(root, "safe backup")));
+    }
+    [Fact]
     public async Task Signing_tool_and_offline_verifier_interoperate_and_preserve_inputs()
     {
         using var fixture = new Fixture();

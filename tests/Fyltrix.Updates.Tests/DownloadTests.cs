@@ -62,7 +62,7 @@ public sealed class DownloadTests : IDisposable
         using var handler = new Handler((_, _) => throw new Exception("No network expected"));
         using var http = new HttpClient(handler);
         var downloader = new UpdateDownloader(new GitHubReleaseClient(http));
-        Assert.Equal(DownloadFailure.Untrusted, (await downloader.DownloadAsync(fixture.Release(), Current, fixture.Name, root)).Failure);
+        Assert.Equal(DownloadFailure.Untrusted, (await downloader.DownloadWithKeysAsync(fixture.Release(), Current, fixture.Name, root, null, default, Array.Empty<string>())).Failure);
         Assert.Equal(DownloadFailure.NotNewer, (await downloader.DownloadAsync(fixture.Release(), ReleaseVersion.Parse("0.3.0")!, fixture.Name, root)).Failure);
         Assert.Empty(handler.Requests); Assert.Empty(Directory.EnumerateFileSystemEntries(root));
     }

@@ -6,6 +6,12 @@ using Fyltrix.Updates;
 // Explicit owner/developer commands. Not referenced by or shipped with the WPF application.
 try
 {
+    if (args.Length == 3 && args[0] == "create-signing-key")
+    {
+        if (!OperatingSystem.IsWindows()) throw new InvalidOperationException("Windows signing ACLs are required.");
+        Console.WriteLine(JsonSerializer.Serialize(SigningKeySetup.Create(args[1], args[2])));
+        return 0;
+    }
     if (args.Length == 3 && args[0] == "download")
     {
         var current = ReleaseVersion.Parse(args[1]) ?? throw new ArgumentException("Invalid current version.");
@@ -132,9 +138,10 @@ try
         return 0;
     }
     Console.Error.WriteLine("Commands:\n  check <installed-version> [local-release.json]\n  verify <release.json> <manifest.json> <signature> <package> <public-key.txt>\n  sign <version> <private-key.pem> <public-key.txt> <new-output-dir> <package> [package]\n  sign-release <version> <private-key.pem> <pinned-public-key.txt> <new-output-dir> <package> [package]\n  download <installed-version> <staging-root>\n  stage-local <installed-version> <release.json> <manifest> <signature> <package> <public-key.txt> <staging-root>\n  prepare <staging-directory> <layout-root> [test-public-key.txt]\n  wait <handover.json> [test-public-key.txt]");
+    Console.Error.WriteLine("  create-signing-key <new-primary-directory> <new-backup-directory> (Windows owner setup only)");
     return 1;
 }
-catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or CryptographicException or HttpRequestException)
+catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or CryptographicException or HttpRequestException or InvalidOperationException or System.Security.SecurityException)
 {
     // Do not dump file contents, private-key material, signed CDN query strings, or personal paths.
     Console.Error.WriteLine("Command failed: " + ex.GetType().Name + ". Check inputs and the documented limits.");

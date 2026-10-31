@@ -5,7 +5,7 @@ Fyltrix follows DyanamicEye's release model: **edit the changelog, prepare the v
 ## One-time setup
 
 - Commit and push the release tooling/workflow to `master` yourself. Enable GitHub Actions if repository policy currently disables it. The workflow needs permission to write release contents, OIDC identity and attestations. Package attestations must be available for the repository; public repositories support them. Do not bypass failed provenance verification.
-- Use a dedicated Fyltrix ECDSA P-256 release key, held outside every checkout and backed up privately. Its Base64 SPKI public key must be reviewed and pinned in `ReleasePolicy.PinnedPublicKeys` (`src/Fyltrix.Updates/ReleaseMetadata.cs`). **The list is currently empty.** No production key was generated/configured by this stage. Never reuse DynamicEye's key or pin a test key.
+- A dedicated Fyltrix ECDSA P-256 key has been created outside every checkout, with a verified encrypted local backup, and its Base64 SPKI public key is pinned in `ReleasePolicy.PinnedPublicKeys` (`src/Fyltrix.Updates/ReleaseMetadata.cs`). Complete the independent offline backup/password-storage step in [SIGNING_SETUP.md](SIGNING_SETUP.md). Never regenerate the existing key, reuse DynamicEye's key or pin a test key.
 - The first production installation must be an explicitly tested, manually installed bootstrap build carrying that public key and the supported update protocol. The release automation does not bypass the remaining application-update integration/rollout gates.
 - Local signing needs Windows PowerShell 5.1+, .NET 8 SDK, Git and a current GitHub CLI authenticated with `gh auth login`. CI uses `windows-2025` with .NET 8, C++/NativeAOT tools and Inno Setup 6. Authenticode/SmartScreen signing is separate from updater manifest signing.
 
@@ -80,7 +80,7 @@ This is the second command stage you may remember from DyanamicEye. The helper:
 
 Omit `-Publish` to keep the signed release as a draft for review. After reviewing, publish it through GitHub's release page. Do not rerun completion to replace an existing manifest: ECDSA signatures can differ on each signing. If an upload is interrupted, retain the workspace and review the partial draft; nothing automatically deletes or overwrites its assets.
 
-Keep the temporary verification workspace private; clean it manually when no longer needed. Private key files are not copied into it or uploaded. Production completion intentionally fails until a dedicated key is pinned; do not use the offline test-key override to work around that gate.
+Keep the temporary verification workspace private; clean it manually when no longer needed. Private key files are not copied into it or uploaded. Production completion refuses unpinned keys; do not use the offline test-key override to work around that gate.
 
 ## Verification status and remaining gates
 

@@ -66,13 +66,28 @@ public class ReleaseTests
     }
 
     [Fact]
-    public void Default_trust_is_empty_and_rotation_accepts_a_later_key()
+    public void Empty_trust_fails_closed_and_rotation_accepts_a_later_key()
     {
         using var fixture = new Fixture();
         byte[] data = fixture.Manifest, sig = fixture.Signature(data);
-        Assert.Empty(ReleasePolicy.PinnedPublicKeys);
-        Assert.Equal(VerificationFailure.NoTrustedKey, SignedManifest.Verify(fixture.Release(data, sig), data, sig).Failure);
+        Assert.Equal(VerificationFailure.NoTrustedKey, SignedManifest.Verify(fixture.Release(data, sig), data, sig, Array.Empty<string>()).Failure);
         Assert.NotNull(SignedManifest.Verify(fixture.Release(data, sig), data, sig, ["invalid", fixture.PublicKey]).Verified);
+    }
+    [Fact]
+    public void Production_trust_contains_only_valid_public_p256_keys_and_rejects_an_unrelated_signer()
+    {
+        Assert.NotEmpty(ReleasePolicy.PinnedPublicKeys);
+        foreach (string encoded in ReleasePolicy.PinnedPublicKeys)
+        {
+            byte[] bytes = Convert.FromBase64String(encoded);
+            using var key = System.Security.Cryptography.ECDsa.Create();
+            key.ImportSubjectPublicKeyInfo(bytes, out int read);
+            Assert.Equal(bytes.Length, read);
+            Assert.Equal("1.2.840.10045.3.1.7", key.ExportParameters(false).Curve.Oid.Value);
+        }
+        using var fixture = new Fixture();
+        byte[] manifest = fixture.Manifest, signature = fixture.Signature(manifest);
+        Assert.Equal(VerificationFailure.InvalidSignature, SignedManifest.Verify(fixture.Release(manifest, signature), manifest, signature).Failure);
     }
 
     [Theory]
