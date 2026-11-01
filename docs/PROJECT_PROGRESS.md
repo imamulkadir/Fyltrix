@@ -10,6 +10,14 @@ Last updated: 2026-11-01.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
 
+## Signing decision — follow DyanamicEye (2026-11-01)
+
+Status: **Reference audit completed; existing signing model retained.** After requesting self-signed EXE signing, the owner directed the implementation to follow DyanamicEye's logic. Inspected `D:\Tools\DynamicEye\.github\workflows\release.yml`, `tools/Publish-Layout.ps1`, `tools/Complete-Release.ps1`, `packaging/installer/DynamicIsland.iss`, and ADRs 0034/0038. DyanamicEye builds unsigned EXEs, attests the packages, creates a draft, then has the owner sign the release manifest locally. ADR 0038 explicitly excludes Authenticode from that pipeline; its private signing key never goes to GitHub.
+
+Fyltrix already follows that signing separation. No self-signed Windows certificate, EXE-signing implementation, repository secrets or trust-store changes were created. Update-manifest signing remains owner-local with the existing dedicated Fyltrix key; Windows publisher/SmartScreen warnings remain possible. This does not add the still-deferred application update UI.
+
+Files modified: this progress file only. Verification: reference/source inspection, `Test-Release.ps1 -Tag v0.1.4` and Git whitespace checks; no runtime changes, so no new build/test-suite run. The prior v0.1.4 preparation passed all 552 tests. Starting clean `master`: `5043475` (owner's version-preparation commit); no agent Git writes. Next: owner review/commit/push this decision record, then owner-created `v0.1.4` tag to build the MIT-agreement release. Suggested commit: `docs(release): record DyanamicEye signing policy`.
+
 ## Release preparation — 0.1.4 (2026-11-01)
 
 Status: **Prepared and locally verified; owner Git operations and next release pending. No agent Git writes.** Owner reported green manual validation; read-only GitHub inspection confirms workflow run [41284179540](https://github.com/imamulkadir/Fyltrix/actions/runs/41284179540) succeeded on `master` at `7e08ba133c2a4a3ea4c72d5ceed0ca1050a96fd7`, containing the MIT agreement changes. Starting working tree was clean.
