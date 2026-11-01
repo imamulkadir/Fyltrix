@@ -8,6 +8,14 @@ import subprocess
 import tempfile
 import unittest
 import zipfile
+from unittest import mock
+
+POWERSHELL = str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32/WindowsPowerShell/v1.0/powershell.exe")
+
+
+def desktop_environment():
+    # Python inherits pwsh's Core module paths in CI. Let Windows PowerShell build its own paths.
+    return {key: value for key, value in os.environ.items() if key.upper() != "PSMODULEPATH"}
 
 
 @unittest.skipUnless(os.name == "nt", "Windows packaging tooling")
@@ -41,10 +49,10 @@ class BuilderGuards(unittest.TestCase):
         shutil.rmtree(self.root)
 
     def reject(self, message, output=None):
-        result = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+        result = subprocess.run([POWERSHELL, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
                                  str(self.repo / "tools/Build-Installer.ps1"), "-ReleaseDirectory", str(self.release),
                                  "-OutputDirectory", str(output or self.output), "-IsccPath", str(self.root / "must-not-run.exe")],
-                                capture_output=True, text=True, errors="replace", timeout=30)
+                                capture_output=True, text=True, errors="replace", timeout=30, env=desktop_environment())
         self.assertNotEqual(0, result.returncode)
         self.assertIn(message, result.stderr)
         self.assertFalse(self.output.exists())
@@ -79,9 +87,9 @@ class BuilderGuards(unittest.TestCase):
         self.output.mkdir()
         sentinel = self.output / "keep.txt"
         sentinel.write_text("existing output", encoding="utf-8")
-        result = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+        result = subprocess.run([POWERSHELL, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
                                  str(self.repo / "tools/Build-Installer.ps1"), "-ReleaseDirectory", str(self.release),
-                                 "-OutputDirectory", str(self.output)], capture_output=True, text=True, timeout=30)
+                                 "-OutputDirectory", str(self.output)], capture_output=True, text=True, timeout=30, env=desktop_environment())
         self.assertNotEqual(0, result.returncode)
         self.assertIn("already exists", result.stderr)
         self.assertEqual("existing output", sentinel.read_text(encoding="utf-8"))
@@ -93,8 +101,19 @@ class BuilderGuards(unittest.TestCase):
         # Only generated temporary paths, passed as escaped PowerShell literals.
         script = "$ErrorActionPreference='Stop'; New-Item -ItemType Junction -Path '" + str(link).replace("'", "''") + "' -Target '" + str(target).replace("'", "''") + "' | Out-Null"
         import base64
-        subprocess.run(["powershell", "-NoProfile", "-EncodedCommand", base64.b64encode(script.encode("utf-16le")).decode()], check=True, capture_output=True)
+        subprocess.run([POWERSHELL, "-NoProfile", "-EncodedCommand", base64.b64encode(script.encode("utf-16le")).decode()], check=True, capture_output=True, env=desktop_environment())
         self.reject("Source layout junctions/symlinks are not allowed")
+
+    def test_core_module_paths_are_not_inherited_by_desktop_children(self):
+        marker = str(self.root / "core-only-module-path")
+        with mock.patch.dict(os.environ, {"PSModulePath": marker}):
+            result = subprocess.run([POWERSHELL, "-NoProfile", "-NonInteractive", "-Command",
+                "$ErrorActionPreference='Stop'; $env:PSModulePath; (Get-Command Get-FileHash -ErrorAction Stop).Name"],
+                capture_output=True, text=True, timeout=30, env=desktop_environment())
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertNotIn(marker, result.stdout)
+            self.assertIn("Get-FileHash", result.stdout)
+            self.reject("output inside the checkout", self.repo / "artifacts/Fyltrix")
 
 
 if __name__ == "__main__":

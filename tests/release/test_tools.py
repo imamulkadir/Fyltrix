@@ -5,9 +5,14 @@ import subprocess
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from unittest import mock
 
 REPO = Path(__file__).resolve().parents[2]
 POWERSHELL = str(Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe')
+
+
+def desktop_environment():
+    return {key: value for key, value in os.environ.items() if key.upper() != 'PSMODULEPATH'}
 
 
 @unittest.skipUnless(os.name == 'nt', 'Windows PowerShell release tooling')
@@ -24,7 +29,7 @@ class ReleaseTools(unittest.TestCase):
 
     def run_script(self, script, *args):
         before = {p.name: p.read_bytes() for p in self.root.iterdir()}
-        result = subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', str(REPO / 'tools' / script), *map(str, args)], capture_output=True, timeout=20)
+        result = subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', str(REPO / 'tools' / script), *map(str, args)], capture_output=True, timeout=20, env=desktop_environment())
         self.assertEqual(before, {p.name: p.read_bytes() for p in self.root.iterdir()})
         return result
 
@@ -81,7 +86,7 @@ class ReleaseTools(unittest.TestCase):
 
     def test_default_paths_work_from_another_working_directory(self):
         version = ET.parse(REPO / 'src/Fyltrix/Fyltrix.csproj').find('./PropertyGroup/Version').text
-        result = subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', str(REPO / 'tools/Test-Release.ps1'), '-Tag', 'v'+version], cwd=self.root, capture_output=True, timeout=20)
+        result = subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', str(REPO / 'tools/Test-Release.ps1'), '-Tag', 'v'+version], cwd=self.root, capture_output=True, timeout=20, env=desktop_environment())
         self.assertEqual(0, result.returncode, result.stderr.decode(errors='replace'))
 
     def test_completion_refuses_bad_tag_before_external_actions(self):
@@ -93,7 +98,7 @@ class ReleaseTools(unittest.TestCase):
         original = self.project.read_text()
         self.notes.write_text('## [0.3.0]\n- Next tested release.\n')
         notes = self.notes.read_bytes()
-        result = subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', str(REPO/'tools/Set-ReleaseVersion.ps1'), '-Version', '0.3.0', '-ProjectPath', str(self.project), '-ChangelogPath', str(self.notes)], capture_output=True, timeout=20)
+        result = subprocess.run([POWERSHELL, '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', str(REPO/'tools/Set-ReleaseVersion.ps1'), '-Version', '0.3.0', '-ProjectPath', str(self.project), '-ChangelogPath', str(self.notes)], capture_output=True, timeout=20, env=desktop_environment())
         self.assertEqual(0, result.returncode, result.stderr.decode(errors='replace'))
         self.assertEqual(original.replace('0.2.0', '0.3.0'), self.project.read_text())
         self.assertEqual(notes, self.notes.read_bytes())
@@ -105,6 +110,12 @@ class ReleaseTools(unittest.TestCase):
                 self.notes.write_text(notes)
                 result = self.run_script('Set-ReleaseVersion.ps1', '-Version', version, '-ProjectPath', self.project, '-ChangelogPath', self.notes)
                 self.assertNotEqual(0, result.returncode)
+
+    def test_core_module_paths_do_not_leak_into_desktop_release_checks(self):
+        marker = str(self.root / 'core-only-module-path')
+        with mock.patch.dict(os.environ, {'PSModulePath': marker}):
+            self.assertNotIn('PSMODULEPATH', {key.upper() for key in desktop_environment()})
+            self.assertEqual(0, self.validate().returncode)
 
 
 if __name__ == '__main__':

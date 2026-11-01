@@ -11,6 +11,8 @@ Fyltrix follows DyanamicEye's release model: **edit the changelog, prepare the v
 
 ## Prepare each release
 
+Before creating another tag, validate the pushed source on GitHub: **Actions → Release → Run workflow → master**. This manual run checks versions/notes, runs the tests, builds the ZIP and compiles Inno Setup, and uploads the build/test results as a workflow artifact. It does not create a tag, attest a tagged release, create a draft or publish anything. The manual option appears after the workflow change is committed and pushed to the default branch. Wait for it to pass before preparing/pushing the next release tag; an existing tag continues to identify its original source commit.
+
 Collect user-facing changes under `CHANGELOG.md` → `Unreleased` during development. When ready, move the intended notes into a new stable version section, for example:
 
 ```markdown
@@ -58,7 +60,7 @@ The tag triggers `.github/workflows/release.yml`:
    - `Fyltrix-<version>-win-x64.zip` and its `.sha256`.
    - `Fyltrix-Setup-win-x64.exe` and its `.sha256`.
 
-The workflow is restricted to this repository, uses actions pinned to full commit SHAs, has no private signing secret, and never publishes a release. Failed tests/builds/attestation prevent draft creation. It does not install or update an application on your PC. Re-running against an existing draft refuses to overwrite it; inspect the failure instead of deleting tags or clobbering files.
+The workflow is restricted to this repository, uses actions pinned to full commit SHAs, has no private signing secret, and never publishes a release. Failed tests/builds/attestation prevent draft creation. Manual runs on `master` validate/build only; tag pushes alone run provenance and draft creation. Build files/test reports are retained for seven days as workflow artifacts, including available reports after a failed step. It does not install or update an application on your PC. Re-running against an existing draft refuses to overwrite it; inspect the failure instead of deleting tags or clobbering files.
 
 ## Sign and optionally publish
 

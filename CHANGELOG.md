@@ -6,6 +6,16 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Isolate Windows PowerShell child module paths in Python build tests so
+  PowerShell 7 hosts do not break `Get-FileHash` and module loading.
+
+### Added
+
+- Manual GitHub build validation on `master`, without creating a tag or draft
+  release, and downloadable build/test diagnostics.
+
 ## [0.1.2] - 2026-11-01
 
 ### Fixed
