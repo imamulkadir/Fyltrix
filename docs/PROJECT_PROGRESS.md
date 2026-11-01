@@ -10,6 +10,17 @@ Last updated: 2026-11-01.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
 
+## Release preparation — 0.1.4 (2026-11-01)
+
+Status: **Prepared and locally verified; owner Git operations and next release pending. No agent Git writes.** Owner reported green manual validation; read-only GitHub inspection confirms workflow run [41284179540](https://github.com/imamulkadir/Fyltrix/actions/runs/41284179540) succeeded on `master` at `7e08ba133c2a4a3ea4c72d5ceed0ca1050a96fd7`, containing the MIT agreement changes. Starting working tree was clean.
+
+- Retained `Unreleased` and moved the completed MIT agreement/package notes into `0.1.4`, dated `2026-11-01`.
+- Ran `Set-ReleaseVersion.ps1 -Version 0.1.4` and `Test-Release.ps1 -Tag v0.1.4`; version/notes validation passed. Application version is `0.1.4`, file/assembly versions `0.1.4.0`. No runtime behavior, dependency, data path, signing key or development publish script changed.
+- Authenticode remains unconfigured: this release does not resolve the Windows unsigned-app warning. Trusted publisher signing is separate from the existing update-manifest key. No certificate, security bypass or Windows policy change is introduced.
+- Final Release verification passed: **365 application, 132 updater, 31 packaging, 14 release-tooling and 10 installer-builder tests (552 total, no failures/skips)**. Release version/notes and Git whitespace checks pass. No installer was executed or existing portable output overwritten for this version-only preparation. Performance measurements were not repeated because no runtime behavior changed.
+
+Files: `CHANGELOG.md`, `src/Fyltrix/Fyltrix.csproj`, this progress file. Evidence: `D:\Tools\Fyltrix-release-0.1.4-verification`. Next: owner review/commit/push; leave the annotated `v0.1.4` tag uncreated if trusted Windows publisher signing is wanted before this release. Suggested commit: `chore(release): prepare v0.1.4`. No commit, push, tag, workflow dispatch or publication is performed by the agent.
+
 ## Installer agreement and Windows warning review (2026-11-01)
 
 Status: **Locally completed and verified. Owner review/commit/push and a subsequent rebuilt release remain. No agent Git writes.** The owner reported Windows warning before Setup and no agreement before directory selection. The owner selected **MIT like DyanamicEye** after inspection found no existing Fyltrix application licence. Starting clean `master`: `e126199` (owner's `0.1.3` preparation). GitHub `v0.1.3` is currently a draft with ZIP/Setup/checksums; existing assets are not modified by this task.

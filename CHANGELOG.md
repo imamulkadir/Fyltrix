@@ -6,6 +6,8 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-01
+
 ### Added
 
 - MIT licence and an installer agreement page that requires acceptance before
