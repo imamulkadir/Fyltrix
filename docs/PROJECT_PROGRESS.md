@@ -10,6 +10,20 @@ Last updated: 2026-11-01.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
 
+## Release 0.1.6 published-feed verification and obsolete-workspace cleanup (2026-11-01)
+
+Status: **Published feed verified; requested cleanup completed.** The owner published `v0.1.6` as latest. All six release assets remain present, with unchanged package and signed-metadata digests. Executed the existing CLI against the real public feed: `check 0.1.5` returned Available for authenticated 0.1.6; `check 0.1.6` returned UpToDate. These checks did not install or download a package.
+
+At the owner's explicit request, deleted only the superseded **draft** release 0.1.3 (release ID 430411249, formerly `untagged-2d80b5738df1ffb14ac5`). Its Git tag was preserved. No published release was removed; 0.1.6 remains latest.
+
+Inspected and removed all **28** obsolete `D:\Tools\Fyltrix-*` experiment/validation directories after checking their resolved paths, reparse points, running executable paths and registered installation paths. Before deletion, copied and hash-verified Git recovery bundles/patches, original source snapshots, profile backups, original portable artifacts, shelved updater work and compact verification evidence into the access-restricted **`D:\Fyltrix-Recovery`** directory. Approximately **27.5 GiB** of redundant file contents removed after allowing for the retained backups (logical sizes; physical free space may differ). Removed 23 stale pointer files targeting deleted roots. Historical evidence paths below are retired; retained reports and their source/destination mapping are in `D:\Fyltrix-Recovery\cleanup-20261101-223834\preserved.json`.
+
+Verification: all 496 protected profile, signing-key/backup and active portable-file SHA-256 records match before/after. Git refs and the initially clean working tree were unchanged by cleanup; no commit/push/tag/merge was performed. The active `D:\Tools\Fyltrix` checkout, `FileLens-source.zip`, live data and signing stores remain in place. Filesystem check confirms no `Fyltrix-*` temporary directories remain in `D:\Tools`. Detailed inventory, copied-file verification, release snapshots and cleanup result: `D:\Fyltrix-Recovery\cleanup-20261101-223834`. No runtime code changed; the full application suite/build was not rerun for this maintenance operation, and Production Setup was not launched.
+
+Files modified: `docs/PROJECT_PROGRESS.md`, `docs/IMPLEMENTATION_STATUS.md`, `docs/RELEASING.md`. Suggested owner commit: `docs(release): record published feed verification and workspace cleanup`.
+
+**Next owner action:** review/install the published bootstrap setup when convenient and check Settings > Updates plus normal file-management behavior with the existing profile. Independent off-device key backup remains an owner responsibility. **Stop here; no further development stage started.**
+
 ## Release 0.1.6 uploaded-asset verification (2026-11-01)
 
 Status: **All six draft assets verified; owner publication pending.** The owner uploaded the prepared manifest/signature. Read-only inspection confirms exactly the ZIP, Setup, their checksum sidecars, manifest and signature; no extra/missing assets. Downloaded the two uploaded files into a new subdirectory and confirmed byte-for-byte equality and matching GitHub SHA-256 digests/sizes against the previously shipped-verifier-tested local signature. Original package/checksum identities, sizes, hashes, timestamps and release notes are unchanged. The release is still a stable draft, not a live public update.

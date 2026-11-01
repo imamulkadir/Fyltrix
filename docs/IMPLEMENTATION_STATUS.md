@@ -4,6 +4,8 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+Release 0.1.6 is now published as latest with all six verified assets. Public-feed checks return Available from 0.1.5 and UpToDate from 0.1.6. The superseded 0.1.3 draft was deleted at the owner's request, retaining its Git tag. All 28 obsolete `D:\Tools\Fyltrix-*` workspaces were removed after preserving recovery material under `D:\Fyltrix-Recovery`; historical evidence paths below are retired. Protected file hashes and Git refs match before/after. The active checkout, live profile and signing keys remain untouched. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) for the cleanup inventory and verification limits.
+
 Last updated **2026-11-01**. Full identity migration is complete: projects, namespaces, assemblies and executable use **Fyltrix**. Legacy storage, preview origin, manifest and firewall-rule identities remain compatible. **441 application tests pass**. The preserved development output is `artifacts\Fyltrix\Fyltrix.exe`; it has not been replaced with this stage's experimental build. See `docs/FYLTRIX_MIGRATION_REPORT.md` for verification and intentional legacy references. Sections below preserve the earlier rounds as history.
 
 Installation/update infrastructure is tracked separately in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Stage 6 adds verified apply, copied-profile health validation, atomic switching, rollback/recovery and owned-file installer cleanup. Latest verification: **134 update tests**, **31 packaging tests**, **441 application tests**, 14 release-tooling tests and 10 installer-builder tests pass (**630 total**). A dedicated Fyltrix public key is pinned and its encrypted owner-local backup is verified; independent off-device backup remains an owner step. Stage 7B adds the manual update dialog; notification-plan Stages 1–3 add Settings > Updates, scheduled checks/notices, optional verified downloads and safe exit installation. Notify only remains the default. Manual installation still asks for confirmation; saving Install on exit opts into the guarded, no-restart exit workflow.
@@ -12,6 +14,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.6 publication and workspace cleanup | Live pinned feed checks; obsolete draft removed with tag retained; 28 temporary directories removed after recovery preservation | Passed; production installation review remains an owner action |
 | Release 0.1.6 uploaded-asset verification | Exact six-asset set, downloaded signature equality and unchanged packages/notes | Passed; stable draft ready for owner publication; public-feed verification follows publication |
 | Release 0.1.6 draft verification | Exact tag/provenance/checksum validation, local pinned signing and shipped-verifier checks | Actual draft verified; signed manifest remains local; owner upload/publication pending |
 | Release 0.1.6 preparation | Dated changelog/version, corrected packaged layout description, full validation/build/smoke | Complete locally; 630 tests passed, ZIP/Production Setup compiled, isolated native launch passed; owner commit/push/tag pending |
