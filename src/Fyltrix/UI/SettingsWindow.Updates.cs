@@ -9,6 +9,7 @@ public sealed partial class SettingsWindow
     internal ComboBox UpdateModeChoice { get; private set; } = null!;
     internal Button CheckUpdatesButton { get; private set; } = null!;
     internal TextBlock UpdatesStatus { get; private set; } = null!;
+    internal Button CancelUpdateDownloadButton { get; private set; } = null!;
 
     private void BuildUpdatesPage(AppSettings settings, SettingsHost? host, List<Func<string?>> saves)
     {
@@ -32,17 +33,21 @@ public sealed partial class SettingsWindow
         UpdateModeChoice = new ComboBox { HorizontalAlignment = HorizontalAlignment.Left, MinWidth = 310, Margin = new Thickness(0, 8, 0, 8) };
         foreach (var (label, mode) in new[] {
             ("Manual only", UpdateMode.ManualOnly), ("Notify only (recommended)", UpdateMode.NotifyOnly),
-            ("Automatic download (not yet available)", UpdateMode.DownloadAutomatically), ("Automatic download and install on exit (not yet available)", UpdateMode.InstallOnExit) })
-            UpdateModeChoice.Items.Add(new ComboBoxItem { Content = label, Tag = mode, IsEnabled = mode is UpdateMode.ManualOnly or UpdateMode.NotifyOnly });
+            ("Automatic download, manual installation", UpdateMode.DownloadAutomatically), ("Automatic download and install on exit (not yet available)", UpdateMode.InstallOnExit) })
+            UpdateModeChoice.Items.Add(new ComboBoxItem { Content = label, Tag = mode, IsEnabled = mode != UpdateMode.InstallOnExit });
         var selected = Enum.IsDefined(settings.UpdateMode) ? settings.UpdateMode : ApplicationDefaults.Updates;
         UpdateModeChoice.SelectedItem = UpdateModeChoice.Items.OfType<ComboBoxItem>().Single(item => (UpdateMode)item.Tag == selected);
         page.Children.Add(Dialogs.Field("Update mode", UpdateModeChoice));
-        page.Children.Add(Dialogs.Note("Notify only checks shortly after startup, then every six hours while Fyltrix is open. Nothing downloads or installs automatically in this build."));
+        page.Children.Add(Dialogs.Note("Checks run shortly after startup, then every six hours while Fyltrix is open. Automatic download needs an update-enabled installation and saves verified updates in the background. Installation always needs your approval."));
         UpdatesStatus = Dialogs.Note(""); page.Children.Add(UpdatesStatus);
+        CancelUpdateDownloadButton = Dialogs.Button("Cancel download");
+        CancelUpdateDownloadButton.HorizontalAlignment = HorizontalAlignment.Left;
+        CancelUpdateDownloadButton.Click += (_, _) => host?.CancelUpdateDownload?.Invoke();
         void Refresh()
         {
             if (!Dispatcher.CheckAccess()) { _ = Dispatcher.InvokeAsync(Refresh); return; }
             UpdatesStatus.Text = host?.ReadUpdateStatus?.Invoke() ?? "No update check has been performed in this window.";
+            CancelUpdateDownloadButton.Visibility = host?.IsUpdateDownloading?.Invoke() == true ? Visibility.Visible : Visibility.Collapsed;
         }
         CheckUpdatesButton = Dialogs.Button("Check now");
         CheckUpdatesButton.HorizontalAlignment = HorizontalAlignment.Left;
@@ -55,6 +60,7 @@ public sealed partial class SettingsWindow
             finally { CheckUpdatesButton.IsEnabled = true; Refresh(); }
         };
         page.Children.Add(CheckUpdatesButton);
+        page.Children.Add(CancelUpdateDownloadButton);
         if (host?.ShowUpdateDetails != null)
         {
             var details = Dialogs.Button("Release notes and download options");

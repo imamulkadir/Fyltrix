@@ -22,7 +22,7 @@ internal sealed class UpdateWindow : DialogWindow
     {
         main = owner; this.session = session;
         AddContent(Dialogs.Heading($"Current version: {session.Current.Text}"));
-        AddContent(Dialogs.Note("Manage automatic notifications in Settings → Updates. Downloads and installation require your approval."));
+        AddContent(Dialogs.Note("Manage notifications and automatic downloads in Settings → Updates. Installation always requires your approval. Closing this window cancels an active check or download."));
         if (session.LayoutRoot == null)
         {
             AddContent(Dialogs.Note("This copy needs a manual installer before in-app installation is available."));
@@ -48,7 +48,7 @@ internal sealed class UpdateWindow : DialogWindow
         progress.IsIndeterminate = session.Busy && session.Progress is not { Total: > 0 };
         progress.Value = session.Progress is { Total: > 0 } p ? 100.0 * p.Received / p.Total : 0;
         notes.Visibility = session.Notes.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
-        CheckButton.IsEnabled = !session.Busy && !installing;
+        CheckButton.IsEnabled = !session.Busy && session.Stage == null && !installing;
         DownloadButton.IsEnabled = session.CanDownload && !installing;
         InstallButton.IsEnabled = session.CanInstall && !installing && !main.UpdateWorkerRunning;
     }

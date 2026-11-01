@@ -71,7 +71,9 @@ public sealed partial class MainWindow
         if (updateBanner != null)
         {
             updateBanner.Visibility = version == null || _fullScreen != null ? Visibility.Collapsed : Visibility.Visible;
-            updateBannerText!.Text = version == null ? "" : $"Fyltrix {version} is available.";
+            updateBannerText!.Text = version == null ? "" : UpdatesSession.Stage != null
+                ? $"Fyltrix {version} is ready to install."
+                : UpdatesSession.Downloading ? $"Downloading Fyltrix {version}…" : $"Fyltrix {version} is available.";
         }
         updateStatusChanged?.Invoke();
     }

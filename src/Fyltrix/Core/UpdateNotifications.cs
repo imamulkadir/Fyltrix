@@ -2,7 +2,7 @@ using Fyltrix.Updates;
 
 namespace Fyltrix.Core;
 
-/// <summary>One cancellable scheduled check; no background downloads, installation, service or settings writes.</summary>
+/// <summary>Scheduled verification and optional downloads; never installs or writes application settings.</summary>
 internal sealed class UpdateNotifications : IDisposable
 {
     internal ManualUpdateSession Session { get; }
@@ -11,11 +11,16 @@ internal sealed class UpdateNotifications : IDisposable
     private readonly Func<TimeSpan, CancellationToken, Task> delay;
     private CancellationTokenSource? schedule;
     private bool automaticCheck;
+    private bool automaticDownload;
+    private bool configured;
+    private bool disposed;
+    private string? attemptedVersion;
     private UpdateMode mode = UpdateMode.ManualOnly;
     internal UpdateNotificationHistory History { get; private set; }
     internal string? BannerVersion { get; private set; }
     internal Task Loop { get; private set; } = Task.CompletedTask;
     internal Task PendingSave { get; private set; } = Task.CompletedTask;
+    internal Task DownloadTask { get; private set; } = Task.CompletedTask;
     internal event Action? Changed;
 
     internal UpdateNotifications(ManualUpdateSession session, UpdateNotificationStore store,
@@ -28,15 +33,47 @@ internal sealed class UpdateNotifications : IDisposable
         if (ReleaseVersion.Parse(History.LastAvailableVersion) is not { } available || available.CompareTo(Session.Current) <= 0)
             History = History with { LastAvailableVersion = null };
         Session.CheckCompleted += Checked;
+        Session.DownloadCompleted += Downloaded;
     }
     internal void Configure(UpdateMode value)
     {
-        schedule?.Cancel(); schedule?.Dispose(); schedule = null;
-        if (automaticCheck) Session.Cancel();
-        mode = Enum.IsDefined(value) ? value : ApplicationDefaults.Updates;
-        if (mode == UpdateMode.ManualOnly) { BannerVersion = null; Changed?.Invoke(); return; }
-        // Future imported modes safely behave as notify-only until their implementation is approved.
-        schedule = new CancellationTokenSource(); Loop = RunAsync(schedule.Token);
+        if (disposed) return;
+        value = Enum.IsDefined(value) ? value : ApplicationDefaults.Updates;
+        if (configured && mode == value) return;
+        configured = true; mode = value;
+        schedule?.Cancel(); schedule?.Dispose();
+        if (automaticCheck || automaticDownload && mode != UpdateMode.DownloadAutomatically) Session.Cancel();
+        if (mode == UpdateMode.ManualOnly) BannerVersion = null;
+        // Install-on-exit remains notify-only until the next separately approved stage.
+        schedule = new CancellationTokenSource(); Loop = RestartAsync(Loop, DownloadTask, schedule.Token);
+        Changed?.Invoke();
+    }
+    private async Task RestartAsync(Task previous, Task download, CancellationToken token)
+    {
+        try
+        {
+            await previous; await download;
+            token.ThrowIfCancellationRequested();
+            await InitializeAsync(token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+    }
+    private async Task InitializeAsync(CancellationToken token)
+    {
+        try
+        {
+            if (History.PendingStage != null && Session.Stage == null && Session.LayoutRoot != null && !Session.Busy)
+            {
+                if (store.StagePath(History.PendingStage) is { } folder) await Session.RestoreStageAsync(folder, token);
+                token.ThrowIfCancellationRequested();
+                if (Session.Stage != null) NotifyReady();
+                else History = History with { PendingStage = null };
+                SaveHistory(); Changed?.Invoke();
+            }
+            StartAutomaticDownload();
+            if (mode != UpdateMode.ManualOnly) await RunAsync(token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
     }
     private async Task RunAsync(CancellationToken token)
     {
@@ -78,7 +115,41 @@ internal sealed class UpdateNotifications : IDisposable
         var snapshot = History;
         PendingSave = SaveAfterAsync(PendingSave, snapshot);
         Changed?.Invoke();
+        attemptedVersion = null;
+        StartAutomaticDownload();
     }
+    private void StartAutomaticDownload()
+    {
+        if (disposed || mode != UpdateMode.DownloadAutomatically || !Session.CanDownload || automaticDownload
+            || attemptedVersion == Session.AvailableVersion) return;
+        attemptedVersion = Session.AvailableVersion;
+        // Publish completion before invoking the downloader, including synchronously completing providers.
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        DownloadTask = completion.Task;
+        _ = DownloadAutomaticallyAsync(completion);
+    }
+    private async Task DownloadAutomaticallyAsync(TaskCompletionSource completion)
+    {
+        automaticDownload = true;
+        try { await Session.DownloadAsync(); }
+        catch (Exception ex) { completion.TrySetException(ex); }
+        finally { automaticDownload = false; }
+        completion.TrySetResult();
+    }
+    private void Downloaded()
+    {
+        if (Session.Stage == null) return;
+        History = History with { PendingStage = store.StageName(Session.Stage.Directory) };
+        NotifyReady(); SaveHistory(); Changed?.Invoke();
+    }
+    private void NotifyReady()
+    {
+        var version = Session.Stage!.Verified.Release.Version.Text;
+        History = History with { LastAvailableVersion = version };
+        if (History.LastReadyNotifiedVersion != version && mode != UpdateMode.ManualOnly)
+        { BannerVersion = version; History = History with { LastReadyNotifiedVersion = version }; }
+    }
+    private void SaveHistory() => PendingSave = SaveAfterAsync(PendingSave, History);
     private async Task SaveAfterAsync(Task previous, UpdateNotificationHistory snapshot)
     {
         await previous.ConfigureAwait(false);
@@ -89,8 +160,10 @@ internal sealed class UpdateNotifications : IDisposable
     internal void Dismiss() { BannerVersion = null; Changed?.Invoke(); }
     public void Dispose()
     {
+        disposed = true;
         schedule?.Cancel(); schedule?.Dispose(); schedule = null;
-        if (automaticCheck) Session.Cancel();
+        if (automaticCheck || automaticDownload) Session.Cancel();
         Session.CheckCompleted -= Checked;
+        Session.DownloadCompleted -= Downloaded;
     }
 }

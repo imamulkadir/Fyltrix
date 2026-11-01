@@ -18,6 +18,8 @@ public sealed record SettingsHost(
     public Func<string>? ReadUpdateStatus { get; init; }
     public Func<Task>? CheckForUpdates { get; init; }
     public Action? ShowUpdateDetails { get; init; }
+    public Func<bool>? IsUpdateDownloading { get; init; }
+    public Action? CancelUpdateDownload { get; init; }
     public Action<Action>? SubscribeUpdateStatus { get; init; }
     public Action<Action>? UnsubscribeUpdateStatus { get; init; }
 }

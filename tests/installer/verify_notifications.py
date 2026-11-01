@@ -1,6 +1,6 @@
 """Private-desktop real App.Main scheduler smoke test; Sandbox-marked isolated layout only."""
 from pathlib import Path
-import argparse,ctypes,json,shutil,time
+import argparse,ctypes,json,time
 from verify_installer import PrivateProcess
 
 def main():
@@ -17,13 +17,16 @@ def main():
     def wait(path,condition=lambda _:True):
         until=time.monotonic()+40
         while time.monotonic()<until:
+            error=path.parent/'probe-error.txt'
+            if error.exists():raise AssertionError(error.read_text())
             if path.exists():
                 try:value=json.loads(path.read_text())
                 except json.JSONDecodeError:continue
                 if condition(value):return value
             time.sleep(.05)
         raise AssertionError(str(path))
-    for mode in (1,0):
+    pointer=(args.layout/'current.json').read_bytes()
+    for mode in (1,0,2):
         case=root/str(mode);case.mkdir();(case/'.fyltrix-installer-test').write_text('explicit test')
         folder=case/'folder';folder.mkdir();(folder/'Smoke.txt').write_text('fixture')
         profile=case/'profile';profile.mkdir()
@@ -32,19 +35,47 @@ def main():
         app=PrivateProcess(payload,[str(folder)],{'DOTNET_STARTUP_HOOKS':str(args.probe.resolve()),'FYLTRIX_INSTALLER_TEST_ROOT':str(case),'FYLTRIX_NOTIFICATION_TEST_DATA':str(args.data.resolve())})
         try:
             assert wait(case/'ready.json')['previewReady']
-            snapshot=wait(case/'notice-probe.json',lambda x:x['banner']=='Visible') if mode else wait(case/'notice-probe.json')
+            snapshot=wait(case/'notice-probe.json',lambda x:x['canInstall']) if mode==2 else wait(case/'notice-probe.json',lambda x:x['banner']=='Visible') if mode else wait(case/'notice-probe.json')
             if mode:
                 assert snapshot['checks']==1 and '0.1.6' in snapshot['UpdateBannerText']
+                if mode==2:
+                    assert snapshot['downloads']==1 and 'ready to install' in snapshot['UpdateBannerText']
+                    assert not (Path(snapshot['stage'])/'handover.json').exists()
+                    assert not (Path(snapshot['stage'])/'close-approved').exists()
                 (case/'dismiss-notice').write_text('dismiss');snapshot=wait(case/'notice-probe.json',lambda x:x['banner']=='Collapsed')
             else:
                 time.sleep(3);snapshot=wait(case/'notice-probe.json');assert snapshot['checks']==0
-            assert snapshot['downloads']==0 and snapshot['popupCount']==0
+            assert snapshot['downloads']==(1 if mode==2 else 0) and snapshot['popupCount']==0
             (case/'release-app').write_text('normal close');assert app.wait(20)==0
             saved=json.loads((profile/'settings.json').read_text());assert saved['UpdateMode']==mode and saved['ShowHidden']
+            assert (args.layout/'current.json').read_bytes()==pointer
             results.append({'mode':mode,'passed':True,'checks':snapshot['checks'],'downloads':snapshot['downloads']})
         finally:
             if app.running():(case/'release-app').write_text('cleanup');app.wait(60)
             app.close()
+        if mode==2:
+            stage=Path(snapshot['stage'])
+            for corrupt in (False,True):
+                if corrupt:
+                    package=stage/'Fyltrix-0.1.6-win-x64.zip'
+                    with package.open('r+b') as stream:
+                        stream.seek(-1,2);last=stream.read(1);stream.seek(-1,2);stream.write(bytes([last[0]^1]))
+                    saved['UpdateMode']=0;(profile/'settings.json').write_text(json.dumps(saved))
+                for signal in ('ready.json','notice-probe.json','release-app','dismiss-notice'):
+                    (case/signal).unlink(missing_ok=True)
+                restart=PrivateProcess(payload,[str(folder)],{'DOTNET_STARTUP_HOOKS':str(args.probe.resolve()),'FYLTRIX_INSTALLER_TEST_ROOT':str(case),'FYLTRIX_NOTIFICATION_TEST_DATA':str(args.data.resolve())})
+                try:
+                    assert wait(case/'ready.json')['previewReady']
+                    restored=wait(case/'notice-probe.json',lambda x:not x['busy'])
+                    assert restored['canInstall']==(not corrupt) and restored['downloads']==0 and restored['checks']==0
+                    assert restored['popupCount']==0 and restored['banner']=='Collapsed'
+                    (case/'release-app').write_text('normal close');assert restart.wait(20)==0
+                    assert (args.layout/'current.json').read_bytes()==pointer
+                    assert not (stage/'handover.json').exists() and not (stage/'close-approved').exists()
+                    results.append({'restart':True,'tampered':corrupt,'passed':True,'downloads':0,'canInstall':restored['canInstall']})
+                finally:
+                    if restart.running():(case/'release-app').write_text('cleanup');restart.wait(60)
+                    restart.close()
     report={'success':True,'realStartupScheduler':True,'privateDesktop':True,'productionInstallation':False,'results':results}
     (root/'verification.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
 

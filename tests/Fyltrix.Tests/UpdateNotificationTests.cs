@@ -127,7 +127,7 @@ public sealed class UpdateNotificationTests
         Assert.Null(model.BannerVersion);
     }
     [Theory]
-    [InlineData(UpdateMode.DownloadAutomatically)] [InlineData(UpdateMode.InstallOnExit)]
+    [InlineData(UpdateMode.InstallOnExit)]
     public async Task Future_imported_modes_remain_notify_only_in_this_stage(UpdateMode mode)
     {
         using var temp = new TempDir(); using var feed = new ManualUpdateTests.Feed(); int downloads = 0;
@@ -204,7 +204,8 @@ public sealed class UpdateNotificationTests
                     var bounds = tab.TransformToAncestor(settingsContent).TransformBounds(new Rect(tab.RenderSize));
                     Assert.True(bounds.Left >= 0 && bounds.Right <= settingsContent.ActualWidth, "Every Settings tab must remain visible.");
                 }
-                Assert.All(settings.UpdateModeChoice.Items.OfType<ComboBoxItem>().Where(item => (UpdateMode)item.Tag is UpdateMode.DownloadAutomatically or UpdateMode.InstallOnExit), item => Assert.False(item.IsEnabled));
+                Assert.True(settings.UpdateModeChoice.Items.OfType<ComboBoxItem>().Single(item => (UpdateMode)item.Tag == UpdateMode.DownloadAutomatically).IsEnabled);
+                Assert.False(settings.UpdateModeChoice.Items.OfType<ComboBoxItem>().Single(item => (UpdateMode)item.Tag == UpdateMode.InstallOnExit).IsEnabled);
                 Sta.Render(settings, "settings-update-notifications"); settings.Close();
                 model.Dismiss(); Assert.Equal(Visibility.Collapsed, owner.UpdateBannerVisibility);
                 Sta.WaitUntil(() => model.PendingSave.IsCompleted, "metadata persistence");

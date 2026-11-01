@@ -40,6 +40,8 @@ public static class StartupHook
         var notificationData = Environment.GetEnvironmentVariable("FYLTRIX_NOTIFICATION_TEST_DATA");
         if (notificationData != null)
         {
+            // Each PrivateProcess uses a different desktop. Do not reconnect to a browser still exiting on its predecessor's desktop.
+            PreviewPane.WebDataFolder = Path.Combine(root, "webview2-" + Guid.NewGuid().ToString("N"));
             var notificationProbe = new NotificationStartupProbe(root, notificationData);
             MainWindow.SuppressAutomaticChecksForTests = false;
             MainWindow.NotificationsFactoryForTests = notificationProbe.Create;
@@ -90,7 +92,14 @@ public static class StartupHook
             }
             else if (watch.Elapsed > TimeSpan.FromSeconds(45))
             {
-                timer.Stop(); File.WriteAllText(Path.Combine(root, "probe-error.txt"), "Application startup timed out."); Application.Current?.Shutdown(3);
+                timer.Stop();
+                File.WriteAllText(Path.Combine(root, "probe-error.txt"), JsonSerializer.Serialize(new
+                {
+                    error = "Application startup timed out.", folder = window?.View?.CurrentPath,
+                    items = window?.View?.Items.Select(item => item.Name).ToArray(), previewReady = window?.PreviewForTest.IsReady,
+                    browserCache = PreviewPane.WebDataFolder
+                }));
+                Application.Current?.Shutdown(3);
             }
         };
         timer.Start();

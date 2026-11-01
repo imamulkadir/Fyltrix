@@ -2,7 +2,7 @@
 
 Stage 5 extends the separate [release verification library and tool](UPDATES.md). Its download/staging and verified handover APIs do not apply an update. Stage 6 adds a separate [verified apply, isolated health, rollback and recovery backend](APPLY_AND_RECOVERY.md). Stage 7B connects them to the manual interface described below. This interface is new source work after published `v0.1.5`; that existing release does not gain new controls remotely.
 
-The approved notification plan adds scheduled checks and a new update-mode preference. There is no service, startup registration, automatic package download or unattended installation. Ordinary closing, active-work guards and `publish.ps1 -Run` retain their behavior.
+The approved notification plan adds scheduled checks and an update-mode preference. Stage 2 enables optional automatic downloads with manual installation. There is no service, startup registration or unattended installation. Ordinary closing, active-work guards and `publish.ps1 -Run` retain their behavior.
 
 ## Settings and automatic notifications — notification plan, Stage 1
 
@@ -10,17 +10,26 @@ The approved notification plan adds scheduled checks and a new update-mode prefe
 
 - **Notify only** is the owner-approved default for new/missing update preferences. A single cancellable delay waits 60 seconds after startup, then checks only when the last attempt is at least six hours old. Checks run while Fyltrix is open, respect saved GitHub backoff across restarts, and avoid interrupting active/prepared downloads.
 - **Manual only** schedules no checks. The user can still choose Check now.
-- Automatic-download and install-on-exit modes are disabled until their separately approved stages are implemented/tested. Imported future values remain stored but behave as notify-only in this build.
+- **Automatic download, manual installation** checks on the same schedule and downloads a newer authenticated ZIP into separate updater storage when the running copy supports in-place updates. Enabling this option can also download a release already verified in this session. It never starts an installer or closes the application automatically.
+- Install-on-exit remains disabled until Stage 3 is separately approved and verified. Imported values for that future mode remain stored but behave as notify-only in this build.
 
-A new authenticated update produces a nonmodal banner with View update, Later and Settings. Notification history suppresses repeated notices for the same version across normal restarts; the available version remains visible in Settings. Only package metadata/signatures are checked automatically, never package payloads. Notes are unsigned plain text.
+A new authenticated update produces a nonmodal banner with View update, Later and Settings. Notification history suppresses repeated availability notices for the same version across normal restarts; the available version remains visible in Settings. Notify only checks metadata/signatures without downloading package payloads. Automatic download changes the banner to downloading, then ready to install after verification; readiness is a separate notice from availability. Notes are unsigned plain text.
 
 The new `UpdateMode` preference uses the existing settings file, with other preferences preserved; malformed update-mode values fall back to Notify only without resetting other settings. Check time, backoff and notification history are separate updater-only data in `%LocalAppData%\Fyltrix\Updates\notification-state.json`. Background checks never call `AppSettings.Save`. State files use a product/schema marker and atomic writes; unowned/corrupt files are left untouched. No data is migrated. As with any optional cache, a failed history write/crash may cause a later repeat notice.
+
+## Automatic download with manual installation — notification plan, Stage 2
+
+Choose **Automatic download, manual installation** in Settings > Updates and save. Progress appears in the status there and in the update dialog. Settings offers **Cancel download** during an active transfer. Switching to Notify only/Manual only cancels an automatic transfer; changing update mode does not cancel a manually requested download. Saving an unrelated preference does not restart checks or cancel the transfer. Closing the update dialog explicitly cancels its current check/download, including an automatic transfer, as its help text explains. Normal application exit cancels ongoing work and never installs.
+
+Downloads use the existing signed-manifest, bounded-transfer, free-space, package hash and ZIP-layout checks. Failure/cancellation does not install or repeatedly retry: use the manual Download action to retry now, or wait for the next scheduled check. Automatic download is unavailable to unsupported/development layouts even when selected; those copies retain the manual installer link. The default remains Notify only.
+
+After verification, choose **View update**, then **Install and restart** and confirm when ready. A ready package is retained rather than discarded by Check now; scheduled checks pause while it is ready. Both manual and automatic downloads record only their owned `stage-<id>` leaf name in updater metadata. At a later start, including Manual only, the package is reauthenticated and hashed off the UI thread before installation becomes available. Absolute/traversing names, untrusted/modified packages and versions at or below the running version cannot enable installation. The saved pointer is cleared when invalid; package files are not deleted. A dismissed ready notice stays dismissed after a normal restart when history was saved; Settings still shows the ready state. If history cannot be written or the process is interrupted before it is saved, manual redownload may be necessary. Existing settings/profile files are never moved, restored or reset by this work.
 
 ## In-app workflow
 
 1. Open **Tools → Check for updates**, or find **Check for updates** in the command palette (`Ctrl+Shift+P`). Opening the dialog does not contact GitHub.
 2. Click **Check for updates**. Only newer stable published releases with an authenticated manifest and a supported ZIP can enable downloading. Release notes are plain text. Rate limits are respected without background retries.
-3. Click **Download**. Progress is displayed; closing the dialog cancels an active check/download. A completed download is not installation approval. It stays available in the same application session when the dialog is reopened.
+3. Click **Download**, or use the automatically downloaded package when that preference is enabled. Progress is displayed; closing the dialog cancels an active check/download. A completed download is not installation approval. It stays available when the dialog is reopened and can be restored after restart following fresh verification.
 4. Finish file operations, close other dialogs/tools, stop sharing and turn off automation before choosing **Install and restart**. Confirm installation explicitly. The existing normal-close confirmation/cancellation remains authoritative; active work is not killed to force an update.
 5. The old payload runs the existing worker, independently revalidates the package and close approval, trials the candidate with copied settings/separate caches, then commits and requests restart. Failed health validation keeps the old version selected; live preferences are never restored from the trial copy. Worker failures after approved close may show a notification. See [apply/recovery](APPLY_AND_RECOVERY.md) for interrupted-transaction recovery.
 

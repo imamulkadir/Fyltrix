@@ -5,7 +5,7 @@ namespace Fyltrix.Core;
 
 internal sealed record UpdateNotificationHistory(int Schema = 1, DateTimeOffset? LastChecked = null,
     string? LastNotifiedVersion = null, string? LastAvailableVersion = null, string Product = UpdateNotificationStore.ProductTag,
-    DateTimeOffset? RetryAfter = null);
+    DateTimeOffset? RetryAfter = null, string? PendingStage = null, string? LastReadyNotifiedVersion = null);
 
 /// <summary>Updater-only metadata. Background checks never save the user's application settings.</summary>
 internal sealed class UpdateNotificationStore(string? root = null)
@@ -13,6 +13,13 @@ internal sealed class UpdateNotificationStore(string? root = null)
     internal const string ProductTag = "Fyltrix.UpdateNotifications";
     private readonly string folder = Path.GetFullPath(root ?? StagingArea.DefaultRoot);
     private string FileName => Path.Combine(folder, "notification-state.json");
+    internal string? StagePath(string? name) => name is { Length: 38 } && name.StartsWith("stage-", StringComparison.Ordinal)
+        && Guid.TryParseExact(name[6..], "N", out _) ? Path.Combine(folder, name) : null;
+    internal string? StageName(string path)
+    {
+        string name = Path.GetFileName(Path.TrimEndingDirectorySeparator(path));
+        return string.Equals(StagePath(name), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase) ? name : null;
+    }
     private UpdateNotificationHistory ReadOwned()
     {
         if (new FileInfo(FileName).Length > 4096) throw new IOException("Notification metadata too large.");

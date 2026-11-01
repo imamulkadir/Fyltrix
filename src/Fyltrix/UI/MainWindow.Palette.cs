@@ -46,6 +46,8 @@ public sealed partial class MainWindow
             ReadUpdateStatus = ReadUpdatesStatus,
             CheckForUpdates = CheckUpdatesNowAsync,
             ShowUpdateDetails = () => OpenUpdates(),
+            IsUpdateDownloading = () => UpdatesSession.Downloading,
+            CancelUpdateDownload = () => { if (UpdatesSession.Downloading) UpdatesSession.Cancel(); },
             SubscribeUpdateStatus = handler => updateStatusChanged += handler,
             UnsubscribeUpdateStatus = handler => updateStatusChanged -= handler
         };

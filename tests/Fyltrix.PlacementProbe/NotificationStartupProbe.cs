@@ -1,4 +1,5 @@
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using Fyltrix.Core;
 using Fyltrix.UI;
@@ -19,7 +20,13 @@ internal sealed class NotificationStartupProbe(string root, string data)
         var session = new ManualUpdateSession(original.Current, original.LayoutRoot,
             _ => { checks++; return Task.FromResult(new ReleaseCheck(CheckStatus.Available, release)); },
             (info, _) => Task.FromResult(SignedManifest.Verify(info, manifest, signature)),
-            (_, _, _) => { downloads++; throw new InvalidOperationException("Notification tests must never download packages."); });
+            async (info, progress, token) =>
+            {
+                downloads++;
+                using var http = new HttpClient(new RejectNetwork());
+                return await new UpdateDownloader(new GitHubReleaseClient(http)).StageLocalAsync(info, original.Current, manifest, signature,
+                    Path.Combine(data, ReleasePolicy.ZipName(info.Version.Text)), ReleasePolicy.PinnedPublicKeys[0], Path.Combine(root, "update-metadata"), progress, token);
+            });
         model = new UpdateNotifications(session, new UpdateNotificationStore(Path.Combine(root, "update-metadata")),
             wait: (duration, token) => Task.Delay(duration == ApplicationDefaults.UpdateStartupDelay ? TimeSpan.FromSeconds(2) : duration, token));
         return model;
@@ -33,7 +40,8 @@ internal sealed class NotificationStartupProbe(string root, string data)
         {
             checks, downloads, banner = window.UpdateBannerVisibility.ToString(), window.UpdateBannerText,
             status = window.SettingsHostFor().ReadUpdateStatus!(),
-            popupCount = window.OwnedWindows.Count, mode = window.Settings.UpdateMode.ToString()
+            popupCount = window.OwnedWindows.Count, mode = window.Settings.UpdateMode.ToString(),
+            canInstall = model.Session.CanInstall, busy = model.Session.Busy, downloading = model.Session.Downloading, stage = model.Session.Stage?.Directory
         });
         if (snapshot == previous) return;
         try
@@ -45,4 +53,6 @@ internal sealed class NotificationStartupProbe(string root, string data)
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         { /* The Python reader may briefly hold the prior result; retry this test record next tick. */ }
     }
+    private sealed class RejectNetwork : HttpMessageHandler
+    { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => throw new InvalidOperationException("No live HTTP in startup integration tests."); }
 }

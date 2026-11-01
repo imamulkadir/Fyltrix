@@ -12,7 +12,10 @@ The release workflow uses that exact section as the GitHub release notes.
   Settings → Updates with persistent Manual only/Notify only preferences.
 - Notify only is the approved default for a missing update preference. Checks
   wait until after startup and respect saved check times and GitHub backoff.
-- Automatic download/install choices are reserved and unavailable in this stage.
+- Optional automatic download with manual installation, download progress and
+  cancellation in Settings, and a verified update-ready notice.
+- Downloaded updates can be offered after restart only after signature, package
+  hash and layout verification. Installation on exit remains unavailable.
 - Manual signed-release checks, plain-text release notes, cancellable download
   progress, and confirmed installation/restart through the existing safe updater.
 - Manual-installer link for copies that cannot update in place, with existing
