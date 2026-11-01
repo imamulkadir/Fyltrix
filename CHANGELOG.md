@@ -6,6 +6,8 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-11-01
+
 ### Fixed
 
 - Isolate Windows PowerShell child module paths in Python build tests so
