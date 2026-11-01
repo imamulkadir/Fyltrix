@@ -82,7 +82,8 @@ public class ConvertUiTests
                 Sta.WaitUntil(() => run.IsCompleted, "conversion");
                 Assert.Equal(new[] { t["a.webp"], t["b.webp"] }, created);
                 Assert.All(w.Rows, r => Assert.StartsWith("✓", r.Result));
-                Assert.Equal((200, 400), ImageService.PixelSize(t["b.webp"])); // EXIF orientation applied before encoding
+                var webp = MediaFixtures.DecodeWebP(File.ReadAllBytes(t["b.webp"]));
+                Assert.Equal((200, 400), (webp.PixelWidth, webp.PixelHeight)); // EXIF orientation applied before encoding
                 Sta.Render(w, "convert");
             }
             finally { w.Close(); owner.Close(); }

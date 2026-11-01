@@ -41,7 +41,7 @@ public class ImageServiceTests
     [InlineData(ImageFormat.Gif)]
     [InlineData(ImageFormat.WebP)]
     [InlineData(ImageFormat.Ico)]
-    public void Encode_round_trips_through_windows_codecs(ImageFormat format)
+    public void Encode_round_trips_through_available_decoders(ImageFormat format)
     {
         using var t = new TempDir();
         Sta.Run(() =>
@@ -50,6 +50,14 @@ public class ImageServiceTests
             var path = t["out" + ImageService.Extension(format)];
             ImageService.Save(src, path, format, quality: 90);
             Assert.False(File.Exists(path + ".fl-partial"));
+            if (format == ImageFormat.WebP)
+            {
+                var webp = MediaFixtures.DecodeWebP(File.ReadAllBytes(path));
+                Assert.Equal((64, 32), (webp.PixelWidth, webp.PixelHeight));
+                Assert.True(MediaFixtures.IsRed(MediaFixtures.PixelAt(webp, 3, 3)));
+                Assert.False(MediaFixtures.IsRed(MediaFixtures.PixelAt(webp, 60, 28)));
+                return;
+            }
             var decoded = BitmapDecoder.Create(new Uri(path), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
             if (format == ImageFormat.Ico)
             {
@@ -71,7 +79,7 @@ public class ImageServiceTests
         {
             var src = MediaFixtures.Marker(16, 16);
             var bytes = ImageService.Encode(src, ImageFormat.WebP, 100);
-            var frame = BitmapDecoder.Create(new MemoryStream(bytes), BitmapCreateOptions.None, BitmapCacheOption.OnLoad).Frames[0];
+            var frame = MediaFixtures.DecodeWebP(bytes);
             Assert.Equal(ImageService.ToBgra(src).pixels, ImageService.ToBgra(frame).pixels);
         });
     }

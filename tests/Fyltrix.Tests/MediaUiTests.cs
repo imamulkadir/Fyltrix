@@ -265,8 +265,7 @@ public class MediaUiTests
                 Sta.WaitUntil(() => task.IsCompleted, "save");
                 Assert.Equal(t["pic (edited).webp"], task.Result);
                 Assert.Equal(t["pic (edited).webp"], saved);
-                var frame = System.Windows.Media.Imaging.BitmapDecoder.Create(new Uri(saved!), System.Windows.Media.Imaging.BitmapCreateOptions.None,
-                    System.Windows.Media.Imaging.BitmapCacheOption.OnLoad).Frames[0];
+                var frame = MediaFixtures.DecodeWebP(File.ReadAllBytes(saved!));
                 Assert.Equal((50, 60), (frame.PixelWidth, frame.PixelHeight));
                 Assert.Equal(original, File.ReadAllBytes(t["pic.png"])); // the original is never touched
             }

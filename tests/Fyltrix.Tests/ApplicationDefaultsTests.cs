@@ -77,7 +77,10 @@ public class ApplicationDefaultsTests
                     w.UpdateLayout();
                     double X(string id) => Button(w, id).TranslatePoint(new Point(), (UIElement)w.Content).X;
                     Assert.True(X("settings") < X("preview"));
-                    Assert.InRange(X("preview") + Button(w, "preview").ActualWidth, width - 25, width);
+                    // Windows can constrain the requested width to the runner's work area/DPI.
+                    // Compare coordinates in the same actual client space as TranslatePoint above.
+                    double clientWidth = ((FrameworkElement)w.Content).ActualWidth;
+                    Assert.InRange(X("preview") + Button(w, "preview").ActualWidth, clientWidth - 25, clientWidth);
                     Sta.Render(w, "round8-toolbar-" + width);
                 }
                 finally { w.Close(); }

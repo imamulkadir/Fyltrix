@@ -8,6 +8,20 @@ namespace Fyltrix.Tests;
 /// <summary>Generates small, real media files for tests (no binary fixtures in the repo).</summary>
 public static class MediaFixtures
 {
+    /// <summary>Verify encoded WebP independently of optional Windows Store WIC codecs.</summary>
+    public static BitmapSource DecodeWebP(byte[] bytes)
+    {
+        using var stream = new SkiaSharp.SKMemoryStream(bytes);
+        using var codec = SkiaSharp.SKCodec.Create(stream);
+        Assert.NotNull(codec);
+        Assert.Equal(SkiaSharp.SKEncodedImageFormat.Webp, codec.EncodedFormat);
+        var info = new SkiaSharp.SKImageInfo(codec.Info.Width, codec.Info.Height, SkiaSharp.SKColorType.Bgra8888, SkiaSharp.SKAlphaType.Unpremul);
+        using var bitmap = new SkiaSharp.SKBitmap(info);
+        Assert.Equal(SkiaSharp.SKCodecResult.Success, codec.GetPixels(info, bitmap.GetPixels()));
+        var frame = BitmapSource.Create(info.Width, info.Height, 96, 96, PixelFormats.Bgra32, null, bitmap.GetPixels(), bitmap.ByteCount, bitmap.RowBytes);
+        frame.Freeze(); return frame;
+    }
+
     /// <summary>Image whose top-left quadrant is red and the rest blue: orientation is checkable by pixel.</summary>
     public static BitmapSource Marker(int w = 40, int h = 20)
     {
