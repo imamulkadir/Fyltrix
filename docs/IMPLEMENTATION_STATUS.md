@@ -12,6 +12,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.6 draft verification | Exact tag/provenance/checksum validation, local pinned signing and shipped-verifier checks | Actual draft verified; signed manifest remains local; owner upload/publication pending |
 | Release 0.1.6 preparation | Dated changelog/version, corrected packaged layout description, full validation/build/smoke | Complete locally; 630 tests passed, ZIP/Production Setup compiled, isolated native launch passed; owner commit/push/tag pending |
 | Notification plan, Stage 3 | Opt-in safe exit installation, no restart, close-veto/safety preservation and next-start status | Complete locally: 630 tests, five native lifecycle cases plus two follow-up starts, performance/preservation checks; stopped for owner review |
 | Notification plan, Stage 2 | Optional automatic download, cancellation, ready notice and authenticated restore after restart | Complete locally: 602 tests, five native scenarios and performance/preservation checks passed; stopped for owner review and Stage 3 approval |
@@ -43,6 +44,12 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 | Infrastructure, Stage 6 | Verified apply, copied-profile health, pointer rollback/recovery and updater-owned uninstall inventory | Done; 128 update, 365 application, 31 packaging, nine builder tests; four installed update scenarios and 17 Inno lifecycle cases pass; stopped for Stage 7 approval |
 | Infrastructure, Stage 7A | Tag/changelog release automation, version preparation and owner-local completion | Locally complete; 365 application, 129 update, 31 packaging, 13 release and nine installer guard tests pass; workflow lint and ZIP/Production installer compilation pass; hosted/tag/key validation pending |
 | Infrastructure, Stage 7A.1 | Dedicated signing key, public trust pin and encrypted restore-verified backup | Local key/backup/pin verified; 132 update, 365 application, 31 packaging, 13 release and nine installer guard tests pass; owner off-device backup, application integration and hosted validation remain |
+
+## RELEASE 0.1.6 DRAFT VERIFICATION (2026-11-01)
+
+The owner committed preparation as `b4fa289063ab944fb872e6ff317f7c062af337b4`, created/pushed annotated `v0.1.6`, and its tag workflow passed. Actual draft ZIP/Setup passed checksum, size, GitHub asset digest and exact repository/workflow/tag/commit provenance checks. Built the existing tool from clean tagged source and created a production-pin-checked manifest signature locally with the existing dedicated key. No private key/password was displayed/copied/uploaded and no Git/release mutation was performed.
+
+The verifier actually shipped in the ZIP accepts the manifest and both exact packages using its default production trust and rejects modified manifest/package bytes. Verification uses an offline published-metadata preview, not a live published release. Original draft assets/body remain unchanged; signed manifest/signature await owner upload. Both real profile files and all 488 portable files are unchanged. No executable/installer was run and no runtime source changed; full-suite validation comes from the successful actual tag workflow and prior local 630-test run. Evidence: `D:\Tools\Fyltrix-release-validation-0.1.6-20261101-220400`. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
 
 ## RELEASE 0.1.6 PREPARATION (2026-11-01)
 
@@ -363,7 +370,7 @@ powershell -ExecutionPolicy Bypass -File .\publish.ps1                     # rel
 
 ## Next steps (in order)
 
-Release 0.1.6 is prepared and locally validated. Stop for the owner's review/commit/push and manual hosted validation of this preparation. After green, the owner creates/pushes `v0.1.6`; then verify the resulting attested draft and prepare its manifest signature locally. Never invoke the uploading completion helper as the agent. Owner upload/publication and real bootstrap installation/update checks follow review; published `v0.1.5` lacks the new controls. Independent off-device signing backup remains owner-controlled. Never commit, push, merge, tag, publish or create branches; the owner handles Git operations and development uses `master` exclusively.
+Release 0.1.6's actual attested draft is verified and its manifest/signature are prepared locally. Stop for the owner to upload exactly those two files, then verify all six draft assets read-only before owner publication. Never invoke the uploading completion helper as the agent or replace existing assets. Real bootstrap installation/update checks follow owner review/publication; published `v0.1.5` lacks the new controls. Independent off-device signing backup remains owner-controlled. Verification documentation changes are uncommitted; do not move the existing tag to include them. Never commit, push, merge, tag, publish or create branches; the owner handles Git operations and development uses `master` exclusively.
 
 Waiting on the user (can't be verified without driving the real desktop):
 1. Taskbar icon shows correctly right after start (Round 3).
