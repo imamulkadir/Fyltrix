@@ -12,6 +12,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.6 uploaded-asset verification | Exact six-asset set, downloaded signature equality and unchanged packages/notes | Passed; stable draft ready for owner publication; public-feed verification follows publication |
 | Release 0.1.6 draft verification | Exact tag/provenance/checksum validation, local pinned signing and shipped-verifier checks | Actual draft verified; signed manifest remains local; owner upload/publication pending |
 | Release 0.1.6 preparation | Dated changelog/version, corrected packaged layout description, full validation/build/smoke | Complete locally; 630 tests passed, ZIP/Production Setup compiled, isolated native launch passed; owner commit/push/tag pending |
 | Notification plan, Stage 3 | Opt-in safe exit installation, no restart, close-veto/safety preservation and next-start status | Complete locally: 630 tests, five native lifecycle cases plus two follow-up starts, performance/preservation checks; stopped for owner review |
@@ -370,7 +371,7 @@ powershell -ExecutionPolicy Bypass -File .\publish.ps1                     # rel
 
 ## Next steps (in order)
 
-Release 0.1.6's actual attested draft is verified and its manifest/signature are prepared locally. Stop for the owner to upload exactly those two files, then verify all six draft assets read-only before owner publication. Never invoke the uploading completion helper as the agent or replace existing assets. Real bootstrap installation/update checks follow owner review/publication; published `v0.1.5` lacks the new controls. Independent off-device signing backup remains owner-controlled. Verification documentation changes are uncommitted; do not move the existing tag to include them. Never commit, push, merge, tag, publish or create branches; the owner handles Git operations and development uses `master` exclusively.
+Release 0.1.6's six actual draft assets are verified, including the owner's uploaded manifest/signature. Downloaded metadata matches the previously tested signed bytes and original package/checksum assets remain unchanged. Stop for owner publication as latest, then verify the public updater feed read-only. Never invoke the uploading completion helper as the agent or replace assets. Real bootstrap installation/update checks follow publication; published `v0.1.5` lacks the new controls. Independent off-device signing backup remains owner-controlled. Do not move the existing tag to include subsequent verification documentation. Never commit, push, merge, tag, publish or create branches; the owner handles Git operations and development uses `master` exclusively.
 
 Waiting on the user (can't be verified without driving the real desktop):
 1. Taskbar icon shows correctly right after start (Round 3).

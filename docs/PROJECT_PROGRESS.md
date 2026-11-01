@@ -10,6 +10,16 @@ Last updated: 2026-11-01.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
 
+## Release 0.1.6 uploaded-asset verification (2026-11-01)
+
+Status: **All six draft assets verified; owner publication pending.** The owner uploaded the prepared manifest/signature. Read-only inspection confirms exactly the ZIP, Setup, their checksum sidecars, manifest and signature; no extra/missing assets. Downloaded the two uploaded files into a new subdirectory and confirmed byte-for-byte equality and matching GitHub SHA-256 digests/sizes against the previously shipped-verifier-tested local signature. Original package/checksum identities, sizes, hashes, timestamps and release notes are unchanged. The release is still a stable draft, not a live public update.
+
+Evidence: the directory named in `D:\Tools\Fyltrix-release-validation-0.1.6-20261101-220400\uploaded-check-current.txt`, containing the current draft snapshot, downloaded metadata and `verification.json`. Existing provenance/default-pin/tamper verification remains applicable to these identical bytes. No signing, executable launch, runtime change or remote mutation was performed; no full-suite rerun is claimed for this read-only verification. Master has advanced to the owner's documentation commit `dad4a3d04dd6c185519869d623372df6fea89b56`; only the three verification documents differ from tagged source, and `v0.1.6` remains at `b4fa289063ab944fb872e6ff317f7c062af337b4`.
+
+Files modified: this file, `docs/IMPLEMENTATION_STATUS.md`, `docs/RELEASING.md`. Suggested owner documentation commit: `docs(release): verify uploaded v0.1.6 assets`.
+
+**Next owner action:** publish the existing draft as latest (do not replace assets or move tags). After the owner reports publication, verify the live public updater feed read-only, then perform the real bootstrap installation/application/settings review. The agent does not publish or run Production Setup. **Stop here.**
+
 ## Release 0.1.6 draft verification and local manifest signing (2026-11-01)
 
 Status: **Verified and signed locally; owner upload/publication pending.** The owner committed/pushed preparation, ran manual validation and created/pushed annotated `v0.1.6`. Clean `master`/HEAD and local/remote peeled tag resolve to `b4fa289063ab944fb872e6ff317f7c062af337b4`; remote tag object is `c558f25dc568ee95cb0bf79fb32cce502e9ead3c`. [Tag workflow 41323312842](https://github.com/imamulkadir/Fyltrix/actions/runs/41323312842) succeeded for that exact source. No agent Git writes, workflow dispatches or release mutations. Evidence: `D:\Tools\Fyltrix-release-validation-0.1.6-20261101-220400` (pointer `D:\Tools\Fyltrix-release-validation-0.1.6-current.txt`).
