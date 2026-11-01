@@ -12,6 +12,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.6 preparation | Dated changelog/version, corrected packaged layout description, full validation/build/smoke | Complete locally; 630 tests passed, ZIP/Production Setup compiled, isolated native launch passed; owner commit/push/tag pending |
 | Notification plan, Stage 3 | Opt-in safe exit installation, no restart, close-veto/safety preservation and next-start status | Complete locally: 630 tests, five native lifecycle cases plus two follow-up starts, performance/preservation checks; stopped for owner review |
 | Notification plan, Stage 2 | Optional automatic download, cancellation, ready notice and authenticated restore after restart | Complete locally: 602 tests, five native scenarios and performance/preservation checks passed; stopped for owner review and Stage 3 approval |
 | Notification plan, Stage 1 | Update preferences, delayed checks, persistent notification history and in-app banner | Complete locally; 585 tests and two native startup scenarios passed; stopped for owner review and Stage 2 approval |
@@ -42,6 +43,14 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 | Infrastructure, Stage 6 | Verified apply, copied-profile health, pointer rollback/recovery and updater-owned uninstall inventory | Done; 128 update, 365 application, 31 packaging, nine builder tests; four installed update scenarios and 17 Inno lifecycle cases pass; stopped for Stage 7 approval |
 | Infrastructure, Stage 7A | Tag/changelog release automation, version preparation and owner-local completion | Locally complete; 365 application, 129 update, 31 packaging, 13 release and nine installer guard tests pass; workflow lint and ZIP/Production installer compilation pass; hosted/tag/key validation pending |
 | Infrastructure, Stage 7A.1 | Dedicated signing key, public trust pin and encrypted restore-verified backup | Local key/backup/pin verified; 132 update, 365 application, 31 packaging, 13 release and nine installer guard tests pass; owner off-device backup, application integration and hosted validation remain |
+
+## RELEASE 0.1.6 PREPARATION (2026-11-01)
+
+Prepared `0.1.6` with the existing version script and moved completed update features from Unreleased into dated release notes. Corrected the release ZIP's generated `LAYOUT.txt` prose to describe all four update modes and the unchanged Notify-only default. No runtime behavior, workflow, dependencies, trust pins, installer identity or user-data paths changed. Read-only GitHub verification confirms the owner's Stage 3 manual workflow passed for `e4968fc421683a8f9e445346497abc975aa321a8`; `v0.1.6` has not been tagged or released.
+
+**630 tests passed** for the prepared version. Isolated native-launcher/self-contained ZIP build and Production Inno compilation passed. Checksums, file versions, ZIP pointer, licence and test-hook exclusion passed. A separate Sandbox-marked copy launched the actual native root/payload on a private desktop with all test data/caches/clipboard isolated; preview, normal close and preference persistence passed. Neither Production Setup nor the existing development application was run/replaced. Both personal profile files and all 488 portable files remain unchanged. No additional performance run is claimed for metadata/text-only preparation. Evidence: `D:\Tools\Fyltrix-release-prep-0.1.6-20261101-204725`.
+
+No commits, pushes, tags, dispatches, uploads, signing or publication. Owner commit/push and fresh hosted validation precede the owner's tag. Actual attested draft assets do not exist until that tag workflow completes, so manifest verification/signing is pending that prerequisite. Local build outputs must not be uploaded as attested assets. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) and [RELEASING.md](RELEASING.md).
 
 ## NOTIFICATION PLAN STAGE 3 (2026-11-01): optional installation on safe normal exit
 
@@ -354,7 +363,7 @@ powershell -ExecutionPolicy Bypass -File .\publish.ps1                     # rel
 
 ## Next steps (in order)
 
-Notification-plan Stages 1–3 are locally complete. Stop for owner review/commit/push and manual hosted validation, then separate approval for release preparation. Do not create a release tag yet. A reviewed bootstrap release and real production installation/update checks remain owner gates; published `v0.1.5` lacks this new UI. Independent off-device signing backup remains owner-controlled. Never commit, push, merge, tag, publish or create branches; the owner handles Git operations and development uses `master` exclusively.
+Release 0.1.6 is prepared and locally validated. Stop for the owner's review/commit/push and manual hosted validation of this preparation. After green, the owner creates/pushes `v0.1.6`; then verify the resulting attested draft and prepare its manifest signature locally. Never invoke the uploading completion helper as the agent. Owner upload/publication and real bootstrap installation/update checks follow review; published `v0.1.5` lacks the new controls. Independent off-device signing backup remains owner-controlled. Never commit, push, merge, tag, publish or create branches; the owner handles Git operations and development uses `master` exclusively.
 
 Waiting on the user (can't be verified without driving the real desktop):
 1. Taskbar icon shows correctly right after start (Round 3).

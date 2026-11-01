@@ -6,6 +6,8 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-11-01
+
 ### Added
 
 - Optional automatic update notifications, a dismissible in-app banner, and
@@ -21,12 +23,15 @@ The release workflow uses that exact section as the GitHub release notes.
 - Exit installation is skipped for busy work, tools, sharing, automation,
   Windows session ending and previous update-attempt evidence. Failed
   preparation keeps Fyltrix open; closing again exits without retrying.
-- Clear post-update status for already-installed cached packages and retained
-  evidence from previous attempts, without deleting packages or resetting data.
 - Manual signed-release checks, plain-text release notes, cancellable download
   progress, and confirmed installation/restart through the existing safe updater.
 - Manual-installer link for copies that cannot update in place, with existing
   file-operation, sharing, automation and close-cancellation protections retained.
+
+### Fixed
+
+- Correct post-update status for already-installed cached packages and retained
+  evidence from previous attempts, without deleting packages or resetting data.
 
 ## [0.1.5] - 2026-11-01
 

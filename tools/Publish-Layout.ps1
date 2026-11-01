@@ -93,8 +93,12 @@ Keep this whole layout together. It can be moved or extracted to another writabl
 Settings remain in %AppData%\FileLens; caches remain in %LocalAppData%\FileLens.
 WebView2 Runtime and optional preview codecs are still required separately.
 
-This layout supports manual protocol-1 update handover, isolated health checks, and rollback/recovery.
-No startup registration, check scheduler, or automatic installation is enabled.
+This layout supports protocol-1 update handover, isolated health checks, and rollback/recovery.
+Settings > Updates offers Manual only, Notify only, automatic download with manual installation,
+and optional automatic download/install on safe exit. Notify only is the default; checks run
+shortly after startup and every six hours while open. No service or startup registration is added.
+Exit installation requires an explicit opt-in and a ready verified package, respects close/work
+safeguards, and leaves the application closed. Manual Install and restart still asks for confirmation.
 Managed updates require owner-pinned signing trust. Use the separate installer for first installation/bootstrap.
 An interrupted transaction blocks startup until explicit authenticated recovery.
 The ZIP checksum detects file changes; it is not a publisher signature or a trusted update manifest.
