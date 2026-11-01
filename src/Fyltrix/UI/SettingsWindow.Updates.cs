@@ -33,12 +33,12 @@ public sealed partial class SettingsWindow
         UpdateModeChoice = new ComboBox { HorizontalAlignment = HorizontalAlignment.Left, MinWidth = 310, Margin = new Thickness(0, 8, 0, 8) };
         foreach (var (label, mode) in new[] {
             ("Manual only", UpdateMode.ManualOnly), ("Notify only (recommended)", UpdateMode.NotifyOnly),
-            ("Automatic download, manual installation", UpdateMode.DownloadAutomatically), ("Automatic download and install on exit (not yet available)", UpdateMode.InstallOnExit) })
-            UpdateModeChoice.Items.Add(new ComboBoxItem { Content = label, Tag = mode, IsEnabled = mode != UpdateMode.InstallOnExit });
+            ("Automatic download, manual installation", UpdateMode.DownloadAutomatically), ("Automatic download and install on exit", UpdateMode.InstallOnExit) })
+            UpdateModeChoice.Items.Add(new ComboBoxItem { Content = label, Tag = mode });
         var selected = Enum.IsDefined(settings.UpdateMode) ? settings.UpdateMode : ApplicationDefaults.Updates;
         UpdateModeChoice.SelectedItem = UpdateModeChoice.Items.OfType<ComboBoxItem>().Single(item => (UpdateMode)item.Tag == selected);
         page.Children.Add(Dialogs.Field("Update mode", UpdateModeChoice));
-        page.Children.Add(Dialogs.Note("Checks run shortly after startup, then every six hours while Fyltrix is open. Automatic download needs an update-enabled installation and saves verified updates in the background. Installation always needs your approval."));
+        page.Children.Add(Dialogs.Note("Checks run shortly after startup, then every six hours. Automatic downloads need an update-enabled installation. Install on exit applies a verified download only when you close safely, without restarting. Busy work, tools, sharing or automation postpone it. Notify only remains the default."));
         UpdatesStatus = Dialogs.Note(""); page.Children.Add(UpdatesStatus);
         CancelUpdateDownloadButton = Dialogs.Button("Cancel download");
         CancelUpdateDownloadButton.HorizontalAlignment = HorizontalAlignment.Left;

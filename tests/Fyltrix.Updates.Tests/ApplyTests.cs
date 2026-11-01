@@ -60,6 +60,17 @@ public sealed class ApplyTests : IDisposable
             return Process.Start(info)!;
         }
     };
+    [Fact]
+    public async Task Exit_install_commits_without_starting_the_launcher_or_rewriting_user_data()
+    {
+        var prepared = await Prepare(); using var ready = prepared.Ready;
+        byte[] original = File.ReadAllBytes(Path.Combine(Profile, "settings.json"));
+        bool restarted = false; var options = Options(); options.RestartAfterUpdate = false; options.Restart = _ => restarted = true;
+        var result = await UpdateApplier.ApplyCoreAsync(ready, prepared.Request, options, CancellationToken.None);
+        Assert.Equal(ApplyStatus.Committed, result.Status); Assert.False(restarted);
+        Assert.Equal("0.2.0", ReleaseLayout.Resolve(Layout)!.Version);
+        Assert.Equal(original, File.ReadAllBytes(Path.Combine(Profile, "settings.json")));
+    }
     [Theory]
     [InlineData("healthy", ApplyStatus.Committed)] [InlineData("mutate-trial", ApplyStatus.Committed)]
     [InlineData("crash", ApplyStatus.RolledBack)] [InlineData("timeout", ApplyStatus.RolledBack)] [InlineData("wrong-token", ApplyStatus.RolledBack)]

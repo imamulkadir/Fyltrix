@@ -143,8 +143,15 @@ internal sealed class ManualUpdateSession : IDisposable
         {
             var saved = await Task.Run(() => restore(folder, cancel.Token), cancel.Token);
             cancel.Token.ThrowIfCancellationRequested();
-            if (saved != null && saved.Verified.Release.Version.CompareTo(Current) > 0 && saved.AssetName == ReleasePolicy.ZipName(saved.Verified.Release.Version.Text))
-            { Stage = saved; available = saved.Verified; SetMessage("Download verified. Choose Install and restart when you are ready."); }
+            if (saved != null && saved.AssetName == ReleasePolicy.ZipName(saved.Verified.Release.Version.Text))
+            {
+                if (saved.Verified.Release.Version.CompareTo(Current) <= 0)
+                { SetMessage("The downloaded version is already installed or older. No installation is needed."); return; }
+                Stage = saved; available = saved.Verified;
+                SetMessage(File.Exists(Path.Combine(saved.Directory, UpdateHandover.RequestName)) || File.Exists(Path.Combine(saved.Directory, "update-result.json"))
+                    ? "A previous update attempt needs review. The verified download is retained; follow the update recovery instructions."
+                    : "Download verified. Choose Install and restart when you are ready.");
+            }
             else SetMessage("The saved update is unavailable or failed verification. Check for updates to download it again. Nothing was installed.");
         }
         catch (OperationCanceledException) { SetMessage("Saved update verification cancelled."); }

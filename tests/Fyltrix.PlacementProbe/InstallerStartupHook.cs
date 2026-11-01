@@ -49,6 +49,14 @@ public static class StartupHook
         }
         if (Environment.GetEnvironmentVariable("FYLTRIX_MANUAL_UPDATE_DATA") != null)
             handoverTick = ManualUpdateStartupProbe.Create(root);
+        if (Environment.GetEnvironmentVariable("FYLTRIX_EXIT_UPDATE_DATA") is { } exitData)
+        {
+            PreviewPane.WebDataFolder = Path.Combine(root, "webview2-" + Guid.NewGuid().ToString("N"));
+            var exitProbe = new ExitUpdateStartupProbe(root, exitData);
+            MainWindow.SuppressAutomaticChecksForTests = false;
+            MainWindow.NotificationsFactoryForTests = exitProbe.Create;
+            handoverTick = exitProbe.Tick;
+        }
         var stage = Environment.GetEnvironmentVariable("FYLTRIX_HANDOVER_TEST_STAGE");
         if (stage != null)
         {

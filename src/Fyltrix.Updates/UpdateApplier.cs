@@ -18,6 +18,7 @@ internal sealed class ApplyOptions
     internal Action<ApplyPoint>? Checkpoint;
     internal Func<ProcessStartInfo, Process> Start = info => Process.Start(info) ?? throw new IOException("Could not launch application.");
     internal Action<string>? Restart;
+    internal bool RestartAfterUpdate = true;
 }
 
 /// <summary>Consumes a verified handover. Keeps old code and live profile intact; switches only after isolated health succeeds.</summary>
@@ -95,7 +96,7 @@ public static class UpdateApplier
         { result = await AbortAsync(root, record, committed, ex is IOException && ex.Message == "health-check-failed" ? "health-check-failed" : ex.GetType().Name).ConfigureAwait(false); }
         finally { snapshot?.Dispose(); gate?.Dispose(); }
         // Rollback restores code only. Do not reopen potentially unvalidated live settings automatically after a failed trial.
-        if (result.Status == ApplyStatus.Committed)
+        if (result.Status == ApplyStatus.Committed && options.RestartAfterUpdate)
         {
             try { if (options.Restart != null) options.Restart(root); else options.Start(new ProcessStartInfo(Path.Combine(root, "Fyltrix.exe")) { UseShellExecute = false, WorkingDirectory = root }).Dispose(); }
             catch (Exception ex) when (ex is IOException or System.ComponentModel.Win32Exception or InvalidOperationException) { return result with { Reason = result.Reason + ";restart-failed" }; }

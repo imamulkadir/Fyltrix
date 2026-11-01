@@ -23,7 +23,8 @@ public sealed partial class MainWindow
         if (PresentUpdatesForTest != null) PresentUpdatesForTest(dialog); else dialog.Show();
         return dialog;
     }
-    internal async Task<bool> InstallUpdateAsync(ManualUpdateSession session)
+    internal Task<bool> InstallUpdateAsync(ManualUpdateSession session) => InstallUpdateAsync(session, false);
+    private async Task<bool> InstallUpdateAsync(ManualUpdateSession session, bool onExit)
     {
         Dispatcher.VerifyAccess();
         if (!session.CanInstall || UpdateWorkerRunning || !session.BeginInstall()) return false;
@@ -33,17 +34,17 @@ public sealed partial class MainWindow
             if (problem != null) { session.SetMessage(problem); return false; }
             if (!UpdateProtocol.Supported(session.LayoutRoot!) || ReleaseLayout.Resolve(session.LayoutRoot!)?.Executable.Equals(Environment.ProcessPath, StringComparison.OrdinalIgnoreCase) != true)
             { session.SetMessage("The running installation changed. Restart Fyltrix before preparing an update."); return false; }
-            var result = await UpdateHandover.PrepareAsync(session.Stage!, session.LayoutRoot!);
+            var result = await UpdateHandover.PrepareAsync(session.Stage!, session.LayoutRoot!, onExit ? exitUpdateCancellation!.Token : default);
             if (result.Preparation == null) { session.SetMessage("The update could not be prepared. Check that this copy is writable and the download is still available. Nothing was installed."); return false; }
             var prepared = result.Preparation;
-            if (!IsLoaded)
+            if (!IsLoaded || onExit && !ExitUpdateAllowed(session))
             {
                 await UpdateHandover.RequestCloseAsync(prepared, () => false);
                 return false;
             }
             try
             {
-                var start = UpdateWorker.StartInfo(prepared, notifyFailure: true);
+                var start = UpdateWorker.StartInfo(prepared, notifyFailure: !onExit, restartAfterUpdate: !onExit);
                 updateWorker = StartUpdateWorkerForTest?.Invoke(start) ?? StartWorker(start);
             }
             catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
@@ -52,7 +53,7 @@ public sealed partial class MainWindow
                 Diagnostics.Log("Start updater", ex); session.SetMessage("Windows could not start the updater. Fyltrix remains open."); return false;
             }
             _ = ObserveWorkerAsync();
-            var closed = await UpdateHandover.RequestCloseAsync(prepared, () => !updateWorker.IsCompleted && TryCloseForUpdate());
+            var closed = await UpdateHandover.RequestCloseAsync(prepared, () => !updateWorker.IsCompleted && (!onExit || ExitUpdateAllowed(session)) && TryCloseForUpdate());
             if (closed == HandoverFailure.None) return true;
             session.SetMessage(UpdateCloseProblem() ?? "Installation cancelled. Fyltrix remains open. The previous helper may take up to 30 seconds to exit before retrying.");
             return false;

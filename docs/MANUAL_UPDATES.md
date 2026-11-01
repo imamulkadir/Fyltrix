@@ -2,7 +2,7 @@
 
 Stage 5 extends the separate [release verification library and tool](UPDATES.md). Its download/staging and verified handover APIs do not apply an update. Stage 6 adds a separate [verified apply, isolated health, rollback and recovery backend](APPLY_AND_RECOVERY.md). Stage 7B connects them to the manual interface described below. This interface is new source work after published `v0.1.5`; that existing release does not gain new controls remotely.
 
-The approved notification plan adds scheduled checks and an update-mode preference. Stage 2 enables optional automatic downloads with manual installation. There is no service, startup registration or unattended installation. Ordinary closing, active-work guards and `publish.ps1 -Run` retain their behavior.
+The approved notification plan adds scheduled checks and an update-mode preference. Stage 2 enables optional automatic downloads with manual installation; Stage 3 adds opt-in installation on a safe normal exit. There is no service or startup registration. Notify only remains the default, and `publish.ps1 -Run` is unchanged.
 
 ## Settings and automatic notifications — notification plan, Stage 1
 
@@ -11,7 +11,7 @@ The approved notification plan adds scheduled checks and an update-mode preferen
 - **Notify only** is the owner-approved default for new/missing update preferences. A single cancellable delay waits 60 seconds after startup, then checks only when the last attempt is at least six hours old. Checks run while Fyltrix is open, respect saved GitHub backoff across restarts, and avoid interrupting active/prepared downloads.
 - **Manual only** schedules no checks. The user can still choose Check now.
 - **Automatic download, manual installation** checks on the same schedule and downloads a newer authenticated ZIP into separate updater storage when the running copy supports in-place updates. Enabling this option can also download a release already verified in this session. It never starts an installer or closes the application automatically.
-- Install-on-exit remains disabled until Stage 3 is separately approved and verified. Imported values for that future mode remain stored but behave as notify-only in this build.
+- **Automatic download and install on exit** downloads on the same schedule, then applies a verified package only on an accepted, safe normal close. Selecting/saving this mode is the opt-in permission; it does not install on startup or download completion. The application stays closed after installation.
 
 A new authenticated update produces a nonmodal banner with View update, Later and Settings. Notification history suppresses repeated availability notices for the same version across normal restarts; the available version remains visible in Settings. Notify only checks metadata/signatures without downloading package payloads. Automatic download changes the banner to downloading, then ready to install after verification; readiness is a separate notice from availability. Notes are unsigned plain text.
 
@@ -19,11 +19,21 @@ The new `UpdateMode` preference uses the existing settings file, with other pref
 
 ## Automatic download with manual installation — notification plan, Stage 2
 
-Choose **Automatic download, manual installation** in Settings > Updates and save. Progress appears in the status there and in the update dialog. Settings offers **Cancel download** during an active transfer. Switching to Notify only/Manual only cancels an automatic transfer; changing update mode does not cancel a manually requested download. Saving an unrelated preference does not restart checks or cancel the transfer. Closing the update dialog explicitly cancels its current check/download, including an automatic transfer, as its help text explains. Normal application exit cancels ongoing work and never installs.
+Choose **Automatic download, manual installation** in Settings > Updates and save. Progress appears in the status there and in the update dialog. Settings offers **Cancel download** during an active transfer. Switching to Notify only/Manual only cancels an automatic transfer; changing update mode does not cancel a manually requested download. Saving an unrelated preference does not restart checks or cancel the transfer. Closing the update dialog explicitly cancels its current check/download, including an automatic transfer, as its help text explains. In this mode normal application exit cancels ongoing transfers and never installs.
 
 Downloads use the existing signed-manifest, bounded-transfer, free-space, package hash and ZIP-layout checks. Failure/cancellation does not install or repeatedly retry: use the manual Download action to retry now, or wait for the next scheduled check. Automatic download is unavailable to unsupported/development layouts even when selected; those copies retain the manual installer link. The default remains Notify only.
 
 After verification, choose **View update**, then **Install and restart** and confirm when ready. A ready package is retained rather than discarded by Check now; scheduled checks pause while it is ready. Both manual and automatic downloads record only their owned `stage-<id>` leaf name in updater metadata. At a later start, including Manual only, the package is reauthenticated and hashed off the UI thread before installation becomes available. Absolute/traversing names, untrusted/modified packages and versions at or below the running version cannot enable installation. The saved pointer is cleared when invalid; package files are not deleted. A dismissed ready notice stays dismissed after a normal restart when history was saved; Settings still shows the ready state. If history cannot be written or the process is interrupted before it is saved, manual redownload may be necessary. Existing settings/profile files are never moved, restored or reset by this work.
+
+## Optional installation on safe exit — notification plan, Stage 3
+
+Choose **Automatic download and install on exit** and save. It retains the same authenticated download, cancellation and saved-package checks. A ready banner explains that installation is waiting for a safe exit. Manual **Install and restart** remains available and still asks for confirmation.
+
+On a normal close, the existing tab/sharing choices and all ordinary Closing handlers run first. Cancellation authorizes no preparation. A ready supported-layout package can then use the existing worker only if there are no owned dialogs/tools, tracked writes/jobs/pastes, enabled/running automation, active shares or background sharing. Busy/unsupported/no-ready cases retain ordinary close behavior and skip the update; they are not forced closed by the updater. Keeping shares in the tray or later tray-driven exit does not install. Windows SessionEnding suppresses the exit update and cancels pending preparation; a forced process termination has no accepted-close token.
+
+Preparation rechecks the running layout, package and opt-in/safety state before closing through the existing guarded handover. Tab confirmation is not asked twice, but later close vetoes and work beginning during preparation remain authoritative. Repeated close requests are ignored while preparation runs. A failure leaves Fyltrix open with a postponed status; the next accepted close exits without retrying. Previous handover/result evidence also prevents an automatic repeat; review the explicit recovery procedure for interrupted attempts instead of deleting evidence.
+
+The exit worker receives `--no-restart` and omits `--notify`: success keeps the app closed, and failure cannot introduce a modal warning after the user has exited. The existing `update-result.json` and transaction evidence record failures. A failed isolated health trial rolls back code; live preferences are never restored/reset. Manual worker calls retain their old restart/notification behavior and argument/API compatibility. No background installer runs merely because a release is available.
 
 ## In-app workflow
 

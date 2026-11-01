@@ -85,7 +85,7 @@ public sealed partial class MainWindow : Window, IFolderHost
         PreviewKeyDown += OnKeyDown;
         Closing += (_, e) =>
         {
-            if (!_exitForReal && Settings.ConfirmCloseTabs && _tabs.Count > 1 && !ConfirmCloseTabs(_tabs.Count, closingWindow: true)) { e.Cancel = true; return; }
+            if (!_exitForReal && !_exitUpdateClosing && Settings.ConfirmCloseTabs && _tabs.Count > 1 && !ConfirmCloseTabs(_tabs.Count, closingWindow: true)) { e.Cancel = true; return; }
             // A modal confirmation can pump messages; recheck update-only safety after it returns.
             if (_updateCloseRequested && UpdateCloseProblem() != null) { e.Cancel = true; return; }
             if (KeepSharingInsteadOfClosing(e)) return;

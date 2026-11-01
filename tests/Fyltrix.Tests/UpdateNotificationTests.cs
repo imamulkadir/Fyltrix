@@ -128,13 +128,14 @@ public sealed class UpdateNotificationTests
     }
     [Theory]
     [InlineData(UpdateMode.InstallOnExit)]
-    public async Task Future_imported_modes_remain_notify_only_in_this_stage(UpdateMode mode)
+    public async Task Install_on_exit_also_downloads_but_does_not_install_on_availability(UpdateMode mode)
     {
         using var temp = new TempDir(); using var feed = new ManualUpdateTests.Feed(); int downloads = 0;
         using var session = feed.Session(download: (_, _, _) => { downloads++; return Task.FromResult(new DownloadResult(DownloadFailure.InvalidResponse)); });
         using var model = new UpdateNotifications(session, new UpdateNotificationStore(temp.Path));
         model.Configure(mode); await session.CheckAsync(); await model.PendingSave;
-        Assert.Equal("0.2.0", model.BannerVersion); Assert.Equal(0, downloads); Assert.Null(session.Stage);
+        await model.DownloadTask;
+        Assert.Equal("0.2.0", model.BannerVersion); Assert.Equal(1, downloads); Assert.Null(session.Stage);
     }
     [Fact]
     public async Task Disabling_automatic_checks_cancels_only_the_active_automatic_check()
@@ -205,7 +206,7 @@ public sealed class UpdateNotificationTests
                     Assert.True(bounds.Left >= 0 && bounds.Right <= settingsContent.ActualWidth, "Every Settings tab must remain visible.");
                 }
                 Assert.True(settings.UpdateModeChoice.Items.OfType<ComboBoxItem>().Single(item => (UpdateMode)item.Tag == UpdateMode.DownloadAutomatically).IsEnabled);
-                Assert.False(settings.UpdateModeChoice.Items.OfType<ComboBoxItem>().Single(item => (UpdateMode)item.Tag == UpdateMode.InstallOnExit).IsEnabled);
+                Assert.True(settings.UpdateModeChoice.Items.OfType<ComboBoxItem>().Single(item => (UpdateMode)item.Tag == UpdateMode.InstallOnExit).IsEnabled);
                 Sta.Render(settings, "settings-update-notifications"); settings.Close();
                 model.Dismiss(); Assert.Equal(Visibility.Collapsed, owner.UpdateBannerVisibility);
                 Sta.WaitUntil(() => model.PendingSave.IsCompleted, "metadata persistence");

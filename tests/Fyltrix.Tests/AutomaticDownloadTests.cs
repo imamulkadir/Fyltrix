@@ -14,7 +14,7 @@ namespace Fyltrix.Tests;
 public sealed class AutomaticDownloadTests
 {
     // A small, genuinely signed layout ZIP: nothing executable is run or installed.
-    private sealed class Feed : IDisposable
+    internal sealed class Feed : IDisposable
     {
         private readonly ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         private readonly HttpClient http = new(new RejectNetwork());
@@ -47,8 +47,8 @@ public sealed class AutomaticDownloadTests
             Downloads++;
             return new UpdateDownloader(new GitHubReleaseClient(http)).StageLocalAsync(release, ReleaseVersion.Parse("0.1.0")!, Manifest, Signature, Package, PublicKey, Root, progress, token);
         }
-        internal ManualUpdateSession Session(Func<ReleaseInfo, IProgress<DownloadProgress>, CancellationToken, Task<DownloadResult>>? download = null, bool supported = true, bool trusted = true) =>
-            new(ReleaseVersion.Parse("0.1.0")!, supported ? "D:\\synthetic-layout" : null,
+        internal ManualUpdateSession Session(Func<ReleaseInfo, IProgress<DownloadProgress>, CancellationToken, Task<DownloadResult>>? download = null, bool supported = true, bool trusted = true, string current = "0.1.0") =>
+            new(ReleaseVersion.Parse(current)!, supported ? "D:\\synthetic-layout" : null,
                 _ => Task.FromResult(new ReleaseCheck(CheckStatus.Available, Release)),
                 (r, _) => Task.FromResult(trusted ? SignedManifest.Verify(r, Manifest, Signature, [PublicKey]) : new ManifestVerification(VerificationFailure.InvalidSignature)),
                 download ?? Download, restore: (folder, token) => UpdateHandover.LoadStageAsync(folder, [PublicKey], token));

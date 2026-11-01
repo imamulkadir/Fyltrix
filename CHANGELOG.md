@@ -15,7 +15,14 @@ The release workflow uses that exact section as the GitHub release notes.
 - Optional automatic download with manual installation, download progress and
   cancellation in Settings, and a verified update-ready notice.
 - Downloaded updates can be offered after restart only after signature, package
-  hash and layout verification. Installation on exit remains unavailable.
+  hash and layout verification.
+- Optional automatic download and installation on a safe normal exit, with
+  existing close confirmations/work safeguards and no automatic restart.
+- Exit installation is skipped for busy work, tools, sharing, automation,
+  Windows session ending and previous update-attempt evidence. Failed
+  preparation keeps Fyltrix open; closing again exits without retrying.
+- Clear post-update status for already-installed cached packages and retained
+  evidence from previous attempts, without deleting packages or resetting data.
 - Manual signed-release checks, plain-text release notes, cancellable download
   progress, and confirmed installation/restart through the existing safe updater.
 - Manual-installer link for copies that cannot update in place, with existing

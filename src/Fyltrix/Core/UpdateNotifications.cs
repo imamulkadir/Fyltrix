@@ -16,6 +16,7 @@ internal sealed class UpdateNotifications : IDisposable
     private bool disposed;
     private string? attemptedVersion;
     private UpdateMode mode = UpdateMode.ManualOnly;
+    private bool DownloadsEnabled => mode is UpdateMode.DownloadAutomatically or UpdateMode.InstallOnExit;
     internal UpdateNotificationHistory History { get; private set; }
     internal string? BannerVersion { get; private set; }
     internal Task Loop { get; private set; } = Task.CompletedTask;
@@ -42,9 +43,8 @@ internal sealed class UpdateNotifications : IDisposable
         if (configured && mode == value) return;
         configured = true; mode = value;
         schedule?.Cancel(); schedule?.Dispose();
-        if (automaticCheck || automaticDownload && mode != UpdateMode.DownloadAutomatically) Session.Cancel();
+        if (automaticCheck || automaticDownload && !DownloadsEnabled) Session.Cancel();
         if (mode == UpdateMode.ManualOnly) BannerVersion = null;
-        // Install-on-exit remains notify-only until the next separately approved stage.
         schedule = new CancellationTokenSource(); Loop = RestartAsync(Loop, DownloadTask, schedule.Token);
         Changed?.Invoke();
     }
@@ -120,7 +120,7 @@ internal sealed class UpdateNotifications : IDisposable
     }
     private void StartAutomaticDownload()
     {
-        if (disposed || mode != UpdateMode.DownloadAutomatically || !Session.CanDownload || automaticDownload
+        if (disposed || !DownloadsEnabled || !Session.CanDownload || automaticDownload
             || attemptedVersion == Session.AvailableVersion) return;
         attemptedVersion = Session.AvailableVersion;
         // Publish completion before invoking the downloader, including synchronously completing providers.

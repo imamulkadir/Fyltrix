@@ -22,7 +22,7 @@ internal sealed class UpdateWindow : DialogWindow
     {
         main = owner; this.session = session;
         AddContent(Dialogs.Heading($"Current version: {session.Current.Text}"));
-        AddContent(Dialogs.Note("Manage notifications and automatic downloads in Settings → Updates. Installation always requires your approval. Closing this window cancels an active check or download."));
+        AddContent(Dialogs.Note("Manage notifications, downloads and optional installation on safe exit in Settings → Updates. Install and restart asks for confirmation. Closing this window cancels an active check or download."));
         if (session.LayoutRoot == null)
         {
             AddContent(Dialogs.Note("This copy needs a manual installer before in-app installation is available."));

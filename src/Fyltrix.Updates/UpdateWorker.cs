@@ -9,16 +9,20 @@ public static class UpdateWorker
     public const string ApplyArgument = "--fyltrix-update-worker";
     public const string RecoverArgument = "--fyltrix-update-recover";
     public static ProcessStartInfo StartInfo(HandoverPreparation prepared) => StartInfo(prepared, false);
-    public static ProcessStartInfo StartInfo(HandoverPreparation prepared, bool notifyFailure)
+    public static ProcessStartInfo StartInfo(HandoverPreparation prepared, bool notifyFailure) => StartInfo(prepared, notifyFailure, true);
+    public static ProcessStartInfo StartInfo(HandoverPreparation prepared, bool notifyFailure, bool restartAfterUpdate)
     {
         var start = new ProcessStartInfo(Path.Combine(prepared.Request.LayoutRoot, "app-" + prepared.Request.CurrentVersion, "Fyltrix.exe"))
         { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = prepared.Request.LayoutRoot };
         start.ArgumentList.Add(ApplyArgument); start.ArgumentList.Add(prepared.RequestPath); start.ArgumentList.Add(prepared.Request.Token);
         if (notifyFailure) start.ArgumentList.Add("--notify");
+        if (!restartAfterUpdate) start.ArgumentList.Add("--no-restart");
         return start;
     }
     public static Task<int> RunAsync(string request, string nonce, bool recover = false, CancellationToken token = default) =>
         RunCoreAsync(request, nonce, recover, null, new ApplyOptions(), token);
+    public static Task<int> RunAsync(string request, string nonce, bool recover, bool restartAfterUpdate, CancellationToken token = default) =>
+        RunCoreAsync(request, nonce, recover, null, new ApplyOptions { RestartAfterUpdate = restartAfterUpdate }, token);
 
     internal static async Task<int> RunCoreAsync(string request, string nonce, bool recover, IReadOnlyList<string>? testKeys, ApplyOptions options, CancellationToken token)
     {

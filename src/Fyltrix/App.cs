@@ -12,10 +12,11 @@ public sealed class App : Application
     [STAThread]
     public static void Main(string[] args)
     {
-        if (args.Length is 3 or 4 && args[0] is UpdateWorker.ApplyArgument or UpdateWorker.RecoverArgument && (args.Length == 3 || args[3] == "--notify"))
+        if (args.Length > 0 && args[0] is UpdateWorker.ApplyArgument or UpdateWorker.RecoverArgument)
         {
-            Environment.ExitCode = UpdateWorker.RunAsync(args[1], args[2], args[0] == UpdateWorker.RecoverArgument).GetAwaiter().GetResult();
-            if (args.Length == 4 && Environment.ExitCode != 0)
+            if (!TryWorkerOptions(args, out bool notify, out bool restart)) { Environment.ExitCode = 2; return; }
+            Environment.ExitCode = UpdateWorker.RunAsync(args[1], args[2], args[0] == UpdateWorker.RecoverArgument, restart).GetAwaiter().GetResult();
+            if (notify && Environment.ExitCode != 0)
             {
                 try
                 {
@@ -83,6 +84,7 @@ public sealed class App : Application
         Theme.Apply(app);
         var window = new MainWindow(settings, args.Length > 0 ? args[0] : null);
         app.MainWindow = window;
+        app.SessionEnding += (_, _) => window.SuppressExitUpdateForShutdown();
         if (trial != null)
         {
             window.ShowActivated = false; window.ShowInTaskbar = false;
@@ -109,6 +111,14 @@ public sealed class App : Application
         app.Run();
     }
 
+    internal static bool TryWorkerOptions(string[] args, out bool notify, out bool restart)
+    {
+        notify = false; restart = true;
+        if (args.Length is < 3 or > 5 || args[0] is not (UpdateWorker.ApplyArgument or UpdateWorker.RecoverArgument)) return false;
+        var flags = args.Skip(3).ToHashSet(StringComparer.Ordinal);
+        if (flags.Count != args.Length - 3 || flags.Any(flag => flag is not ("--notify" or "--no-restart"))) return false;
+        notify = flags.Contains("--notify"); restart = !flags.Contains("--no-restart"); return true;
+    }
     internal static bool ApprovedUpdateNotification(string stage, string token)
     {
         if (!Guid.TryParseExact(token, "N", out _)) return false;

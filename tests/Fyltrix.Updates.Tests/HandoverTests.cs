@@ -66,6 +66,8 @@ public sealed class HandoverTests : IDisposable
         var notifying = UpdateWorker.StartInfo(prepared, notifyFailure: true);
         Assert.Equal(start.FileName, notifying.FileName);
         Assert.Equal(start.ArgumentList.Append("--notify"), notifying.ArgumentList);
+        var exiting = UpdateWorker.StartInfo(prepared, notifyFailure: false, restartAfterUpdate: false);
+        Assert.Equal(start.ArgumentList.Append("--no-restart"), exiting.ArgumentList);
     }
     [Fact]
     public async Task Close_cancellation_never_approves_handover_and_keeps_download()
