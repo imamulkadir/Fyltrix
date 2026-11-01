@@ -6,10 +6,19 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-11-01
+
+### Added
+
+- MIT licence and an installer agreement page that requires acceptance before
+  directory selection. Application packages include the licence text.
+
 ### Fixed
 
 - Serialize tests that share the settings directory and isolate their fallback
   profile to prevent intermittent persistence-test failures in release builds.
+- Isolate updater process tests from handover probes that start and exit under
+  the application process name.
 
 ## [0.1.4] - 2026-11-01
 

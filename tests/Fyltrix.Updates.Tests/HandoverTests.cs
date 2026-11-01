@@ -5,6 +5,7 @@ using Fyltrix.Updates;
 
 namespace Fyltrix.Updates.Tests;
 
+[Collection("Updater processes")]
 public sealed class HandoverTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "Fyltrix-HandoverTests-" + Guid.NewGuid().ToString("N"));

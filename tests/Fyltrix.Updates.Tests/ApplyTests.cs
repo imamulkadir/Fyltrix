@@ -8,6 +8,7 @@ using Fyltrix.Updates;
 
 namespace Fyltrix.Updates.Tests;
 
+[Collection("Updater processes")]
 public sealed class ApplyTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "Fyltrix-ApplyTests-" + Guid.NewGuid().ToString("N"));

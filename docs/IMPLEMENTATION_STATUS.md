@@ -12,6 +12,7 @@ The owner authorized Stage 7A release automation following DyanamicEye and Stage
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.5 preparation (2026-11-01) | Carry forward MIT agreement and serialize updater tests sharing system-wide application process names | 552 cases passed; full updater suite passed five consecutive runs; owner hosted validation pending |
 | CI settings isolation (2026-11-01) | Serialize folder-view/template tests and isolate the test baseline profile | 20 focused runs (420 executions) and 552 full-suite tests pass; owner hosted validation pending |
 | Installer agreement (2026-11-01) | MIT terms packaged with the application; native acceptance before destination selection | Build/package and private-desktop wizard checks pass; Authenticode signing remains separate |
 | 1 (phases 0–6) | Archives, New menu/templates, media previews, image tools, batch rename, duplicates, folder sizes, search, tags, PDF tools, conversion, folder compare/sync, palette, automation, sharing, custom actions | Done (`docs/IMPLEMENTATION_REPORT.md`) |
@@ -36,6 +37,10 @@ The owner authorized Stage 7A release automation following DyanamicEye and Stage
 | Infrastructure, Stage 6 | Verified apply, copied-profile health, pointer rollback/recovery and updater-owned uninstall inventory | Done; 128 update, 365 application, 31 packaging, nine builder tests; four installed update scenarios and 17 Inno lifecycle cases pass; stopped for Stage 7 approval |
 | Infrastructure, Stage 7A | Tag/changelog release automation, version preparation and owner-local completion | Locally complete; 365 application, 129 update, 31 packaging, 13 release and nine installer guard tests pass; workflow lint and ZIP/Production installer compilation pass; hosted/tag/key validation pending |
 | Infrastructure, Stage 7A.1 | Dedicated signing key, public trust pin and encrypted restore-verified backup | Local key/backup/pin verified; 132 update, 365 application, 31 packaging, 13 release and nine installer guard tests pass; owner off-device backup, application integration and hosted validation remain |
+
+## RELEASE 0.1.5 (2026-11-01): updater process-test isolation
+
+Manual GitHub validation of the settings isolation passed on `master` (`94deb091`). Preparing `0.1.5` exposed a second cross-class interference during local updater checks: handover tests start/stop probes named `Fyltrix.exe` while apply tests enumerate those process names system-wide. Both classes now use one nonparallel `Updater processes` collection, isolating the probes and process checks without changing runtime code or weakening assertions. Release notes retain the MIT agreement and both test repairs. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) for the initial failure, repeated verification, remaining owner commit/tag steps and unsigned-Windows-publisher limitation.
 
 ## CI SETTINGS ISOLATION (2026-11-01): shared-profile test race
 
