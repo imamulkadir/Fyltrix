@@ -51,6 +51,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
 DisableProgramGroupPage=yes
 DisableDirPage=no
+LicenseFile={#LayoutDir}\app-{#AppVersion}\LICENSE.txt
 OutputDir={#OutputDir}
 OutputBaseFilename={#SetupName}
 SetupIconFile=..\..\src\Fyltrix\Assets\Fyltrix.ico

@@ -33,6 +33,24 @@ Choose an empty installation directory. Setup refuses existing unowned files, de
 
 Sandbox identity isolates installation files, registration, and shortcuts. **A normally launched sandbox application still uses the existing application profile.** Only the test startup hook described below redirects that profile. Do not launch experiments against personal settings expecting the installer identity to provide profile isolation.
 
+## Agreement and Windows publisher warnings
+
+Interactive Setup displays the owner's selected [MIT licence](../LICENSE) before the destination-directory page. Next remains disabled until the user accepts; cancelling before installation creates no installation or registration. The project copies the same source terms into application build/publish outputs as `LICENSE.txt`, and Inno reads that copy from the validated versioned payload. Standard explicitly requested silent installation retains Inno's silent-mode behavior. Existing release assets do not change when source is edited; this applies to a subsequent rebuilt installer.
+
+The release-signing key authenticates the update manifest/packages. It is **not an Authenticode certificate** and does not establish a Windows verified-publisher identity. Current Setup executables are `NotSigned`; downloaded files can trigger SmartScreen reputation or unknown-publisher warnings. A trusted Authenticode signing identity is a separate setup requirement, and even a newly signed file can still warn while reputation develops. No certificate is purchased/generated, Windows security policy changed, or warning bypass implemented by these installer-page changes.
+
+References: [Inno LicenseFile and page order](https://jrsoftware.org/ishelp/topic_setup_licensefile.htm), [Microsoft SmartScreen reputation](https://learn.microsoft.com/windows/apps/package-and-deploy/smartscreen-reputation).
+
+To check the actual wizard without installing anything, compile a Sandbox installer and run non-elevated:
+
+```powershell
+python .\tests\installer\verify_license.py `
+    --installer 'D:\Sandbox output\Fyltrix-Sandbox-Setup-win-x64.exe' `
+    --work-root 'D:\Fresh agreement verification'
+```
+
+The harness validates Sandbox identity/checksum, opens only its own private desktop, verifies the MIT text/acceptance gate/directory-page order, then cancels and checks no installation was created. It does not run Production Setup or interact with the user's desktop.
+
 ## Upgrade and uninstall behavior
 
 Close the installed copy yourself before upgrading or uninstalling. Setup does not force-close applications. It checks the installation tree for locked or nonwritable files and refuses to continue when it cannot obtain exclusive access. Development and portable copies outside this installation are not closed.

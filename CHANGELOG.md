@@ -6,6 +6,11 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+
+- MIT licence and an installer agreement page that requires acceptance before
+  directory selection. Application packages include the licence text.
+
 ## [0.1.3] - 2026-11-01
 
 ### Fixed

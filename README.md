@@ -391,6 +391,8 @@ dotnet test .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj -p:Platform=x64
 
 The latest verified application suite has **365 passing tests**, covering core operations, offscreen UI behavior, safe update closing and strict copied-profile compatibility. Separate suites cover release verification/staging/apply/recovery and packaging. UI tests render real windows without taking desktop focus; clipboard tests use isolated providers. Tests do not certify every codec, shell handler, or network environment.
 
+Fyltrix is available under the [MIT licence](LICENSE); bundled third-party components retain their own licences. Interactive installers show the agreement before directory selection and require acceptance to continue. `LICENSE.txt` is included with application outputs. Current installers are not Authenticode-signed, so Windows may warn about an unknown publisher or an unrecognized download. The updater's signed manifest is separate from Windows executable signing; see [installer documentation](docs/INSTALLER.md).
+
 `tests/Fyltrix.PlacementProbe` provides native placement checks, theme renders, and resource benchmarks. Build it before use:
 
 ```powershell

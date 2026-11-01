@@ -12,6 +12,7 @@ The owner authorized Stage 7A release automation following DyanamicEye and Stage
 
 | Round | What | Status |
 |---|---|---|
+| Installer agreement (2026-11-01) | MIT terms packaged with the application; native acceptance before destination selection | Build/package and private-desktop wizard checks pass; Authenticode signing remains separate |
 | 1 (phases 0–6) | Archives, New menu/templates, media previews, image tools, batch rename, duplicates, folder sizes, search, tags, PDF tools, conversion, folder compare/sync, palette, automation, sharing, custom actions | Done (`docs/IMPLEMENTATION_REPORT.md`) |
 | 2 | Logo, LAN sharing, MKV crash, search box, thumbnail grid, diagnostics, grid icon orientation | Done (`docs/ROUND2_REPORT.md`) |
 | 3 | Taskbar icon, sidebar order, Open in IDE, Settings → Context menu | Done; taskbar fix **awaits user confirmation** |
@@ -40,6 +41,12 @@ The owner authorized Stage 7A release automation following DyanamicEye and Stage
 Created a new Fyltrix P-256 key outside Git under protected Windows permissions, an AES-256-encrypted PKCS#8 backup in the owner's selected folder, and a separately stored random recovery password. Verified backup restore/public identity/signature challenge before pinning only the public SPKI in release policy. The owner-only .NET/PowerShell helper refuses existing, redirected, overlapping, Git and application-data paths and prints no private key/password. No dependency, application version, default preference, existing executable or data location changed.
 
 Built a fresh isolated self-contained/NativeAOT package and compiled Production Setup without running it. Signed the ZIP/installer locally and verified both through the actual packaged library's default pin, without a test override; changed manifest bytes were rejected. Full suites pass; empty-trust tests now supply an explicitly empty set, while configured trust rejects unrelated test signers. No signing material is in Git, build outputs or CI. Independent offline backup, manual application-update integration and first hosted release validation remain pending; see [SIGNING_SETUP.md](SIGNING_SETUP.md) and [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+
+## INSTALLER AGREEMENT (2026-11-01): MIT acceptance before directory selection
+
+The owner selected MIT like DyanamicEye. Root `LICENSE` is copied as `LICENSE.txt` into application build/publish outputs; Inno's native `LicenseFile` reads the validated versioned payload copy. Interactive Setup shows the agreement first and requires acceptance before directory selection. The actual Sandbox wizard passed private-desktop checks for terms, gating, page order and cancellation without installation. Both installer variants compile; Production Setup was not executed. Existing app behavior, data paths, development publishing and silent-mode behavior are preserved. Existing downloaded installers are unchanged; a subsequent rebuilt release is required.
+
+The compiled installer is Authenticode `NotSigned`. The existing update-manifest key does not establish a Windows publisher identity, and no warning bypass or certificate configuration was added. See [INSTALLER.md](INSTALLER.md) and [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) for verification and the separate signing limitation. No agent commit, push, tag or publication was performed.
 
 ## INFRASTRUCTURE STAGE 6 (2026-11-01): isolated apply and recovery
 
