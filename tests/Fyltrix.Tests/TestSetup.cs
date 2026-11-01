@@ -9,6 +9,14 @@ internal static class TestSetup
     [ModuleInitializer]
     internal static void Init()
     {
+        // Even the restored baseline must be disposable: a test must never fall back to the real profile.
+        var settings = Path.Combine(Path.GetTempPath(), "FyltrixTests-settings-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(settings);
+        Fyltrix.Core.AppSettings.Folder = settings;
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            try { Directory.Delete(settings, recursive: true); } catch { /* test-owned cleanup only */ }
+        };
         Fyltrix.Preview.PreviewPane.WebDataFolder = Path.Combine(Path.GetTempPath(), "FyltrixTests-WebView2");
         Fyltrix.UI.MainWindow.ClipboardFactory = () => new MemoryFileClipboard();
     }

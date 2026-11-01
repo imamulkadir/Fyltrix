@@ -5,6 +5,7 @@ using Fyltrix.UI;
 namespace Fyltrix.Tests;
 
 /// <summary>Per-folder views: storage rules (keys, defaults, pruning, renames) without UI.</summary>
+[Collection("UI")] // mutates AppSettings.Folder and MaxFolderViews, shared with settings/UI tests
 public class FolderViewStorageTests
 {
     [Fact]

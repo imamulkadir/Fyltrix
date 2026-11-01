@@ -12,6 +12,7 @@ The owner authorized Stage 7A release automation following DyanamicEye and Stage
 
 | Round | What | Status |
 |---|---|---|
+| CI settings isolation (2026-11-01) | Serialize folder-view/template tests and isolate the test baseline profile | 20 focused runs (420 executions) and 552 full-suite tests pass; owner hosted validation pending |
 | Installer agreement (2026-11-01) | MIT terms packaged with the application; native acceptance before destination selection | Build/package and private-desktop wizard checks pass; Authenticode signing remains separate |
 | 1 (phases 0–6) | Archives, New menu/templates, media previews, image tools, batch rename, duplicates, folder sizes, search, tags, PDF tools, conversion, folder compare/sync, palette, automation, sharing, custom actions | Done (`docs/IMPLEMENTATION_REPORT.md`) |
 | 2 | Logo, LAN sharing, MKV crash, search box, thumbnail grid, diagnostics, grid icon orientation | Done (`docs/ROUND2_REPORT.md`) |
@@ -35,6 +36,10 @@ The owner authorized Stage 7A release automation following DyanamicEye and Stage
 | Infrastructure, Stage 6 | Verified apply, copied-profile health, pointer rollback/recovery and updater-owned uninstall inventory | Done; 128 update, 365 application, 31 packaging, nine builder tests; four installed update scenarios and 17 Inno lifecycle cases pass; stopped for Stage 7 approval |
 | Infrastructure, Stage 7A | Tag/changelog release automation, version preparation and owner-local completion | Locally complete; 365 application, 129 update, 31 packaging, 13 release and nine installer guard tests pass; workflow lint and ZIP/Production installer compilation pass; hosted/tag/key validation pending |
 | Infrastructure, Stage 7A.1 | Dedicated signing key, public trust pin and encrypted restore-verified backup | Local key/backup/pin verified; 132 update, 365 application, 31 packaging, 13 release and nine installer guard tests pass; owner off-device backup, application integration and hosted validation remain |
+
+## CI SETTINGS ISOLATION (2026-11-01): shared-profile test race
+
+The tagged `v0.1.4` run failed one folder-view persistence assertion before packaging. Folder-view storage and template tests changed the same static `AppSettings.Folder` outside the existing serialized settings/UI collection. A focused local run reproduced the collision in the template test. Both classes now use that existing collection; all test assertions remain intact and unrelated tests retain parallel execution. Test module initialization also creates a unique temporary baseline profile, so restoring a test's previous directory cannot fall back to personal settings. Only that test-created baseline is cleaned up on process exit. Application runtime, release pipeline, signing and `publish.ps1` are unchanged. Verification/evidence and owner next steps are tracked in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
 
 ## SIGNING SETUP (2026-11-01): dedicated owner-local production trust
 

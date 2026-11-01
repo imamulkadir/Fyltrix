@@ -5,6 +5,7 @@ using Fyltrix.Core.Templates;
 
 namespace Fyltrix.Tests;
 
+[Collection("UI")] // saved templates use AppSettings.Folder, shared with settings/UI tests
 public class TemplateTests
 {
     private static FileTemplate Get(string id) => FileTemplates.BuiltIns().Single(t => t.Id == id);

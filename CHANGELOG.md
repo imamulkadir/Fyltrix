@@ -6,6 +6,11 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Serialize tests that share the settings directory and isolate their fallback
+  profile to prevent intermittent persistence-test failures in release builds.
+
 ## [0.1.4] - 2026-11-01
 
 ### Added
