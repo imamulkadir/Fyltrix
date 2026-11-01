@@ -377,7 +377,7 @@ public class ToolbarBehaviorTests
                     opened++;
                     Assert.Same(w, dialog.Owner);
                     Assert.Equal("Settings", dialog.Title);
-                    Assert.Equal(8, dialog.Tabs.Items.Count);
+                Assert.Equal(9, dialog.Tabs.Items.Count);
                     dialog.Close();
                     return false; // intercept the modal display so the real desktop is never touched
                 };

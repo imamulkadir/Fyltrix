@@ -105,6 +105,7 @@ public sealed class App : Application
             timer.Start();
         }
         window.Show();
+        if (trial == null && !Fyltrix.UI.MainWindow.SuppressAutomaticChecksForTests) window.StartUpdateNotifications();
         app.Run();
     }
 

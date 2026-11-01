@@ -8,6 +8,11 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ### Added
 
+- Optional automatic update notifications, a dismissible in-app banner, and
+  Settings → Updates with persistent Manual only/Notify only preferences.
+- Notify only is the approved default for a missing update preference. Checks
+  wait until after startup and respect saved check times and GitHub backoff.
+- Automatic download/install choices are reserved and unavailable in this stage.
 - Manual signed-release checks, plain-text release notes, cancellable download
   progress, and confirmed installation/restart through the existing safe updater.
 - Manual-installer link for copies that cannot update in place, with existing

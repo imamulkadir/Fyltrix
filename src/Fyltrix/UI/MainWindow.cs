@@ -93,6 +93,7 @@ public sealed partial class MainWindow : Window, IFolderHost
         };
         Closed += (_, _) =>
         {
+            notifications?.Dispose();
             manualUpdates?.Dispose();
             StopClipboardNotifications();
             DisposeSharing();
@@ -276,6 +277,9 @@ public sealed partial class MainWindow : Window, IFolderHost
         Cmd("preview", "Preview pane", "\uE8A1", "Preview", "Show/hide the preview pane (Ctrl+P)", () => SetPreviewVisible(!Settings.PreviewVisible), b => _btnPreview = b);
         DockPanel.SetDock(commandBar, Dock.Top);
         root.Children.Add(commandBar);
+        var updateNotice = BuildUpdateBanner();
+        DockPanel.SetDock(updateNotice, Dock.Top);
+        root.Children.Add(updateNotice);
         _chrome.Add(commandBar);
 
         // ----- status bar -----

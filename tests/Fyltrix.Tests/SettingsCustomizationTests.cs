@@ -351,7 +351,7 @@ public class SettingsCustomizationTests
             try
             {
                 var dlg = new SettingsWindow(w, w.Settings, templates: new List<Core.Templates.FileTemplate>(), host: w.SettingsHostFor());
-                Assert.Equal(new[] { "Appearance", "Navigation", "Sidebar", "Views", "Context menu", "Toolbar", "Search", "Advanced" },
+                Assert.Equal(new[] { "Appearance", "Navigation", "Sidebar", "Views", "Context menu", "Toolbar", "Search", "Advanced", "Updates" },
                     dlg.Tabs.Items.OfType<TabItem>().Select(i => (string)i.Header));
                 Sta.ShowOffscreen(dlg);
                 foreach (var tab in dlg.Tabs.Items.OfType<TabItem>())

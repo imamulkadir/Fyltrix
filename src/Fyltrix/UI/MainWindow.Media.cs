@@ -50,6 +50,7 @@ public sealed partial class MainWindow
             UpdateWindowFrame();
             _preview.FullScreenEnded();
         }
+        RefreshUpdateStatus();
     }
 
     private void OpenImageTools(string path)

@@ -13,7 +13,14 @@ public sealed record SettingsHost(
     Func<bool> CurrentFolderHasView,
     Action ResetCurrentFolderView,
     Action ClearRecent,
-    Action ClearFavourites);
+    Action ClearFavourites)
+{
+    public Func<string>? ReadUpdateStatus { get; init; }
+    public Func<Task>? CheckForUpdates { get; init; }
+    public Action? ShowUpdateDetails { get; init; }
+    public Action<Action>? SubscribeUpdateStatus { get; init; }
+    public Action<Action>? UnsubscribeUpdateStatus { get; init; }
+}
 
 /// <summary>Fyltrix settings, by area: Appearance, Navigation, Sidebar, Views, Context menu, Toolbar, Search, Advanced.
 /// Everything applies when Save is pressed (the theme at the next start); the Clear / Reset buttons act at once.</summary>
@@ -399,6 +406,7 @@ public sealed partial class SettingsWindow : DialogWindow
         });
 
         Tabs.Height = 520;
+        BuildUpdatesPage(s, host, saves);
         AddContent(Tabs);
         AddContent(err);
         TrySave = () =>

@@ -54,6 +54,12 @@ internal static class Bench
             w.SourceInitialized += (_, _) => Cloak(new WindowInteropHelper(w).Handle);
             phase.Restart();
             w.Show();
+            // Exercise production timer/state initialization without contacting GitHub or changing real updater data.
+            var updateSession = new ManualUpdateSession(Fyltrix.Updates.ReleaseVersion.Parse(Diagnostics.Version)!, null,
+                _ => Task.FromResult(new Fyltrix.Updates.ReleaseCheck(Fyltrix.Updates.CheckStatus.NoRelease)),
+                (_, _) => throw new InvalidOperationException("Benchmark must not verify remote releases."),
+                (_, _, _) => throw new InvalidOperationException("Benchmark must not download updates."));
+            w.StartUpdateNotifications(new UpdateNotifications(updateSession, new UpdateNotificationStore(Path.Combine(dataRoot, "updater-metadata"))));
             R["showMs"] = phase.Elapsed.TotalMilliseconds;
             WaitUntil(() => w.View is { Items.Count: > 0 } v && AppSettings.SameFolder(v.CurrentPath, data.Small), 30000);
             R["startupToListedMs"] = (DateTime.Now - processStart).TotalMilliseconds;

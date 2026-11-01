@@ -27,7 +27,7 @@ public sealed class ManualUpdateTests
         File.WriteAllText(temp["close-approved"], nonce + new string('x', 100_000));
         Assert.False(App.ApprovedUpdateNotification(temp.Path, nonce));
     }
-    private sealed class Feed : IDisposable
+    internal sealed class Feed : IDisposable
     {
         private readonly ECDsa key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
         internal ReleaseInfo Release { get; }

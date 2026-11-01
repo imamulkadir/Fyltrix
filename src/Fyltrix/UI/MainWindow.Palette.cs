@@ -17,10 +17,12 @@ public sealed partial class MainWindow
         return p;
     }
 
-    private void OpenSettings()
+    private void OpenSettings() => OpenSettings(null);
+    private void OpenSettings(string? tab)
     {
         var before = (Settings.ShowHidden, Settings.ShowExtensions, Settings.SearchFinds, Settings.Theme);
         var dlg = new SettingsWindow(this, Settings, _templates, WindowsNewTypes(), SettingsHostFor());
+        if (tab != null) dlg.SelectTab(tab);
         bool saved = (SettingsDialogForTest != null ? SettingsDialogForTest(dlg) : dlg.ShowDialog()) == true;
         foreach (var t in _tabs) ApplyView(t.View); // a new default view, or "Reset all folder views" (which applies even on Cancel)
         if (!saved) return;
@@ -39,7 +41,14 @@ public sealed partial class MainWindow
         () => View != null && Settings.HasOwnView(ViewKey(View)),
         ResetFolderView,
         () => ClearRecent(),
-        () => ClearFavourites());
+        () => ClearFavourites())
+        {
+            ReadUpdateStatus = ReadUpdatesStatus,
+            CheckForUpdates = CheckUpdatesNowAsync,
+            ShowUpdateDetails = () => OpenUpdates(),
+            SubscribeUpdateStatus = handler => updateStatusChanged += handler,
+            UnsubscribeUpdateStatus = handler => updateStatusChanged -= handler
+        };
 
     /// <summary>Puts saved settings into effect without a restart (the theme is the exception: it is chosen at startup).</summary>
     internal void ApplySettings(bool relist = true, bool refilter = true)
@@ -53,6 +62,7 @@ public sealed partial class MainWindow
         RebuildSidebar();
         UpdateSearchChrome();
         UpdateCommands();
+        ApplyUpdatePreferences();
     }
 
     internal IEnumerable<PaletteEntry> PaletteEntries(string text) => PaletteEntries(text, null);

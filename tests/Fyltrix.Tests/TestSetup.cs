@@ -19,6 +19,8 @@ internal static class TestSetup
         };
         Fyltrix.Preview.PreviewPane.WebDataFolder = Path.Combine(Path.GetTempPath(), "FyltrixTests-WebView2");
         Fyltrix.UI.MainWindow.ClipboardFactory = () => new MemoryFileClipboard();
+        Fyltrix.UI.MainWindow.NotificationsFactoryForTests = session => new Fyltrix.Core.UpdateNotifications(session,
+            new Fyltrix.Core.UpdateNotificationStore(Path.Combine(Fyltrix.Core.AppSettings.Folder, "test-update-metadata")));
     }
 }
 

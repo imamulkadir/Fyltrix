@@ -2,7 +2,19 @@
 
 Stage 5 extends the separate [release verification library and tool](UPDATES.md). Its download/staging and verified handover APIs do not apply an update. Stage 6 adds a separate [verified apply, isolated health, rollback and recovery backend](APPLY_AND_RECOVERY.md). Stage 7B connects them to the manual interface described below. This interface is new source work after published `v0.1.5`; that existing release does not gain new controls remotely.
 
-There is no startup scheduler, service, new settings key, or automatic check/download/install. Ordinary closing, active-work guards and `publish.ps1 -Run` retain their behavior.
+The approved notification plan adds scheduled checks and a new update-mode preference. There is no service, startup registration, automatic package download or unattended installation. Ordinary closing, active-work guards and `publish.ps1 -Run` retain their behavior.
+
+## Settings and automatic notifications — notification plan, Stage 1
+
+**Settings → Updates** shows current version, last check, last verified available version and current status. It offers Check now plus the existing manual release-notes/download/install window. Saving an update preference applies it immediately; editing then cancelling Settings does not apply it.
+
+- **Notify only** is the owner-approved default for new/missing update preferences. A single cancellable delay waits 60 seconds after startup, then checks only when the last attempt is at least six hours old. Checks run while Fyltrix is open, respect saved GitHub backoff across restarts, and avoid interrupting active/prepared downloads.
+- **Manual only** schedules no checks. The user can still choose Check now.
+- Automatic-download and install-on-exit modes are disabled until their separately approved stages are implemented/tested. Imported future values remain stored but behave as notify-only in this build.
+
+A new authenticated update produces a nonmodal banner with View update, Later and Settings. Notification history suppresses repeated notices for the same version across normal restarts; the available version remains visible in Settings. Only package metadata/signatures are checked automatically, never package payloads. Notes are unsigned plain text.
+
+The new `UpdateMode` preference uses the existing settings file, with other preferences preserved; malformed update-mode values fall back to Notify only without resetting other settings. Check time, backoff and notification history are separate updater-only data in `%LocalAppData%\Fyltrix\Updates\notification-state.json`. Background checks never call `AppSettings.Save`. State files use a product/schema marker and atomic writes; unowned/corrupt files are left untouched. No data is migrated. As with any optional cache, a failed history write/crash may cause a later repeat notice.
 
 ## In-app workflow
 

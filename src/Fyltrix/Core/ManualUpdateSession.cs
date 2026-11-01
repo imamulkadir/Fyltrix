@@ -4,7 +4,7 @@ using Fyltrix.Updates;
 
 namespace Fyltrix.Core;
 
-/// <summary>One explicitly opened update session. No startup check, scheduler or settings writes.</summary>
+/// <summary>Shared verified update session. Callers choose when to check; it never writes application settings.</summary>
 internal sealed class ManualUpdateSession : IDisposable
 {
     private readonly Func<CancellationToken, Task<ReleaseCheck>> check;
@@ -22,10 +22,14 @@ internal sealed class ManualUpdateSession : IDisposable
     internal bool CanInstall => !disposed && !Busy && LayoutRoot != null && Stage != null;
     internal StagedUpdate? Stage { get; private set; }
     internal DownloadProgress? Progress { get; private set; }
-    internal string Message { get; private set; } = "Updates are checked only when you click Check for updates.";
+    internal string Message { get; private set; } = "No update check has been performed in this session.";
     internal string Notes => available?.Release.Notes ?? "";
     internal DateTimeOffset? RetryAfter { get; private set; }
+    internal DateTimeOffset? LastChecked { get; private set; }
+    internal CheckStatus? LastCheckStatus { get; private set; }
+    internal string? AvailableVersion => available?.Release.Version.Text;
     internal event Action? Changed;
+    internal event Action? CheckCompleted;
 
     internal ManualUpdateSession(ReleaseVersion current, string? layoutRoot,
         Func<CancellationToken, Task<ReleaseCheck>> check,
@@ -49,10 +53,10 @@ internal sealed class ManualUpdateSession : IDisposable
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { root = null; }
         }
-        var http = GitHubReleaseClient.CreateHttpClient(); var client = new GitHubReleaseClient(http);
-        return new(current, root, ct => client.CheckAsync(current, cancellationToken: ct),
-            (release, ct) => client.VerifyManifestAsync(release, cancellationToken: ct),
-            (release, progress, ct) => new UpdateDownloader(client).DownloadAsync(release, current, ReleasePolicy.ZipName(release.Version.Text), progress: progress, token: ct), http);
+        var connection = new Connection();
+        return new(current, root, ct => connection.Client.CheckAsync(current, cancellationToken: ct),
+            (release, ct) => connection.Client.VerifyManifestAsync(release, cancellationToken: ct),
+            (release, progress, ct) => new UpdateDownloader(connection.Client).DownloadAsync(release, current, ReleasePolicy.ZipName(release.Version.Text), progress: progress, token: ct), connection);
     }
 
     internal async Task CheckAsync()
@@ -60,10 +64,11 @@ internal sealed class ManualUpdateSession : IDisposable
         if (disposed || Busy) return;
         if (RetryAfter is { } retry && DateTimeOffset.UtcNow < retry) { SetMessage($"GitHub asked us to wait. Try again after {retry.ToLocalTime():g}."); return; }
         using var cancel = new CancellationTokenSource(); operation = cancel;
-        available = null; Stage = null; Progress = null; SetMessage("Checking GitHub for a newer release…");
+        available = null; Stage = null; Progress = null; LastCheckStatus = null; SetMessage("Checking GitHub for a newer release…");
         try
         {
             var result = await check(cancel.Token);
+            LastCheckStatus = result.Status;
             cancel.Token.ThrowIfCancellationRequested(); RetryAfter = result.RetryAfter;
             if (result.Status != CheckStatus.Available || result.Release == null)
             {
@@ -83,10 +88,10 @@ internal sealed class ManualUpdateSession : IDisposable
             { SetMessage("This release has no supported update package. Use its manual installer."); return; }
             available = authenticated.Verified; SetMessage($"Version {result.Release.Version.Text} is available. Downloading does not install it.");
         }
-        catch (OperationCanceledException) { SetMessage("Update check cancelled."); }
+        catch (OperationCanceledException) { LastCheckStatus = null; SetMessage("Update check cancelled."); }
         catch (Exception ex) when (ex is IOException or InvalidDataException or HttpRequestException or UnauthorizedAccessException or InvalidOperationException or ArgumentException)
         { Diagnostics.Log("Update check", ex); SetMessage("Could not check for updates. Nothing was changed."); }
-        finally { operation = null; Changed?.Invoke(); }
+        finally { LastChecked = DateTimeOffset.UtcNow; operation = null; Changed?.Invoke(); CheckCompleted?.Invoke(); }
     }
 
     internal async Task DownloadAsync()
@@ -130,5 +135,17 @@ internal sealed class ManualUpdateSession : IDisposable
     }
     internal void EndInstall() { installing = false; Changed?.Invoke(); }
     internal void Cancel() => operation?.Cancel();
+    internal void RestoreBackoff(DateTimeOffset? retry)
+    {
+        if (retry is { } time && time > DateTimeOffset.UtcNow) RetryAfter = time;
+    }
     public void Dispose() { disposed = true; Cancel(); resource?.Dispose(); }
+
+    private sealed class Connection : IDisposable
+    {
+        private HttpClient? http;
+        private GitHubReleaseClient? client;
+        internal GitHubReleaseClient Client => client ??= new(http = GitHubReleaseClient.CreateHttpClient());
+        public void Dispose() => http?.Dispose();
+    }
 }

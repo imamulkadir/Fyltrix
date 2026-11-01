@@ -26,6 +26,8 @@ public static class StartupHook
         PreviewPane.WebDataFolder = Path.Combine(root, "webview2");
         ThumbnailService.DiskCacheFolder = Path.Combine(root, "thumbs");
         MainWindow.ClipboardFactory = () => new IsolatedClipboard();
+        MainWindow.SuppressAutomaticChecksForTests = true;
+        MainWindow.NotificationsFactoryForTests = session => new UpdateNotifications(session, new UpdateNotificationStore(Path.Combine(root, "notification-state")));
         if (Environment.GetEnvironmentVariable("FYLTRIX_SANDBOX_UPDATE_WORKER") == "1")
         {
             string dependencyFolder = Path.GetDirectoryName(typeof(StartupHook).Assembly.Location)!;
@@ -35,6 +37,14 @@ public static class StartupHook
             return;
         }
         Action<MainWindow>? handoverTick = null;
+        var notificationData = Environment.GetEnvironmentVariable("FYLTRIX_NOTIFICATION_TEST_DATA");
+        if (notificationData != null)
+        {
+            var notificationProbe = new NotificationStartupProbe(root, notificationData);
+            MainWindow.SuppressAutomaticChecksForTests = false;
+            MainWindow.NotificationsFactoryForTests = notificationProbe.Create;
+            handoverTick = notificationProbe.Tick;
+        }
         if (Environment.GetEnvironmentVariable("FYLTRIX_MANUAL_UPDATE_DATA") != null)
             handoverTick = ManualUpdateStartupProbe.Create(root);
         var stage = Environment.GetEnvironmentVariable("FYLTRIX_HANDOVER_TEST_STAGE");

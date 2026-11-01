@@ -8,10 +8,13 @@ public enum ThemeMode { Dark, Light, System }
 public enum PreviewStartup { Remember, Show, Hide }
 /// <summary>Where a new tab (Ctrl+T, +) opens.</summary>
 public enum NewTabTarget { CurrentFolder, StartupFolder, ThisPC }
+public enum UpdateMode { ManualOnly, NotifyOnly, DownloadAutomatically, InstallOnExit }
 
 /// <summary>Per-user settings stored in %AppData%\FileLens\settings.json (no registry, no admin).</summary>
 public sealed class AppSettings
 {
+    [System.Text.Json.Serialization.JsonConverter(typeof(UpdateModeConverter))]
+    public UpdateMode UpdateMode { get; set; } = ApplicationDefaults.Updates;
     public List<string> Favourites { get; set; } = new();
     public List<string> OpenTabs { get; set; } = new();
     public int ActiveTab { get; set; }
