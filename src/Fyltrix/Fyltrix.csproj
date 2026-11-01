@@ -25,9 +25,9 @@
     <AssemblyTitle>Fyltrix</AssemblyTitle>
     <Authors>Imamul Kadir</Authors>
     <Description>Fyltrix: A tabbed file explorer with real previews for PDF, HTML, Markdown, JSON, Word, Excel, CSV, images and code. Runs without admin rights.</Description>
-    <Version>0.1.0</Version>
-    <FileVersion>0.1.0.0</FileVersion>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <Version>0.1.1</Version>
+    <FileVersion>0.1.1.0</FileVersion>
+    <AssemblyVersion>0.1.1.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">

@@ -6,9 +6,23 @@ Last updated: 2026-11-01.
 
 - Work one stage at a time, build/test it, report the evidence, and stop for explicit approval before the next stage.
 - Use **`master` exclusively** for future Fyltrix development. Do not create feature, development, release, or temporary branches.
-- No commits, pushes, merges, tags, remote changes, or GitHub Release creation/publication. The owner handles Git operations.
+- Git operations normally remain owner-managed. The owner's current explicit instruction authorizes release preparation steps 1–5, including committing/pushing the reviewed `0.1.1` preparation to `master`. It does not authorize creating/pushing the tag (step 6), merging, publishing a release or changing repository settings.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
+
+## Release preparation — 0.1.1 (2026-11-01)
+
+Status: **Prepared and verified for `v0.1.1` tagging.** The owner clarified that only the six listed changelog/version/Git preparation steps were intended, and authorized the agent to perform steps **1–5**, leaving tag creation/push (step 6) to the owner. This release-preparation changeset is authorized for commit/push to `master`; final remote commit/push confirmation is recorded externally and in the task response. Starting `master`/live remote: `e3b7602c060e157e17593ce5fedcfcf38ef5cae5`.
+
+- Preserved the mistakenly started application-update integration externally, with all 13 changed/new source files, hashes and a binary tracked patch under `D:\Tools\Fyltrix-release-prep-20261101-111650\deferred-integration`. Restored only those agent-owned edits to the committed verified baseline. No existing work was discarded. This release does **not** include the unfinished in-app update UI; Stage 7B remains deferred.
+- Kept `## [Unreleased]`; moved the existing verified release/signing/packaging/backend notes into `## [0.1.1] - 2026-11-01`. Notes explicitly retain the limitation that the in-app update action and automatic installation are not enabled.
+- Ran `tools/Set-ReleaseVersion.ps1 -Version 0.1.1`: application Version is `0.1.1`, FileVersion and AssemblyVersion are `0.1.1.0`. Shared component identities, application functionality, signing keys, settings and existing portable files are unchanged.
+- Ran `tools/Test-Release.ps1 -Tag v0.1.1` successfully. Final Release checks passed: **365 application, 132 update, 31 packaging, 13 release-tooling and nine installer-builder tests**, with no failures/skips in the final runs. Existing compiler warnings remain.
+- The first application run exposed a branding test hard-coded to `0.1.0.0`. Updated that existing assertion to require agreement between assembly/file/informational version metadata, then reran the full suite successfully. Branding, protocol, firewall and icon assertions remain intact; no application functionality was changed.
+- Reviewed changes are limited to `CHANGELOG.md`, `src/Fyltrix/Fyltrix.csproj`, `tests/Fyltrix.Tests/RebrandingTests.cs`, and this progress file. Whitespace/release checks pass, the archived integration hashes match, and no secret files are included. Packaging/hosted release execution is left to the owner's tag-triggered workflow; no new installer was run for this version-only preparation.
+- No tag, GitHub release or production installation is created by this task. First hosted release-build/signing/publication validation remains after the owner's tag action.
+
+Evidence: `D:\Tools\Fyltrix-release-prep-20261101-111650` (`verification.json`, test logs/TRX, deferred integration archive; final remote outcome in `push-verification.json`). Commit message: `chore(release): prepare v0.1.1`. Next action belongs to the owner: create and push `v0.1.1` (step 6). The unfinished integration remains outside this release.
 
 ## Priority task — Master-only branch consolidation
 
@@ -435,4 +449,4 @@ External evidence directory: `D:\Tools\Fyltrix-update-audit-20261031-132632-07ce
 6. Out-of-process apply, isolated health validation, rollback/recovery and saved-data preservation — completed on `master`; stopped for explicit Stage 7 approval. See the Stage 6 report above.
 7. Release automation and end-to-end workflow/regression: Stage 7A tag/changelog automation and Stage 7A.1 dedicated signing/key-backup setup are locally complete. Owner independent backup, manual bootstrap and first hosted tag/signing/publication validation remain pending. Stage 7B application manual-update workflow integration/final regression has not started and requires explicit approval. Fully automatic installation remains disabled unless separately approved after the gates pass.
 
-Next action: stop after Stage 7A.1 signing setup. The owner completes independent offline backup/password storage and handles commits/pushes/tags. Wait for explicit approval before Stage 7B application manual-update workflow integration/final regression. Manual bootstrap and first hosted release validation follow the required testing/approval gates; tagging does not start automatically. Fully automatic installation needs separate approval. All implementation uses `master` only; do not create another branch.
+Next action: the owner creates/pushes `v0.1.1` after this explicitly authorized steps 1–5 release preparation is committed/pushed. Stage 7B integration is preserved externally and remains deferred under the owner's clarified scope. Independent offline key backup and subsequent hosted release/signing validation remain owner-controlled. No automatic tag or release publication; fully automatic installation needs separate approval. All implementation uses `master` only; do not create another branch.

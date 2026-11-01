@@ -30,7 +30,9 @@ public class RebrandingTests
         Assert.Equal("Fyltrix", assembly.GetCustomAttribute<AssemblyCompanyAttribute>()!.Company);
         Assert.Equal("Fyltrix", assembly.GetName().Name);
         Assert.Equal("Fyltrix.UI", typeof(MainWindow).Namespace);
-        Assert.Equal(new Version(0, 1, 0, 0), assembly.GetName().Version);
+        var version = assembly.GetName().Version!;
+        Assert.Equal(new Version(assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version), version);
+        Assert.Equal(Diagnostics.Version.Split('-')[0], $"{version.Major}.{version.Minor}.{version.Build}");
         Assert.Equal("filelens.app", PreviewUrls.Host);
         Assert.Equal("FileLens file sharing", ShareFirewall.RuleName);
         using var icon = assembly.GetManifestResourceStream("Assets/Fyltrix.ico")!;
