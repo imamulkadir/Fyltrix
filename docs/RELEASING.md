@@ -86,7 +86,7 @@ Keep the temporary verification workspace private; clean it manually when no lon
 
 ## Verification status and remaining gates
 
-Local release-note/version guards, CLI signing refusal, compilation, tests and packaging are recorded in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). The hosted workflow and remote signing/upload/publication cannot be certified without an owner-approved pushed tag, a trusted bootstrap key and an actual draft. They were not executed during implementation. The first owner-run release is a validation gate, not an already passed test.
+The owner-run `v0.1.5` tag workflow succeeded. Its actual draft ZIP and installer passed size/checksum/asset-digest and exact repository/workflow/tag/commit provenance checks. A manifest was prepared locally with the existing pinned Fyltrix key; the update library shipped inside that ZIP verified it and both packages using its default production trust. Modified manifest/package bytes were rejected. This verification used an explicit offline preview of published metadata; the draft remains unpublished. No Production Setup was run. Evidence and owner-only upload/publication/manual-installation steps are recorded in [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). The full local/hosted test and earlier isolated installer lifecycle results are recorded there separately; these do not certify an actual production installation or in-app update.
 
 This automates release production. The separate [application apply/recovery backend](APPLY_AND_RECOVERY.md) still needs its end-user manual workflow integration and final regression approval. Automatic installation remains disabled.
 

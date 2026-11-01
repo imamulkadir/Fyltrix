@@ -12,6 +12,7 @@ The owner authorized Stage 7A release automation following DyanamicEye and Stage
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.5 verification (2026-11-01) | Actual CI draft provenance, local manifest signature and shipped production-pin verification | Passed; owner upload/publication and manual installation review pending; Stage 7B deferred |
 | Release 0.1.5 preparation (2026-11-01) | Carry forward MIT agreement and serialize updater tests sharing system-wide application process names | 552 cases passed; full updater suite passed five consecutive runs; owner hosted validation pending |
 | CI settings isolation (2026-11-01) | Serialize folder-view/template tests and isolate the test baseline profile | 20 focused runs (420 executions) and 552 full-suite tests pass; owner hosted validation pending |
 | Installer agreement (2026-11-01) | MIT terms packaged with the application; native acceptance before destination selection | Build/package and private-desktop wizard checks pass; Authenticode signing remains separate |
@@ -37,6 +38,10 @@ The owner authorized Stage 7A release automation following DyanamicEye and Stage
 | Infrastructure, Stage 6 | Verified apply, copied-profile health, pointer rollback/recovery and updater-owned uninstall inventory | Done; 128 update, 365 application, 31 packaging, nine builder tests; four installed update scenarios and 17 Inno lifecycle cases pass; stopped for Stage 7 approval |
 | Infrastructure, Stage 7A | Tag/changelog release automation, version preparation and owner-local completion | Locally complete; 365 application, 129 update, 31 packaging, 13 release and nine installer guard tests pass; workflow lint and ZIP/Production installer compilation pass; hosted/tag/key validation pending |
 | Infrastructure, Stage 7A.1 | Dedicated signing key, public trust pin and encrypted restore-verified backup | Local key/backup/pin verified; 132 update, 365 application, 31 packaging, 13 release and nine installer guard tests pass; owner off-device backup, application integration and hosted validation remain |
+
+## RELEASE VERIFICATION (2026-11-01): actual v0.1.5 draft
+
+The owner-run tagged workflow succeeded. Verified both downloaded draft packages against checksum sidecars, GitHub asset digests and repository/workflow/tag/exact-commit provenance. The existing owner-local key signed a manifest locally, and the actual update library from the verified ZIP authenticated it and both packages using its shipped default production pin. Modified bytes were rejected. This used an offline preview of expected published metadata; the draft remains unpublished. No production installer was run, signing keys exported or remote assets changed. Owner upload/publication/manual installation and Stage 7B application update integration remain separate gates; see [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
 
 ## RELEASE 0.1.5 (2026-11-01): updater process-test isolation
 
