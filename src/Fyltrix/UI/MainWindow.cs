@@ -93,6 +93,7 @@ public sealed partial class MainWindow : Window, IFolderHost
         };
         Closed += (_, _) =>
         {
+            manualUpdates?.Dispose();
             StopClipboardNotifications();
             DisposeSharing();
             JobWindow.CancelAll();

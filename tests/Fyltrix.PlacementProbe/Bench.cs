@@ -35,6 +35,7 @@ internal static class Bench
             var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             Theme.Apply(app);
             AppSettings.Folder = Path.Combine(dataRoot, "settings-" + Environment.ProcessId);
+            Fyltrix.Core.Media.ThumbnailService.DiskCacheFolder = Path.Combine(dataRoot, "thumbs");
             PreviewPane.WebDataFolder = Path.Combine(dataRoot, "webview2");
 
             // ---- startup: process start → window shown → first folder listed (preview pane on, as by default)

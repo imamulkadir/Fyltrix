@@ -35,6 +35,8 @@ public static class StartupHook
             return;
         }
         Action<MainWindow>? handoverTick = null;
+        if (Environment.GetEnvironmentVariable("FYLTRIX_MANUAL_UPDATE_DATA") != null)
+            handoverTick = ManualUpdateStartupProbe.Create(root);
         var stage = Environment.GetEnvironmentVariable("FYLTRIX_HANDOVER_TEST_STAGE");
         if (stage != null)
         {

@@ -1,8 +1,20 @@
-# Manual staging and safe handover — Stage 5
+# Manual application updates, staging and safe handover
 
-Stage 5 extends the separate [release verification library and tool](UPDATES.md). Its download/staging and verified handover APIs do not apply an update. Stage 6 adds a separate [verified apply, isolated health, rollback and recovery backend](APPLY_AND_RECOVERY.md). The complete end-user workflow remains gated on Stage 7.
+Stage 5 extends the separate [release verification library and tool](UPDATES.md). Its download/staging and verified handover APIs do not apply an update. Stage 6 adds a separate [verified apply, isolated health, rollback and recovery backend](APPLY_AND_RECOVERY.md). Stage 7B connects them to the manual interface described below. This interface is new source work after published `v0.1.5`; that existing release does not gain new controls remotely.
 
-There is no new startup scheduler, service, settings key, or automatic check/download/install. The application now references the update library for explicit Stage 6 worker/trial modes, but exposes no update UI. Ordinary closing, active-work guards and `publish.ps1 -Run` retain their behavior.
+There is no startup scheduler, service, new settings key, or automatic check/download/install. Ordinary closing, active-work guards and `publish.ps1 -Run` retain their behavior.
+
+## In-app workflow
+
+1. Open **Tools → Check for updates**, or find **Check for updates** in the command palette (`Ctrl+Shift+P`). Opening the dialog does not contact GitHub.
+2. Click **Check for updates**. Only newer stable published releases with an authenticated manifest and a supported ZIP can enable downloading. Release notes are plain text. Rate limits are respected without background retries.
+3. Click **Download**. Progress is displayed; closing the dialog cancels an active check/download. A completed download is not installation approval. It stays available in the same application session when the dialog is reopened.
+4. Finish file operations, close other dialogs/tools, stop sharing and turn off automation before choosing **Install and restart**. Confirm installation explicitly. The existing normal-close confirmation/cancellation remains authoritative; active work is not killed to force an update.
+5. The old payload runs the existing worker, independently revalidates the package and close approval, trials the candidate with copied settings/separate caches, then commits and requests restart. Failed health validation keeps the old version selected; live preferences are never restored from the trial copy. Worker failures after approved close may show a notification. See [apply/recovery](APPLY_AND_RECOVERY.md) for interrupted-transaction recovery.
+
+Copies without the supported versioned layout, including development checkouts and ordinary `publish.ps1` output, can check releases and read plain-text notes but cannot install in place. The dialog links to GitHub Releases for a manual installer. Existing published `v0.1.5` users need a later reviewed bootstrap installer containing this interface before they can use it. Package signatures authenticate package bytes; GitHub release notes are separate, unsigned metadata and are never rendered as HTML.
+
+Checks/downloads cannot overlap, and install preparation blocks further session operations. Failed/cancelled close leaves the application open and retains the verified download; the worker may take up to 30 seconds to exit before retrying. Completed staging directories are not automatically pruned. No executable-signing certificate is introduced; Windows publisher warnings remain separate from update-manifest authentication.
 
 ## Manual downloads
 

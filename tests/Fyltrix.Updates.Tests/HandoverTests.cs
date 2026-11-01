@@ -55,6 +55,19 @@ public sealed class HandoverTests : IDisposable
         return await UpdateHandover.PrepareAsync(stage, Layout);
     }
     [Fact]
+    public async Task Worker_launch_preserves_legacy_api_and_argument_boundaries()
+    {
+        var result = await Prepare(await Stage());
+        var prepared = result.Preparation!;
+        Assert.NotNull(typeof(UpdateWorker).GetMethod(nameof(UpdateWorker.StartInfo), [typeof(HandoverPreparation)]));
+        var start = UpdateWorker.StartInfo(prepared);
+        Assert.False(start.UseShellExecute);
+        Assert.Equal(new[] { UpdateWorker.ApplyArgument, prepared.RequestPath, prepared.Request.Token }, start.ArgumentList);
+        var notifying = UpdateWorker.StartInfo(prepared, notifyFailure: true);
+        Assert.Equal(start.FileName, notifying.FileName);
+        Assert.Equal(start.ArgumentList.Append("--notify"), notifying.ArgumentList);
+    }
+    [Fact]
     public async Task Close_cancellation_never_approves_handover_and_keeps_download()
     {
         var stage = await Stage(); var prepared = await Prepare(stage);

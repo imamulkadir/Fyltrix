@@ -12,9 +12,20 @@ public sealed class App : Application
     [STAThread]
     public static void Main(string[] args)
     {
-        if (args.Length == 3 && args[0] is UpdateWorker.ApplyArgument or UpdateWorker.RecoverArgument)
+        if (args.Length is 3 or 4 && args[0] is UpdateWorker.ApplyArgument or UpdateWorker.RecoverArgument && (args.Length == 3 || args[3] == "--notify"))
         {
             Environment.ExitCode = UpdateWorker.RunAsync(args[1], args[2], args[0] == UpdateWorker.RecoverArgument).GetAwaiter().GetResult();
+            if (args.Length == 4 && Environment.ExitCode != 0)
+            {
+                try
+                {
+                    string stage = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(args[1]))!;
+                    if (ApprovedUpdateNotification(stage, args[2]))
+                        MessageBox.Show("The update was not completed. Your saved settings were not reset. Restart Fyltrix normally; if startup requests recovery, follow docs/APPLY_AND_RECOVERY.md.\n\nUpdate details: " + stage,
+                            "Fyltrix update", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or ArgumentException) { }
+            }
             return;
         }
         TrialConnection? trial;
@@ -95,6 +106,18 @@ public sealed class App : Application
         }
         window.Show();
         app.Run();
+    }
+
+    internal static bool ApprovedUpdateNotification(string stage, string token)
+    {
+        if (!Guid.TryParseExact(token, "N", out _)) return false;
+        try
+        {
+            using var file = System.IO.File.OpenRead(System.IO.Path.Combine(stage, "close-approved"));
+            Span<byte> data = stackalloc byte[33]; int count = file.ReadAtLeast(data, data.Length, false);
+            return count == 32 && System.Text.Encoding.ASCII.GetString(data[..count]) == token;
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException or ArgumentException) { return false; }
     }
 
     private sealed class TrialClipboard : IFileClipboard

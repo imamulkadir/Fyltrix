@@ -118,6 +118,7 @@ public sealed partial class MainWindow
         Cmd(_undo.CanUndo ? $"Undo: {_undo.NextDescription}" : "Undo", "Edit", Undo, "Ctrl+Z", _undo.CanUndo);
         Cmd("Share on this network…", "Tools", () => ShareWith(sel.Select(s => s.FullPath)), null, sel.Count > 0);
         Cmd("Active shares…", "Tools", OpenShares);
+        Cmd("Check for updates…", "Application", () => OpenUpdates());
         Cmd("Tags…", "Edit", () => EditTags(sel.Select(s => s.FullPath).ToList()), null, sel.Count > 0);
         Cmd("Properties", "Edit", () => { if (view?.FocusedItem is { IsVirtual: false } f) Shell.Properties(f.FullPath, this); }, "Alt+Enter", view?.FocusedItem != null);
 

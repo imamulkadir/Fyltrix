@@ -6,6 +6,13 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+
+- Manual signed-release checks, plain-text release notes, cancellable download
+  progress, and confirmed installation/restart through the existing safe updater.
+- Manual-installer link for copies that cannot update in place, with existing
+  file-operation, sharing, automation and close-cancellation protections retained.
+
 ## [0.1.5] - 2026-11-01
 
 ### Added

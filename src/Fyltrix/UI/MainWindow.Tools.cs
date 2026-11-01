@@ -35,6 +35,7 @@ public sealed partial class MainWindow
             new Separator(),
             Theme.MenuItem("Command palette…", "\uE721", () => ShowPalette(), "Ctrl+Shift+P"),
             Theme.MenuItem("Settings…", "\uE713", OpenSettings),
+            Theme.MenuItem("Check for updates…", "\uE895", () => OpenUpdates()),
             Theme.MenuItem($"About {ProductBranding.Name}", "\uE946", () => AppIcon.ShowAbout(this)),
         };
     }
