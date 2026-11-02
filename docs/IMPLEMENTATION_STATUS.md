@@ -4,6 +4,10 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.7 preparation — 2026-11-02
+
+Version/changelog are prepared locally for the taskbar identity fix and README refresh. All **639 tests** pass against the prepared source. The versioned self-contained layout, NativeAOT launcher and both installer modes compiled; a fresh private-desktop Sandbox install/root launch/identity check/normal exit/uninstall passed at 0.1.7.0. All 991 protected file hashes and Git refs match. The published and installed 0.1.6 remain unchanged. Owner commit/push and hosted validation of the preparation commit are next; no tag/signing/upload/publication was performed. Visual pinning/grouping and production update-through-pin remain manual acceptance checks. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+
 ### Windows taskbar identity — 2026-11-02
 
 Taskbar identity/relaunch fix is implemented locally. Shared process/window/installer-shortcut AppUserModelIDs and stable root relaunch properties passed native Sandbox verification; **639 automated tests pass**. All 991 protected file hashes match. The installed/published 0.1.6 is preserved. Real Explorer pinning/grouping, update-through-pin and representative responsiveness review remain owner checks. Benchmark samples were mixed, with cold pre-Main delays in both builds; no performance improvement/equality is claimed. See [WINDOWS_TASKBAR.md](WINDOWS_TASKBAR.md) and [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md). Unsigned executable reputation warnings are separate; no Windows security mechanism was changed.
@@ -18,6 +22,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.7 preparation | Dated changelog/version, full regression, isolated native layout and both Setup modes | 639 tests, 0.1.7 Sandbox smoke and preservation checks passed; owner commit/push and hosted validation pending |
 | Windows taskbar identity (2026-11-02) | Shared process/window/shortcut identity, stable root relaunch, separate portable/development/Sandbox grouping | 639 tests and fresh private-desktop Sandbox install/launch/uninstall passed; visual pinning review pending |
 | Release 0.1.6 publication and workspace cleanup | Live pinned feed checks; obsolete draft removed with tag retained; 28 temporary directories removed after recovery preservation | Passed; production installation review remains an owner action |
 | Release 0.1.6 uploaded-asset verification | Exact six-asset set, downloaded signature equality and unchanged packages/notes | Passed; stable draft ready for owner publication; public-feed verification follows publication |
