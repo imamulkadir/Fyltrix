@@ -344,7 +344,7 @@ The latest published release includes **`Fyltrix-Setup-win-x64.exe`**. To instal
 
 **Note:** Use the assets on the selected release page, not GitHub’s source-code ZIP. Older releases may offer different packages. Setup installs the stable root launcher and its versioned payload; do not pin or launch an `app-<version>` executable directly. The desktop shortcut is optional.
 
-**In development:** the current source unifies Windows taskbar identity and keeps running-window pins on the root launcher. This fix is not yet in the latest published release. After installing a release containing it, old pins need a one-time refresh from the updated Start Menu shortcut. See [taskbar verification](docs/WINDOWS_TASKBAR.md) for remaining manual checks.
+**Taskbar pinning:** published installers use a consistent Windows taskbar identity and keep running-window pins on the stable root launcher. To refresh an older installation's shortcuts, install the latest Setup, unpin the old taskbar entry, and pin Fyltrix again from the updated Start Menu shortcut. An in-app update alone does not refresh old shortcuts. See [taskbar verification](docs/WINDOWS_TASKBAR.md) for the remaining manual checks.
 
 Current unsigned builds may trigger Windows publisher or SmartScreen warnings. Only download Fyltrix from its official GitHub repository.
 

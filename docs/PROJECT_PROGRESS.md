@@ -10,6 +10,18 @@ Last updated: 2026-11-02.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
 
+## Release 0.1.8 publication and README status (2026-11-02)
+
+Status: **Published by owner; public update feed verified.** Read-only GitHub inspection confirms latest stable `v0.1.8`, published at `2026-11-02T17:46:12Z`, with all six asset sizes and SHA-256 digests unchanged from the verified draft. The existing release tool's live `check 0.1.6` returned `Available`, version `0.1.8`, verification `None` (no verification error). `check 0.1.8` returned `UpToDate`; no installation was performed. These checks fetched public metadata/signature using the existing pinned trust, without changing user preferences.
+
+README now describes published taskbar behavior and the required one-time Setup/old-pin refresh. Its landing-page structure, feature list, dynamic badges and existing data paths are preserved. Release/current-status/taskbar documentation now reflects publication; previous verification entries remain historical records.
+
+Files modified: `README.md`, `docs/PROJECT_PROGRESS.md`, `docs/IMPLEMENTATION_STATUS.md`, `docs/RELEASING.md`, `docs/WINDOWS_TASKBAR.md`.
+
+Verification: live public feed checks above; README GFM rendering, local links/anchors, structural checks and eight live badge checks passed; `git diff --check` passed. No new application build or full regression suite was run for documentation-only changes; the tagged CI's previously verified 640 tests remain the application evidence. No application/Setup was launched, user settings changed, or Git/remote mutation performed.
+
+**Next owner actions:** install the published Setup, refresh old taskbar pins from the updated Start Menu shortcut, check relaunch/grouping and preserved tabs/Favourites/toolbar/update preferences, and confirm Settings reports 0.1.8 as current. Real-screen acceptance remains pending. Genuine screenshots are optional future README work; placeholders stay commented out. No further release tag is needed for this documentation update. Suggested commit: `docs(release): reflect published v0.1.8 and taskbar guidance`. **Stop here.**
+
 ## Release 0.1.8 uploaded metadata verification (2026-11-02)
 
 Status: **All six draft assets verified; owner publication pending.** The owner uploaded the two prepared public metadata files to the existing [0.1.8 draft](https://github.com/imamulkadir/Fyltrix/releases/tag/untagged-3daf1c261201d956b0cc). Read-only inspection found exactly the original ZIP/Setup and checksum sidecars plus `Fyltrix-release.json` and `.sig`, all uploaded, stable and still draft. Original asset IDs/API identities, sizes, digests, creation/update timestamps, types and labels match the previously provenance-verified packages. The draft save changed its temporary URL slug and normalized release-note line endings; notes match after CRLF/outer-whitespace normalization, with no substantive change.

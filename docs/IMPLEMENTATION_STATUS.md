@@ -4,6 +4,10 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.8 published; public feed verified — 2026-11-02
+
+The owner published 0.1.8 as the latest stable release. All six public asset sizes/digests match the verified draft. Read-only checks using the existing release tool report 0.1.8 **Available** from 0.1.6 with successful pinned-key verification (`None` means no verification error), and **UpToDate** from 0.1.8. No package was installed. README taskbar instructions and release-status documentation now reflect publication. Real production Setup/pin/grouping and settings-preservation review remain owner actions; screenshots remain optional README work. No new build/full-suite run is claimed for these documentation edits. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+
 ### Release 0.1.8 uploaded metadata verified — 2026-11-02
 
 All six actual draft assets are verified. The uploaded manifest/signature were downloaded and match the shipped-verifier-tested local bytes and GitHub size/digests exactly; original packages/checksums are unchanged. Notes differ only by line endings/outer whitespace after draft save. The release remains a stable draft ready for owner publication as latest. No new signing/build/full-suite/installer execution or remote mutation was performed. Public-feed authentication and owner production taskbar/pin review follow publication. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
@@ -47,6 +51,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 | Round | What | Status |
 |---|---|---|
 | Release 0.1.8 uploaded metadata | Exact six-asset set, downloaded metadata byte equality and original package preservation | Passed; stable draft ready for owner publication, then public-feed verification |
+| Release 0.1.8 public feed | Published latest stable, six asset sizes/digests unchanged; pinned-key check from 0.1.6 and current check from 0.1.8 | Passed; owner production installation/taskbar/settings review remains |
 | Release 0.1.8 actual draft/signing | Actual tagged CI provenance/checksums/versions, guarded local signing and shipped default-pin/tamper verification | Passed; two local metadata files await owner upload; release remains draft |
 | Comparison browser-host fixture | Fixed viewport, per-host profile, controlled startup and separate fast-switch regression with native diagnostics | 640 regression cases and 22 normal/private focused executions passed locally; hosted image confirmation pending |
 | Release 0.1.8 preparation | Carry forward unpublished 0.1.7 work with hosted-validated test readiness; prepare version/notes | 639 tests, both installer builds, 0.1.8 native Sandbox smoke and preservation passed; owner push/hosted validation pending |
@@ -414,7 +419,7 @@ powershell -ExecutionPolicy Bypass -File .\publish.ps1                     # rel
 
 ## Next steps (in order)
 
-Release 0.1.6's six actual draft assets are verified, including the owner's uploaded manifest/signature. Downloaded metadata matches the previously tested signed bytes and original package/checksum assets remain unchanged. Stop for owner publication as latest, then verify the public updater feed read-only. Never invoke the uploading completion helper as the agent or replace assets. Real bootstrap installation/update checks follow publication; published `v0.1.5` lacks the new controls. Independent off-device signing backup remains owner-controlled. Do not move the existing tag to include subsequent verification documentation. Never commit, push, merge, tag, publish or create branches; the owner handles Git operations and development uses `master` exclusively.
+Release 0.1.8 is published as latest, its six public assets match the verified draft, and public-feed pinned verification passed. The owner should install the published Setup to refresh Start Menu shortcuts, unpin/re-pin old taskbar entries, and check launch/grouping plus preserved settings and normal file operations. Confirm Settings reports 0.1.8 as current. Real taskbar/pin acceptance is still pending. Independent off-device signing backup remains owner-controlled. Never replace release assets or move existing tags to include documentation. Never commit, push, merge, tag, publish or create branches; the owner handles Git operations and development uses master exclusively.
 
 Waiting on the user (can't be verified without driving the real desktop):
 1. Taskbar icon shows correctly right after start (Round 3).

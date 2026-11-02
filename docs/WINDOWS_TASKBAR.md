@@ -1,6 +1,6 @@
 # Windows taskbar identity and launch verification
 
-Implemented locally on 2026-11-02. The published and installed 0.1.6 binaries have not been replaced. Release preparation, publication and the real Windows taskbar review remain owner actions.
+Released in 0.1.8 on 2026-11-02. The published update feed is verified; the agent has not replaced the owner's installed application. Installing the published Setup to refresh shortcuts, refreshing old pins, and the real Windows taskbar review remain owner actions. The findings below record the original 0.1.6 installation.
 
 ## Findings
 
