@@ -4,6 +4,10 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.8 preparation — 2026-11-02
+
+The test-readiness change passed hosted manual master validation on `b9c77e0`. Version/changelog are now prepared locally for 0.1.8, carrying forward the unpublished taskbar/README improvements from 0.1.7. All 639 tests, native layout/both installer builds and private-desktop 0.1.8 Sandbox smoke passed; all 991 protected files and Git refs match. Published/installed 0.1.6 and the failed 0.1.7 tag are preserved. Owner commit/push and hosted validation of the preparation commit are next; no 0.1.8 tag/signing/publication yet. Manual taskbar and responsiveness acceptance remain pending. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+
 ### Comparison test readiness hardening — 2026-11-02
 
 The second tagged attempt failed the same Markdown content wait. The comparison test now waits separately for browser startup, expected DOM content and actual layout/scroll hooks, with useful browser state in timeout reports. Production code and existing scroll assertions are unchanged. Three focused runs (30 cases) and all 639 regression cases passed locally; 991 protected file hashes and Git refs match. Hosted confirmation of this test change is pending. The exact prior runner failure remains unproven; do not claim a hosted fix or retry the old tag again. Owner commit/push and manual master validation are next; a later release must use a new version/tag. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
@@ -30,6 +34,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.8 preparation | Carry forward unpublished 0.1.7 work with hosted-validated test readiness; prepare version/notes | 639 tests, both installer builds, 0.1.8 native Sandbox smoke and preservation passed; owner push/hosted validation pending |
 | Comparison test readiness hardening | Separate browser/content/layout readiness and timeout diagnostics; original scroll assertions retained | 639 regression cases and 30 focused executions passed locally; hosted confirmation pending |
 | Release 0.1.7 tagged CI investigation | One intermittent comparison content wait; exact source unchanged | Local 442 application cases and 12 focused cases pass; owner retry of tagged workflow pending |
 | Release 0.1.7 preparation | Dated changelog/version, full regression, isolated native layout and both Setup modes | 639 tests, 0.1.7 Sandbox smoke and preservation checks passed; owner commit/push and hosted validation pending |

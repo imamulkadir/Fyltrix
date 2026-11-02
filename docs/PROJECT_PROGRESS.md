@@ -10,6 +10,23 @@ Last updated: 2026-11-02.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
 
+## Release 0.1.8 preparation after successful hosted test validation (2026-11-02)
+
+Status: **Prepared and verified locally; owner commit/push and exact-preparation hosted validation pending.** Read-only inspection confirmed [manual workflow 41444405832](https://github.com/imamulkadir/Fyltrix/actions/runs/41444405832) succeeded on the owner's test-readiness commit `b9c77e08319cf8ef1021978e4cea44ada9b1832a`. Preparation began with a clean master at that commit, matching remote master. No local/remote 0.1.8 tag existed. Published latest remains 0.1.6; the failed 0.1.7 tag/source are preserved unchanged.
+
+- Kept `Unreleased` and prepared `0.1.8`, dated 2026-11-02, with the taskbar fix, README refresh and test-readiness change. Carried forward the still-unpublished 0.1.7 improvements explicitly so the actual release notes describe changes since published 0.1.6. Retained one-time Setup/repin guidance, unsigned-executable caveats and pending visual taskbar checks; did not claim the exact earlier hosted failure was proven.
+- Used the existing version helper and `Test-Release.ps1 -Tag v0.1.8`: Version 0.1.8, FileVersion/AssemblyVersion 0.1.8.0. No production runtime, workflow, installer ownership, profile or trust changes beyond these application version fields.
+- All **639 fresh tests passed**: 442 application, 134 updater, 39 packaging, 14 release-tooling and 10 installer-builder. Isolated self-contained win-x64 payload/NativeAOT launcher and both Production/Sandbox installers built. Launcher, payload executable/assembly and both Setup numeric/file versions match 0.1.8.0. Directory/ZIP pointers select 0.1.8 and test probes/hooks are excluded. Existing nullable/high-DPI warnings remain.
+- Fresh Sandbox Setup on a private desktop launched its real 0.1.8.0 payload through the root launcher. Actual shortcut/process/window identity and stable relaunch checks, listing/preview readiness, normal exit and uninstall passed. Production Setup was not run. All **991** protected profile/installed/portable hashes match, Sandbox registration/shortcut are absent, and Git refs are unchanged.
+
+Files modified: `CHANGELOG.md`, `src/Fyltrix/Fyltrix.csproj`, this file, `docs/IMPLEMENTATION_STATUS.md`, `docs/RELEASING.md`. Evidence: `C:\Users\imamu\AppData\Local\Temp\Fyltrix-release-prep-0.1.8-20261102-183118` (pointer `%TEMP%\Fyltrix-release-prep-0.1.8-current.txt`), with full TRX/logs, version validation, package versions, native smoke and preservation checks. Local packages are verification outputs, not GitHub-attested release assets. No performance rerun for version/documentation-only preparation; the prior mixed measurements and actual taskbar acceptance remain owner checks in [WINDOWS_TASKBAR.md](WINDOWS_TASKBAR.md).
+
+No commit, push, merge, tag change, workflow dispatch, signing/upload, publication or replacement of the installed/portable copy was performed. Existing user data, signing stores and `publish.ps1 -Run` remain untouched.
+
+Suggested owner commit: `chore(release): prepare v0.1.8`.
+
+**Next owner action:** review and commit/push these five files to master, manually run Actions → Release → Run workflow → master, and wait for green on that exact preparation commit. Then the owner creates/pushes a new `v0.1.8` tag without moving/removing 0.1.7. Verify the actual tagged draft packages/provenance before preparing signed metadata; publication and visual production taskbar/update-through-pin review remain owner actions. **Stop here.**
+
 ## Comparison preview readiness hardening after repeated tagged CI failure (2026-11-02)
 
 Status: **Test change verified locally; hosted confirmation pending.** Attempt 2 of [tagged run 41434209477](https://github.com/imamulkadir/Fyltrix/actions/runs/41434209477) again failed the same `CompareScrollTests.Side_by_side_scrolls_together_and_can_be_switched_off` wait for `Left paragraph 300`: 441 application cases passed and one timed out. It stopped before package/attestation/draft creation. A separate green [manual master run 41440637685](https://github.com/imamulkadir/Fyltrix/actions/runs/41440637685) is not a successful tagged release. The prior one-retry recommendation has been exhausted; do not repeat the unchanged tag again to try to obtain green.

@@ -6,12 +6,36 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-11-02
+
+### Fixed
+
+- Give the launcher, application windows and installed shortcuts a consistent
+  Windows taskbar identity. Running-window pins target the stable root launcher
+  across payload versions; portable, development and Sandbox copies use separate
+  identities.
+
 ### Changed
 
+- Refresh the README with the existing logo, live release/statistics badges,
+  detailed features, installation/build instructions, shortcuts, updates and
+  legacy-profile compatibility guidance.
 - Harden comparison-scroll tests by waiting separately for browser startup,
   expected document content, layout and scroll hooks. Include browser-state
   diagnostics on timeout without changing application behavior or skipping
   scrolling assertions.
+
+### Notes
+
+- This candidate carries forward the taskbar fix and README refresh from
+  0.1.7, which was not published because its tagged CI runs failed.
+- Install the new Setup to refresh the owned Start Menu shortcut, then unpin
+  the old taskbar entry and pin Fyltrix again from that shortcut. Payload-only
+  updates do not rewrite existing shortcuts or pins. Visual taskbar review
+  remains pending.
+- Windows publisher/SmartScreen warnings are separate from taskbar identity.
+  This release does not add trusted Windows executable signing or change
+  Windows security settings.
 
 ## [0.1.7] - 2026-11-02
 
