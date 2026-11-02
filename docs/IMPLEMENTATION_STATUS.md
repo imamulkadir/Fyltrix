@@ -4,6 +4,10 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### README actual screenshots ? 2026-11-03
+
+Six actual application captures now populate the README: Details, large icons, Markdown preview, advanced search, batch rename and Toolbar settings. Real 0.1.8 WPF components ran with disposable profiles and demo data in cloaked offscreen windows; the preview uses actual WebView2 capture. Capture/build, image decoding, visual inspection and README rendering/link checks passed. No product code or live settings changed; no new full regression run is claimed. Capture provenance: [screenshots/README.md](screenshots/README.md). See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+
 ### Release 0.1.8 published; public feed verified — 2026-11-02
 
 The owner published 0.1.8 as the latest stable release. All six public asset sizes/digests match the verified draft. Read-only checks using the existing release tool report 0.1.8 **Available** from 0.1.6 with successful pinned-key verification (`None` means no verification error), and **UpToDate** from 0.1.8. No package was installed. README taskbar instructions and release-status documentation now reflect publication. Real production Setup/pin/grouping and settings-preservation review remain owner actions; screenshots remain optional README work. No new build/full-suite run is claimed for these documentation edits. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
@@ -52,6 +56,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 |---|---|---|
 | Release 0.1.8 uploaded metadata | Exact six-asset set, downloaded metadata byte equality and original package preservation | Passed; stable draft ready for owner publication, then public-feed verification |
 | Release 0.1.8 public feed | Published latest stable, six asset sizes/digests unchanged; pinned-key check from 0.1.6 and current check from 0.1.8 | Passed; owner production installation/taskbar/settings review remains |
+| README screenshots | Six real UI captures, isolated demo profile, lossless PNGs and live README references | Completed; inspected and validated |
 | Release 0.1.8 actual draft/signing | Actual tagged CI provenance/checksums/versions, guarded local signing and shipped default-pin/tamper verification | Passed; two local metadata files await owner upload; release remains draft |
 | Comparison browser-host fixture | Fixed viewport, per-host profile, controlled startup and separate fast-switch regression with native diagnostics | 640 regression cases and 22 normal/private focused executions passed locally; hosted image confirmation pending |
 | Release 0.1.8 preparation | Carry forward unpublished 0.1.7 work with hosted-validated test readiness; prepare version/notes | 639 tests, both installer builds, 0.1.8 native Sandbox smoke and preservation passed; owner push/hosted validation pending |

@@ -50,60 +50,45 @@ Whether you're a developer, power user, content creator, or simply someone who w
 
 ## Screenshots
 
-Get a closer look at Fyltrix.
+Explore the actual Fyltrix interface in dark mode. These captures use a separate demo workspace and disposable settings; the files and rename previews shown are examples.
 
-<!--
-TODO: SCREENSHOT ASSETS REQUIRED
-
-Capture these screenshots from the actual installed Fyltrix application.
-Do not use mockups or generated UI.
-
-Place them in:
-
-docs/screenshots/main-window.png
-docs/screenshots/file-views.png
-docs/screenshots/preview.png
-docs/screenshots/advanced-search.png
-docs/screenshots/file-tools.png
-docs/screenshots/settings.png
-
-Once the files exist, uncomment the image references below.
-
-Recommended capture settings:
-- Windows 11, dark mode
-- 1920×1080 display
-- Consistent application dimensions
-- Realistic, non-sensitive sample files
-- No personal paths, credentials, or private content
--->
-
-<!--
 ### Main Interface
 
-![Fyltrix Main Interface](docs/screenshots/main-window.png)
+Tabbed navigation, the compact toolbar, Favourites, and a detailed file list.
+
+![Fyltrix main window showing three folder tabs and the demo workspace in Details view](docs/screenshots/main-window.png)
 
 ### Customizable File Views
 
-![Fyltrix File Views](docs/screenshots/file-views.png)
+Switch from Details to large icons, with folder and file thumbnails.
+
+![Fyltrix demo workspace displayed with large folder and file icons](docs/screenshots/file-views.png)
 
 ### Rich File Previews
 
-![Fyltrix Preview Pane](docs/screenshots/preview.png)
+Read Markdown with headings, checklists, tables, and highlighted code beside the file list.
+
+![Fyltrix preview pane rendering the selected Welcome.md document](docs/screenshots/preview.png)
 
 ### Advanced Search
 
-![Fyltrix Advanced Search](docs/screenshots/advanced-search.png)
+Combine name, extension, size, date, text-content, and tag filters.
+
+![Fyltrix advanced search dialog with example name and extension filters](docs/screenshots/advanced-search.png)
 
 ### File Management Tools
 
-![Fyltrix Tools](docs/screenshots/file-tools.png)
+Batch rename shows each proposed filename before applying changes.
+
+![Fyltrix batch rename tool previewing numbered document filenames without applying them](docs/screenshots/file-tools.png)
 
 ### Personalization and Settings
 
-![Fyltrix Settings](docs/screenshots/settings.png)
--->
+Customize toolbar buttons and choose which labels to display.
 
-*Application screenshots will be added from verified installed builds.*
+![Fyltrix Toolbar settings showing button visibility and label customization](docs/screenshots/settings.png)
+
+*Captured from the real 0.1.8 application UI on Windows. Dialog images show their client content; the preview includes the actual WebView2-rendered document.*
 
 ---
 

@@ -1,6 +1,6 @@
 # Installation and update infrastructure progress
 
-Last updated: 2026-11-02.
+Last updated: 2026-11-03.
 
 ## Execution agreement
 
@@ -9,6 +9,20 @@ Last updated: 2026-11-02.
 - **Latest standing instruction (2026-11-01): NEVER commit or push automatically. The owner ALWAYS performs those actions; inform them when changes are ready.** Earlier one-off authorizations for `0.1.1`/`0.1.2` preparation are historical and do not authorize any future commit/push. Tags, merges, release publication and repository-setting changes likewise remain owner-controlled. Read-only Git inspection and local file edits/tests are allowed.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
+
+## README actual application screenshots (2026-11-03)
+
+Status: **Completed.** Replaced all six commented screenshot placeholders with actual lossless PNG captures: main interface, large-icon view, real Markdown preview, advanced search, batch-rename preview, and Toolbar settings. Added descriptive captions/alt text and capture provenance. Existing README structure/features remain intact.
+
+Captures use real Release-built 0.1.8 WPF components, demo files, disposable settings/caches, a stub clipboard and cloaked offscreen windows. Final capture confirmed unchanged foreground. The WebView2 document was captured by its real browser API and placed at its measured window rectangle; no UI was fabricated. Only rename previews were shown, with no rename/search operation executed. No installed application, real preferences, release assets or Git refs were changed.
+
+Files created: six PNGs and capture notes under `docs/screenshots/`. Files modified: `README.md`, this progress file, `docs/IMPLEMENTATION_STATUS.md`. Temporary capture code/build output remains outside the checkout.
+
+Verification: capture harness and application dependencies built successfully (final incremental build: zero warnings/errors; initial application compilation reported the existing CS8602/WFAC010 warnings). All six captures completed, were visually inspected, and decoded successfully. README GFM rendering, local image/link/anchor checks and diff whitespace checks passed. No full application regression suite or performance benchmark was rerun for image/documentation-only changes. Real production installation/taskbar/settings acceptance remains pending as previously documented.
+
+Capture cleanup: automatic approval review blocked deletion of the capture-owned `D:\Fyltrix-Demo` directory under its command policy. It remains in place; no alternative deletion was attempted.
+
+Next owner action: review the README, then commit/push these documentation assets if satisfied. No tag or release rebuild is needed. Suggested commit: `docs(readme): add actual application screenshots`. **Stop here.**
 
 ## Release 0.1.8 publication and README status (2026-11-02)
 
