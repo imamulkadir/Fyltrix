@@ -17,7 +17,9 @@ internal static class TestSetup
         {
             try { Directory.Delete(settings, recursive: true); } catch { /* test-owned cleanup only */ }
         };
-        Fyltrix.Preview.PreviewPane.WebDataFolder = Path.Combine(Path.GetTempPath(), "FyltrixTests-WebView2");
+        // A browser/controller belongs to its test host and desktop. Never reconnect another
+        // test process to an earlier host's cached profile or still-exiting browser process.
+        Fyltrix.Preview.PreviewPane.WebDataFolder = Path.Combine(settings, "WebView2");
         Fyltrix.UI.MainWindow.ClipboardFactory = () => new MemoryFileClipboard();
         Fyltrix.UI.MainWindow.NotificationsFactoryForTests = session => new Fyltrix.Core.UpdateNotifications(session,
             new Fyltrix.Core.UpdateNotificationStore(Path.Combine(Fyltrix.Core.AppSettings.Folder, "test-update-metadata")));

@@ -24,6 +24,9 @@ The release workflow uses that exact section as the GitHub release notes.
   expected document content, layout and scroll hooks. Include browser-state
   diagnostics on timeout without changing application behavior or skipping
   scrolling assertions.
+- Give comparison tests a fixed off-screen viewport and independent browser
+  profiles per test process; verify rapid mode switching separately and report
+  native host geometry/runtime details if browser initialization fails.
 
 ### Notes
 

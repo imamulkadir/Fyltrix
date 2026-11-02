@@ -1,10 +1,13 @@
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
 using Fyltrix.Core;
 using Fyltrix.Preview;
 using Fyltrix.UI;
 using PdfSharp.Pdf;
+using Xunit.Abstractions;
 
 namespace Fyltrix.Tests;
 
@@ -12,6 +15,42 @@ namespace Fyltrix.Tests;
 [Collection("UI")]
 public class CompareScrollTests
 {
+    private readonly ITestOutputHelper _output;
+    public CompareScrollTests(ITestOutputHelper output) => _output = output;
+
+    private static string HostState(PreviewPane pane) => JsonSerializer.Serialize(new
+    {
+        pane.IsReady, pane.IsEngineStarted, pane.IsLoaded, pane.IsVisible,
+        pane.ActualWidth, pane.ActualHeight,
+        webLoaded = pane.Web.IsLoaded, webVisible = pane.Web.IsVisible,
+        webWidth = pane.Web.ActualWidth, webHeight = pane.Web.ActualHeight,
+        controllerCreated = pane.Web.CoreWebView2 != null,
+        messages = VisualTree.FindDescendants<TextBlock>(pane).Where(b => b.IsVisible).Select(b => b.Text).Take(12).ToArray(),
+    });
+
+    private void ShowCompare(CompareWindow window, bool waitForInitialPreview = true)
+    {
+        // A hosted runner's desktop/work area is not a reliable test viewport.
+        // These tests exercise preview scrolling, not automatic monitor placement.
+        window.Width = 1400;
+        window.Height = 900;
+        Sta.ShowOffscreen(window);
+        window.UpdateLayout();
+        Sta.WaitUntil(() => window.IsLoaded, "comparison window Loaded", 5000);
+        window.UpdateLayout();
+        var initial = VisualTree.FindDescendants<PreviewPane>(window).Where(p => p.IsVisible).ToArray();
+        Assert.NotEmpty(initial);
+        _output.WriteLine("Work area: " + SystemParameters.WorkArea);
+        _output.WriteLine("Available WebView2 runtime: " + Microsoft.Web.WebView2.Core.CoreWebView2Environment.GetAvailableBrowserVersionString());
+        _output.WriteLine("Test WebView2 profile: " + PreviewPane.WebDataFolder);
+        foreach (var pane in initial) _output.WriteLine("Initial host: " + HostState(pane));
+        if (waitForInitialPreview)
+        {
+            try { Sta.WaitUntil(() => initial.All(p => p.IsReady), "initial comparison browser controllers", 30000); }
+            catch (TimeoutException ex) { throw new TimeoutException(ex.Message + "\n" + string.Join("\n", initial.Select(HostState)), ex); }
+        }
+    }
+
     private static string Eval(PreviewPane pane, string script)
     {
         var task = pane.Web.CoreWebView2.ExecuteScriptAsync(script);
@@ -68,7 +107,7 @@ public class CompareScrollTests
                 state = pane.IsReady ? Eval(pane, "JSON.stringify({url:location.href,ready:document.readyState,visibility:document.visibilityState,text:(document.body?.textContent || '').slice(0,1200),scrollHook:typeof window.__flPos,rootHeight:document.getElementById('root')?.clientHeight,rootScrollHeight:document.getElementById('root')?.scrollHeight})") : "WebView2 not initialized";
             }
             catch (Exception snapshotError) { state = "Snapshot failed: " + snapshotError.Message; }
-            throw new TimeoutException(ex.Message + "\nFile: " + pane.CurrentPath + "\nBrowser state: " + state, ex);
+            throw new TimeoutException(ex.Message + "\nFile: " + pane.CurrentPath + "\nHost state: " + HostState(pane) + "\nBrowser state: " + state, ex);
         }
     }
 
@@ -110,12 +149,12 @@ public class CompareScrollTests
         {
             PreviewPane.Settings ??= new AppSettings();
             PreviewPane.Settings.HtmlScripts = false; // the sync must work without the page's own scripts
-            var owner = new System.Windows.Window();
+            var owner = new Window { Width = 1500, Height = 1000 };
             Sta.ShowOffscreen(owner);
             var w = new CompareWindow(owner, t["a.md"], t["b.md"]);
-            Sta.ShowOffscreen(w);
             try
             {
+                ShowCompare(w);
                 Assert.True(w.SyncScrolling); // on by default
                 w.SetMode(false); // two text files open as a text diff; switch to side by side
                 Assert.True(w.SyncScrollCheck.IsEnabled);
@@ -130,7 +169,7 @@ public class CompareScrollTests
                 w.Close();
 
                 w = new CompareWindow(owner, t["a.html"], t["b.html"]);
-                Sta.ShowOffscreen(w);
+                ShowCompare(w);
                 w.SetMode(false);
                 WaitForText(w.LeftPane, "Left 300");
                 WaitForText(w.RightPane, "Right 300");
@@ -173,12 +212,12 @@ public class CompareScrollTests
         {
             PreviewPane.Settings ??= new AppSettings();
             PreviewPane.Settings.HtmlScripts = false;
-            var owner = new System.Windows.Window();
+            var owner = new Window { Width = 1500, Height = 1000 };
             Sta.ShowOffscreen(owner);
             var w = new CompareWindow(owner, t["a." + ext], t["b." + ext]);
-            Sta.ShowOffscreen(w);
             try
             {
+                ShowCompare(w);
                 w.SetMode(false);
                 Sta.WaitUntil(() => w.LeftPane.IsReady && w.RightPane.IsReady, "WebView2 ready", 30000);
                 string Pos(PreviewPane p) => Eval(p, "window.__flPos ? __flPos() : ''");
@@ -201,6 +240,31 @@ public class CompareScrollTests
                 Assert.Equal("0,400", Pos(w.RightPane));
             }
             finally { w.Close(); owner.Close(); }
+        });
+    }
+
+    [Fact]
+    public void Switching_modes_without_waiting_for_initial_preview_preserves_documents()
+    {
+        using var t = new TempDir();
+        foreach (var (name, side) in new[] { ("a.md", "Early left"), ("b.md", "Early right") })
+            t.File(name, string.Join("\n\n", Enumerable.Range(1, 300).Select(i => $"{side} paragraph {i}")));
+        Sta.Run(() =>
+        {
+            PreviewPane.Settings ??= new AppSettings();
+            var owner = new Window { Width = 1500, Height = 1000 };
+            Sta.ShowOffscreen(owner);
+            var window = new CompareWindow(owner, t["a.md"], t["b.md"]);
+            try
+            {
+                ShowCompare(window, waitForInitialPreview: false);
+                window.SetMode(false);
+                window.UpdateLayout();
+                WaitForText(window.LeftPane, "Early left paragraph 300");
+                WaitForText(window.RightPane, "Early right paragraph 300");
+                Check(window, "document.getElementById('root')");
+            }
+            finally { window.Close(); owner.Close(); }
         });
     }
 }
