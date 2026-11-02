@@ -4,6 +4,10 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.8 uploaded metadata verified — 2026-11-02
+
+All six actual draft assets are verified. The uploaded manifest/signature were downloaded and match the shipped-verifier-tested local bytes and GitHub size/digests exactly; original packages/checksums are unchanged. Notes differ only by line endings/outer whitespace after draft save. The release remains a stable draft ready for owner publication as latest. No new signing/build/full-suite/installer execution or remote mutation was performed. Public-feed authentication and owner production taskbar/pin review follow publication. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+
 ### Release 0.1.8 draft verified and signed locally — 2026-11-02
 
 The actual tag workflow passed all 640 tests on Windows image 20261030.294.1. Actual CI ZIP/Setup sizes, hashes, checksum sidecars and exact tagged provenance passed; shipped versions/layout/licence/hooks were checked. Locally signed metadata passed default production trust in the shipped update DLLs, with tamper rejection. All 997 protected profile/application/key/backup hashes and Git refs match. The release remains a four-asset draft: owner upload of the two locally prepared public metadata files is next, followed by uploaded-byte verification before owner publication. No upload/publication/install/Setup execution was performed. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
@@ -42,6 +46,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.8 uploaded metadata | Exact six-asset set, downloaded metadata byte equality and original package preservation | Passed; stable draft ready for owner publication, then public-feed verification |
 | Release 0.1.8 actual draft/signing | Actual tagged CI provenance/checksums/versions, guarded local signing and shipped default-pin/tamper verification | Passed; two local metadata files await owner upload; release remains draft |
 | Comparison browser-host fixture | Fixed viewport, per-host profile, controlled startup and separate fast-switch regression with native diagnostics | 640 regression cases and 22 normal/private focused executions passed locally; hosted image confirmation pending |
 | Release 0.1.8 preparation | Carry forward unpublished 0.1.7 work with hosted-validated test readiness; prepare version/notes | 639 tests, both installer builds, 0.1.8 native Sandbox smoke and preservation passed; owner push/hosted validation pending |
