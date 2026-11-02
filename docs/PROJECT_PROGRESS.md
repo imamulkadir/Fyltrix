@@ -1,6 +1,6 @@
 # Installation and update infrastructure progress
 
-Last updated: 2026-11-01.
+Last updated: 2026-11-02.
 
 ## Execution agreement
 
@@ -9,6 +9,20 @@ Last updated: 2026-11-01.
 - **Latest standing instruction (2026-11-01): NEVER commit or push automatically. The owner ALWAYS performs those actions; inform them when changes are ready.** Earlier one-off authorizations for `0.1.1`/`0.1.2` preparation are historical and do not authorize any future commit/push. Tags, merges, release publication and repository-setting changes likewise remain owner-controlled. Read-only Git inspection and local file edits/tests are allowed.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
+
+## Windows taskbar identity and stable relaunch (2026-11-02)
+
+Status: **Implemented and automated verification passed; manual Windows taskbar review pending.** Found the live Start Menu shortcut targeting the root launcher and the live taskbar pin targeting `app-0.1.6\Fyltrix.exe`, both without an AppUserModelID. Added shared version-independent production/Sandbox identities, distinct portable/development identities, early process identity, main-window identity plus stable root relaunch/icon properties, and matching Inno shortcut metadata. Native window properties are released on destruction. Installer AppId, updater identities/protocol, payload layout, settings and `publish.ps1 -Run` remain unchanged.
+
+Verification: **639 tests passed** (442 application, 134 updater, 39 packaging, 14 release-tooling, 10 installer-builder). Published an isolated self-contained payload/NativeAOT launcher and compiled both installer modes. A private-desktop fresh Sandbox install/root launch verified the actual shortcut/process/window identity and root relaunch path, preview readiness, normal exit and clean uninstall. Production Setup was not run. Existing compiler warnings remain. Detailed preservation/performance results and manual check limits: [WINDOWS_TASKBAR.md](WINDOWS_TASKBAR.md).
+
+Security inspection: downloaded Setup and installed launcher/payload are unsigned; downloaded Setup carries Internet-zone Mark-of-the-Web. The inspected installed executables do not. The taskbar identity fix does not remove reputation/security warnings; no security settings, streams, certificates or existing user pins were modified. Exact warning classification remains dependent on its message/event. Current code is still unreleased; the installed/published 0.1.6 was preserved.
+
+Files created/modified: `src/Fyltrix.Bootstrap/WindowsAppIdentity.cs`, `src/Fyltrix.Launcher/Program.cs`, `src/Fyltrix/App.cs`, `src/Fyltrix/UI/TaskbarIdentity.cs`, `src/Fyltrix/UI/MainWindow.cs`, `packaging/installer/Fyltrix.iss`, focused packaging/application tests and the test-only startup-hook probe, `docs/WINDOWS_TASKBAR.md`, this file, `docs/IMPLEMENTATION_STATUS.md`, `README.md`, `CHANGELOG.md`.
+
+Suggested owner commit: `fix(windows): unify launcher and application taskbar identity`.
+
+**Next owner action:** review/commit/push when ready, prepare a new release through the existing process, install it and perform the one-time unpin/re-pin plus visual taskbar checks in the linked report. No commit, push, merge, tag or release was performed by the agent. **Stop here for manual review.**
 
 ## Release 0.1.6 published-feed verification and obsolete-workspace cleanup (2026-11-01)
 

@@ -80,7 +80,7 @@ public sealed partial class MainWindow : Window, IFolderHost
         Content = BuildLayout();
         ApplyToolbar();
         Mark("layout");
-        SourceInitialized += (_, _) => { Shell.UseDarkTitleBar(this); AppIcon.ApplyToHwnd(this); StartClipboardNotifications(); };
+        SourceInitialized += (_, _) => { TaskbarIdentity.Apply(this); Shell.UseDarkTitleBar(this); AppIcon.ApplyToHwnd(this); StartClipboardNotifications(); };
         Activated += (_, _) => { RefreshClipboardState(); CheckDestination(); };
         PreviewKeyDown += OnKeyDown;
         Closing += (_, e) =>

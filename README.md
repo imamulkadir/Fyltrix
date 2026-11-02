@@ -47,6 +47,8 @@ powershell -ExecutionPolicy Bypass -File .\publish.ps1 -SingleFile
 
 Output: `artifacts\Fyltrix\Fyltrix.exe`. For a normal folder publish, copy the **entire** `artifacts\Fyltrix` folder to the desired location. The publish script recreates that output folder on each run.
 
+Installed builds use a stable root launcher for taskbar pins across payload updates. The current source adds matching Windows process, window and installer-shortcut identities; portable and development copies use separate groups. After installing the first release with this fix, refresh old pins once from the new Start Menu shortcut. Visual pinning verification is still pending; see [Windows taskbar verification](docs/WINDOWS_TASKBAR.md). Windows security/reputation warnings are separate from taskbar identity.
+
 Open a specific folder using an existing build:
 
 ```powershell

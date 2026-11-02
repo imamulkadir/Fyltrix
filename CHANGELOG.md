@@ -6,6 +6,14 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Give the launcher, application windows and installed shortcuts a consistent
+  Windows taskbar identity. Running-window pins relaunch the stable root
+  executable across payload versions; portable, development and Sandbox copies
+  use separate identities. Existing pins need a one-time refresh after installing
+  a release containing this fix. Visual Windows taskbar review remains pending.
+
 ## [0.1.6] - 2026-11-01
 
 ### Added

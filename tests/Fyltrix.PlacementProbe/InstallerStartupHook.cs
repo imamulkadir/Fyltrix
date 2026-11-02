@@ -80,7 +80,8 @@ public static class StartupHook
                     var preferences = window.Settings;
                     var result = new { success = true, executable = Environment.ProcessPath, version = typeof(MainWindow).Assembly.GetName().Version!.ToString(), title = window.Title,
                         defaultProfile = expected, isolatedProfile = AppSettings.Folder, previewReady = true, preferences.ShowHidden, preferences.ShowExtensions,
-                        preferences.ShowFileOperationLabels, preferences.ShowSecondaryToolbarLabels, preferences.DefaultSort, preferences.Favourites };
+                        preferences.ShowFileOperationLabels, preferences.ShowSecondaryToolbarLabels, preferences.DefaultSort, preferences.Favourites,
+                        taskbar = Environment.GetEnvironmentVariable("FYLTRIX_TASKBAR_TEST") == "1" ? Fyltrix.PlacementProbe.TaskbarIdentityProbe.Capture(window) : null };
                     File.WriteAllText(Path.Combine(root, "ready.json"), JsonSerializer.Serialize(result));
                     ready = true;
                 }

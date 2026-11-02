@@ -9,6 +9,7 @@ internal static class Program
     {
         try
         {
+            WindowsAppIdentity.ForRoot(AppContext.BaseDirectory).SetProcess();
             using var startup = UpdateProtocol.EnterShared(AppContext.BaseDirectory);
             var payload = ReleaseLayout.Resolve(AppContext.BaseDirectory);
             if (payload == null) return Error("The release layout is missing or invalid. Re-extract the complete package or reinstall Fyltrix. Your settings have not been changed.");

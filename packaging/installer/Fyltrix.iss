@@ -27,12 +27,14 @@
   #define FolderName "Fyltrix Installer Sandbox"
   #define SetupName "Fyltrix-Sandbox-Setup-win-x64"
   #define ModeName "Sandbox"
+  #define TaskbarId "Fyltrix.Desktop.Sandbox"
 #else
   #define InstallerId "Fyltrix.PerUser"
   #define DisplayName "Fyltrix"
   #define FolderName "Fyltrix"
   #define SetupName "Fyltrix-Setup-win-x64"
   #define ModeName "Production"
+  #define TaskbarId "Fyltrix.Desktop"
 #endif
 
 [Setup]
@@ -81,8 +83,8 @@ Source: "{#LayoutDir}\Fyltrix.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#LayoutDir}\current.json"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{userprograms}\{#FolderName}\{#DisplayName}"; Filename: "{app}\Fyltrix.exe"; WorkingDir: "{app}"
-Name: "{userdesktop}\{#DisplayName}"; Filename: "{app}\Fyltrix.exe"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{userprograms}\{#FolderName}\{#DisplayName}"; Filename: "{app}\Fyltrix.exe"; WorkingDir: "{app}"; AppUserModelID: "{#TaskbarId}"
+Name: "{userdesktop}\{#DisplayName}"; Filename: "{app}\Fyltrix.exe"; WorkingDir: "{app}"; AppUserModelID: "{#TaskbarId}"; Tasks: desktopicon
 
 ; Deliberately no [Run]: installation never launches an experimental copy or touches its profile.
 ; Deliberately no [InstallDelete]/[UninstallDelete]: remove only files recorded by Inno, never user data.

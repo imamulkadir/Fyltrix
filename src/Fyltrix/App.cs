@@ -29,6 +29,8 @@ public sealed class App : Application
             }
             return;
         }
+        // Before WPF creates any HWND; helper worker modes above never become the desktop application.
+        TaskbarIdentity.InitializeProcess();
         TrialConnection? trial;
         IDisposable? startup = null;
         try
