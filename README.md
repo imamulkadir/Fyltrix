@@ -1,456 +1,653 @@
+# Fyltrix — Your Files. Your Rules.
+
+<div align="center">
+
+<img src="src/Fyltrix/Assets/Fyltrix-256.png" alt="Fyltrix Logo" width="120" />
+
 # Fyltrix
 
-Fyltrix is a tabbed file explorer for Windows with integrated previews, file and folder comparison, archive browsing, search, conversion tools, automation, and temporary network sharing. It is built with C# and .NET 8 WPF and runs without administrator rights for everyday use.
+**Your Files. Your Rules.**
 
-Formerly **FileLens**, the application now builds and launches as **Fyltrix**: `Fyltrix.exe`, `Fyltrix.dll`, and the `src/Fyltrix` project. Existing `%AppData%\FileLens` settings and `%LocalAppData%\FileLens` caches are reused without resetting preferences. The private preview origin, manifest identity, and existing firewall-rule identity are retained for compatibility.
+*A modern, powerful, and highly customizable Windows file manager that goes beyond traditional File Explorer.*
 
-## Contents
+[![Latest Release](https://img.shields.io/github/v/release/imamulkadir/Fyltrix?style=for-the-badge&label=Version)](https://github.com/imamulkadir/Fyltrix/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/imamulkadir/Fyltrix/total?style=for-the-badge&label=Downloads)](https://github.com/imamulkadir/Fyltrix/releases)
+[![GitHub Stars](https://img.shields.io/github/stars/imamulkadir/Fyltrix?style=for-the-badge&logo=github&label=Stars)](https://github.com/imamulkadir/Fyltrix/stargazers)
 
-- [Requirements](#requirements)
-- [Build and run](#build-and-run)
-- [Feature guide](#feature-guide)
-- [Settings and defaults](#settings-and-defaults)
-- [Keyboard shortcuts](#keyboard-shortcuts)
-- [Application data and diagnostics](#application-data-and-diagnostics)
-- [Development and verification](#development-and-verification)
-- [Project structure](#project-structure)
-- [Implementation reports](#implementation-reports)
+[![License](https://img.shields.io/github/license/imamulkadir/Fyltrix?style=flat-square)](LICENSE)
+[![GitHub Issues](https://img.shields.io/github/issues/imamulkadir/Fyltrix?style=flat-square)](https://github.com/imamulkadir/Fyltrix/issues)
+[![Platform](https://img.shields.io/badge/Platform-Windows_10_%7C_11-0078D4?logo=windows)](https://github.com/imamulkadir/Fyltrix)
+[![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 
-## Requirements
+**[Download Latest Release](https://github.com/imamulkadir/Fyltrix/releases/latest)** · **[Features](#features)** · **[Build from Source](#build-from-source)** · **[Report a Bug](https://github.com/imamulkadir/Fyltrix/issues)**
 
-| Component | Purpose |
+</div>
+
+---
+
+## Meet Fyltrix
+
+Windows File Explorer gets the job done. **Fyltrix is built for everything beyond that.**
+
+Fyltrix is an open-source Windows file manager designed for people who want more control over their files, folders, drives, and workflows.
+
+It brings together multi-tab navigation, rich file previews, advanced searching, file comparison, batch operations, integrated development tools, automation, and extensive personalization in a single desktop application.
+
+Built with **C#, WPF, and .NET 8**, Fyltrix aims to provide a fast, responsive, native Windows experience without unnecessary complexity.
+
+Whether you're a developer, power user, content creator, or simply someone who wants a better file manager, Fyltrix gives you the tools to work your way.
+
+### Why Fyltrix?
+
+- **More than browsing** — Preview, compare, edit, convert, organize, and share files.
+- **Built around you** — Customize navigation, toolbar actions, context menus, folder views, and workspace preferences.
+- **Developer-friendly** — IDE integration, syntax highlighting, advanced search, command palette, and scripting support.
+- **Powerful file operations** — Batch rename, duplicate detection, folder comparison, archive management, and undo support.
+- **Native Windows experience** — Modern tabs, familiar interactions, multi-monitor support, and keyboard shortcuts.
+- **Privacy-conscious** — Local-first file management, with optional network sharing and automation.
+
+---
+
+## Screenshots
+
+Get a closer look at Fyltrix.
+
+<!--
+TODO: SCREENSHOT ASSETS REQUIRED
+
+Capture these screenshots from the actual installed Fyltrix application.
+Do not use mockups or generated UI.
+
+Place them in:
+
+docs/screenshots/main-window.png
+docs/screenshots/file-views.png
+docs/screenshots/preview.png
+docs/screenshots/advanced-search.png
+docs/screenshots/file-tools.png
+docs/screenshots/settings.png
+
+Once the files exist, uncomment the image references below.
+
+Recommended capture settings:
+- Windows 11, dark mode
+- 1920×1080 display
+- Consistent application dimensions
+- Realistic, non-sensitive sample files
+- No personal paths, credentials, or private content
+-->
+
+<!--
+### Main Interface
+
+![Fyltrix Main Interface](docs/screenshots/main-window.png)
+
+### Customizable File Views
+
+![Fyltrix File Views](docs/screenshots/file-views.png)
+
+### Rich File Previews
+
+![Fyltrix Preview Pane](docs/screenshots/preview.png)
+
+### Advanced Search
+
+![Fyltrix Advanced Search](docs/screenshots/advanced-search.png)
+
+### File Management Tools
+
+![Fyltrix Tools](docs/screenshots/file-tools.png)
+
+### Personalization and Settings
+
+![Fyltrix Settings](docs/screenshots/settings.png)
+-->
+
+*Application screenshots will be added from verified installed builds.*
+
+---
+
+## Features
+
+### Modern File Navigation
+
+Move through your files faster with a familiar, flexible interface.
+
+- Multi-tab browsing: create, duplicate, switch, and close tabs; close other tabs from the tab menu.
+- Right-aligned tab close buttons, middle-click closing, long-name tooltips, and an overflow tab list.
+- Switch tabs by hovering them during a file drag. Tab drag-to-reorder is not currently implemented.
+- Windows 11-style integrated title bar.
+- Back, Forward, Up, and address-bar navigation.
+- Quick Access, Favourites, and Recent locations.
+- Independent view preferences for individual folders.
+- Details, thumbnail, and icon-based layouts.
+- Remember previously opened tabs and application state.
+- Drive capacity and usage information under This PC.
+- Support for multiple monitors and per-monitor display scaling.
+- Remember window geometry and sidebar/preview pane sizes; resize panes to fit your workspace.
+- Open native Properties, Open with, a terminal, or the current location in Windows File Explorer.
+- Reorder Favourites, manage Recent entries, and show or hide sidebar sections and Quick Access places.
+- Group Details and thumbnail views by modification date; Downloads uses date groups by default.
+- Choose 48, 96, 160, or 256-pixel thumbnails, with per-folder sorting and view memory.
+
+### Powerful File Operations
+
+Manage files without constantly switching between different tools.
+
+- Cut, copy, paste, rename, move, and delete files.
+- Undo supported copy, move, rename, creation, extraction, compression, conversion, and Recycle Bin deletion operations. Permanent deletion cannot be undone.
+- Batch rename with a live plan, templates, padded counters, find/replace or regex, case changes, prefixes/suffixes, extension changes, and conflict detection; optionally include folders.
+- Paste Snipping Tool screenshots and compatible clipboard images as PNG files through Paste or `Ctrl + V`.
+- Preserve clipboard PNG bytes where available; otherwise encode lossless PNG. Timestamped screenshot names avoid overwriting existing files.
+- File/folder clipboard data takes priority when both files and images are present. Invalid file-drop data does not silently become an image paste.
+- Copy selected file paths, the current folder path, or an archive path.
+- Manage file-creation templates: add, edit, duplicate, reorder, enable/disable, or restore defaults.
+- Built-in templates cover text, Markdown, CSV, JSON, XML, YAML, INI, logs, HTML, CSS, JavaScript/JSX, SVG, Python, C#, PowerShell, shell, SQL, and blank Word/Excel/PowerPoint documents.
+- Use supported Windows-registered New-menu types and customize template categories, names, substitutions, line endings, and UTF-8 BOM options.
+- Handle naming and transfer conflicts with Replace, Keep both, Skip, or Cancel, including apply-to-all choices and operation progress.
+- Recycle Bin integration.
+- Drag-and-drop copying/moving to folders and sidebar destinations.
+- Session-only clipboard history retains up to 15 copied/cut file sets; restoring a set copies it rather than cutting it.
+- A context-menu **Unblock (downloaded-file mark)** command is available for selected marked files.
+- Shared availability checks protect toolbar, context-menu, palette, and keyboard commands against unsupported or invalid selections.
+- Reach the folder background menu through the toolbar’s **…** button even when the file list is full.
+
+### Rich File Previews
+
+Inspect files without opening separate applications.
+
+| File Type | Preview Capabilities |
 |---|---|
-| Windows 10 or Windows 11, x64 | WPF desktop application. The project declares Windows 10 version 1809 as its minimum platform version. |
-| Microsoft Edge WebView2 Runtime | Embedded document, code, image, and media previews. Install separately if absent. |
-| .NET 8 SDK or a compatible newer SDK | Building from source. The publish script can install .NET 8 for the current user if needed. |
-| FFmpeg, optional | Audio/video conversion and fallback video thumbnails. Configure its path in Settings > Advanced or make it discoverable on PATH. Fyltrix does not download FFmpeg. |
-| Windows image/media codecs, optional | HEIC, camera RAW, and some media streams require installed codecs. Recognizing an extension does not guarantee decoding. |
-| Registered Windows preview handlers, optional | PowerPoint, legacy Word, Outlook messages, and other shell-preview formats. |
-| Windows `tar.exe`, optional | Additional archive capabilities, including 7z creation and AES-encrypted ZIP creation, when supported by the installed version. |
+| Images | Zoom, pan, rotate, metadata, fullscreen |
+| PDF | Embedded viewing and page navigation |
+| Word | Render `.docx`, `.docm`, `.dotx`; zoom and fit width |
+| Spreadsheets | Sheet selection and tables for `.xlsx`, `.xlsm`, `.xls`, `.xlsb`, `.ods` |
+| JSON family | Expandable tree and raw content; recognizes JSON, JSONC, GeoJSON, HAR |
+| Markdown | Rendered and source views |
+| HTML / XHTML | Rendered preview; scripts off by default, with an explicit opt-in |
+| Code | Syntax highlighting |
+| CSV / TSV | Table preview and header-row toggle |
+| Animated images | GIF/WebP/APNG playback, pause, frame stepping, and supported speed controls |
+| Audio | Playback, seeking, speed, metadata, album art, and supported waveforms |
+| Video | Playback, seeking, speed, fullscreen, codec details, nearby SRT/VTT subtitles |
+| Archives | Browse contents and preview entries |
+| Windows preview handlers | PowerPoint, legacy Word, Outlook messages, RTF, and other formats when a suitable handler is installed |
+| Unknown binary files | Text/binary detection and hex preview |
 
-The portable publish is self-contained, so a separate .NET runtime is unnecessary. WebView2 and optional codecs, handlers, and FFmpeg remain separate dependencies. Adding a firewall rule for LAN sharing requires administrator approval.
+Supported image families include PNG, JPEG, GIF, BMP, WebP, ICO, SVG, TIFF, AVIF, HEIC/HEIF, JPEG XR, DDS, and camera RAW formats. Audio/video recognition includes MP4, WebM, MOV, MKV, AVI, WMV, MP3, WAV, OGG, AAC, FLAC, and Opus, among others. Recognition does not guarantee that every codec or stream can be decoded. Some formats require installed Windows codecs, preview handlers, or optional tools; an external-player fallback is available for unsupported media.
 
-## Build and run
+Previews use bounded loading: text up to 20 MB, table previews up to 5,000 rows, and reduced processing for large content. PDF comparison renders pages as images; text selection is unavailable there.
 
-Run these commands in PowerShell from the checkout's root directory. The outer directory can be renamed without changing project paths.
+**Quick View:** Select exactly one supported file and press `Space` to open a larger preview window. Navigate with arrow keys and close with Escape or Space when the viewer is not consuming the key. Folders and multiple selections do not activate Quick View.
 
-```powershell
-# Publish a portable release folder.
-powershell -ExecutionPolicy Bypass -File .\publish.ps1
+### Advanced Search
 
-# Publish and start the application.
-powershell -ExecutionPolicy Bypass -File .\publish.ps1 -Run
+Find files and folders beyond the current directory.
 
-# Publish a single executable; native libraries extract when needed.
-powershell -ExecutionPolicy Bypass -File .\publish.ps1 -SingleFile
-```
+- Search recursively through subdirectories.
+- Search files, folders, or both.
+- Partial-name and wildcard matching.
+- Regular-expression searches.
+- Filter by extension, size, and date.
+- Search supported text-file contents.
+- Include hidden and system items when appropriate.
+- Save advanced search filters.
+- Open search results in new tabs with `Ctrl + Enter`, and stop active searches.
+- Filter the current folder while typing, or choose This folder/Subfolders scope for an explicit search.
+- Filter by tags and creation/modification dates; run saved searches from the command palette.
+- Content search examines supported text files up to 32 MB; search results are capped at 100,000 items.
 
-Output: `artifacts\Fyltrix\Fyltrix.exe`. For a normal folder publish, copy the **entire** `artifacts\Fyltrix` folder to the desired location. The publish script recreates that output folder on each run.
+### Compare Files and Folders
 
-Installed builds use a stable root launcher for taskbar pins across payload updates. The current source adds matching Windows process, window and installer-shortcut identities; portable and development copies use separate groups. After installing the first release with this fix, refresh old pins once from the new Start Menu shortcut. Visual pinning verification is still pending; see [Windows taskbar verification](docs/WINDOWS_TASKBAR.md). Windows security/reputation warnings are separate from taskbar identity.
+Analyze differences without leaving Fyltrix.
 
-Open a specific folder using an existing build:
+**File Comparison**
+- Compare exactly two supported, compatible files. Folders, incompatible files, and other selection counts disable Compare with an explanatory tooltip.
+- Side-by-side viewing.
+- Text and code differences.
+- JSON comparison with key-order normalization.
+- Ignore whitespace and show only changes.
+- Compare supported images, media, Word documents, spreadsheets, PDFs, and files using the same registered Windows preview handler. Compatible files may have different extensions.
+- Swap sides or select replacement files; synchronize scrolling for supported rendered content, including PDFs. Images and PowerPoint do not use synchronized scrolling.
 
-```powershell
-.\artifacts\Fyltrix\Fyltrix.exe "C:\Projects"
-```
+**Folder Comparison**
+- Compare folder contents recursively or at the top level, optionally including hidden items and content verification.
+- Identify missing, changed, or identical files.
+- Review differences before synchronization.
+- Synchronize in either direction or both.
+- Review and override proposed copy, skip, and delete actions; use saved baselines for two-way synchronization.
+- Handle conflicts and send deleted or replaced files to the Recycle Bin.
 
-Build and run directly from source with an installed SDK:
+### Archives and Compression
 
-```powershell
-dotnet build .\src\Fyltrix\Fyltrix.csproj -p:Platform=x64
-dotnet run --project .\src\Fyltrix\Fyltrix.csproj -p:Platform=x64
-```
+Work with compressed files directly from the file manager.
 
-## Feature guide
+- Browse ZIP, ZIPX, 7z, RAR, TAR, GZ, BZ2, and XZ archives. Recognize compressed TAR families including TGZ, TBZ/TBZ2, TXZ, TAR.ZST, and TAR.LZ; decoding depends on supported compression methods.
+- Preview entries, filter archive contents, copy or drag items out, and extract selected files or entire archives.
+- Create ZIP, TAR, TAR.GZ, TAR.BZ2, and single-file GZ archives.
+- Password handling for supported encrypted archives.
+- Compression settings where supported.
+- Enforce extraction/preview size limits, expansion-ratio limits, and checks against unsafe paths and links.
+- Configure whether archives open as browsable folders in Settings.
 
-### Navigation, tabs, and window layout
+Creating 7z or AES-256 password-protected ZIP archives requires a compatible Windows `tar.exe`. RAR is extraction-only. AES ZIP files may need another archive tool rather than File Explorer to open.
 
-- Browse local folders, connected drives, and supported archive contents.
-- Navigate Back, Forward, Up, or to a typed address; refresh the active location and toggle hidden files.
-- Create, duplicate, switch, and close tabs; open folders in new tabs or close other tabs from the tab menu.
-- Restore open tabs and the active tab on startup, or choose a startup folder. New tabs can open in the current folder, startup folder, or This PC.
-- Close tabs through their right-aligned close buttons, middle click, or shortcuts. Long names use an ellipsis with the full location in a tooltip.
-- Show location-specific icons in tabs and use the overflow tab list when space runs out.
-- Use a Windows 11-style title bar with the new-tab button beside tabs, native dragging, double-click maximize, resize borders, system menu, and a Snap Layouts hit target.
-- Resize the sidebar and preview pane; window geometry and pane sizes are remembered.
-- Open files with their default application, choose **Open with**, view native Properties, open the containing folder, launch a terminal, or open the location in Windows File Explorer.
+### Developer Tools
 
-### Sidebar and This PC
+Fyltrix includes useful features for software development workflows.
 
-- **Quick access:** Home, Desktop, Downloads, Documents, Pictures, Music, and Videos.
-- **Favourites:** add/remove folders, reorder with Move up/down, open in new tabs, and clear after confirmation. The optional toolbar star also toggles the current folder's Favourite status.
-- **Recent:** revisit folders, remove individual entries, clear the list, or stop recording new visits.
-- **Tags:** select a tag to list associated items.
-- **This PC:** drives with capacity bars, free/total space, and detailed tooltips. Low space is highlighted; slow/disconnected drives do not indefinitely block the listing.
-- Drop files onto sidebar folder destinations to copy or move them.
-- Show/hide sections and individual Quick access places. Fold section headings and optionally remember the collapsed state.
+- Open files and folders in supported IDEs.
+- Detect VS Code, Cursor, VSCodium, Windsurf, Zed, JetBrains IDEs, Android Studio, Visual Studio, and Sublime Text.
+- Add custom IDE executable paths and arguments.
+- Integrated syntax highlighting.
+- Command palette with `Ctrl + Shift + P`.
+- Custom external application actions with extension filters, file/folder applicability, ordering, and `{path}`, `{paths}`, `{folder}`, `{name}` argument tokens.
+- JSON, XML, YAML, CSV, and code previews.
+- Copy paths and launch folders in development tools.
+- Use the palette for commands, templates, saved searches, clipboard sets, Favourites, Recent folders, drives, and typed paths.
 
-### File operations and clipboard
+### Productivity Tools
 
-- Create folders and files; cut, copy, paste, rename, and delete one or multiple items where supported.
-- Rename a single item inline. F2 with multiple items opens batch rename.
-- Delete to the Recycle Bin or use Shift+Delete for permanent deletion.
-- Drag and drop files to copy or move them, including to folder and sidebar destinations. Hovering a tab during a file drag activates it.
-- Interoperate with Windows File Explorer's file/folder clipboard data.
-- Copy selected paths or the current folder/archive path.
-- Resolve transfer conflicts with Replace, Keep both, Skip, or Cancel, optionally applying a choice to all remaining conflicts; follow operation progress.
-- Undo supported copy, move, rename, batch rename, creation, extraction, compression, conversion, and Recycle Bin deletion operations with Ctrl+Z. Permanent deletion cannot be undone.
-- Restore earlier file sets through **Tools > Clipboard history** or the command palette. History contains up to 15 file sets copied/cut in the current session and is not saved on exit. Restored entries are copied rather than cut.
-- Remove the downloaded-file mark with **Unblock**, when present.
-- Open the folder background menu from empty space or the toolbar's **...** button, even when the file list is full.
+Additional tools for demanding file-management tasks.
 
-Toolbar buttons, context menus, the palette, and file-operation shortcuts share command-availability checks. Selection count, item type, clipboard contents, destination permissions, and whether items still exist determine availability. Disabled toolbar buttons remain visible and inactive.
-
-### Paste screenshots and clipboard images
-
-Copy an image using Windows Snipping Tool or another compatible application, open a writable folder, then click **Paste** or press **Ctrl+V**.
-
-- Support clipboard PNG data and standard bitmap/image data.
-- Save PNG files named like `Screenshot 2026-10-31 14-30-00.png`, resolving conflicts without overwriting existing files.
-- Retain original PNG bytes where available; encode bitmap data losslessly as PNG. Encoding and writing run off the UI thread.
-- Show the created image in the file list immediately.
-- **File/folder data takes priority over image data** when both exist. Invalid file-drop data does not silently fall back to saving an image.
-- React to Windows clipboard-change notifications, with bounded retries when the clipboard is busy.
-
-### New menu and templates
-
-The **+ New** button and folder background menu offer folders, built-in/custom templates, and eligible Windows-registered New-menu types.
-
-| Category | Built-in templates |
-|---|---|
-| General | Text, Markdown, CSV, JSON, XML, YAML, INI, log |
-| Web | HTML, CSS, JavaScript, React JSX, SVG |
-| Programming | Python, C#, PowerShell, shell, SQL |
-| Office | Valid blank Word `.docx`, Excel `.xlsx`, and PowerPoint `.pptx` documents |
-
-Use **Manage templates** to add, edit, duplicate, delete, reorder, enable/disable, or restore templates. Custom templates support categories, default names, text content, name/identifier substitutions, Unix line endings, and a UTF-8 byte-order-mark option. Settings > Context menu controls which templates and registered types appear; hiding a type does not delete its template or change Windows associations. Templates are also available in the command palette.
-
-### Views, sorting, and thumbnails
-
-- Details view with Name, Date modified, Type, and Size columns, concise type names, and a Type column sized to its values.
-- Thumbnail views at 48, 96, 160, and 256 pixels.
-- Windows thumbnails for supported photos, videos, PDFs, and Office documents; FFmpeg fallback video thumbnails when available, file icons otherwise.
-- Sorting through the toolbar or column headers, with configurable default column/direction.
-- Separate remembered views per folder, across tabs and restarts, or one default view everywhere.
-- Reset the current folder's view or all saved folder views.
-- Group by date modified in Details and thumbnail views. Downloads is grouped by default; enable it elsewhere through View.
-- Date groups: Today, Yesterday, Earlier this week, Last week, Earlier this month, Last month, Earlier this year, A long time ago. Column sorting applies within groups.
-- Change thumbnail size with Ctrl+mouse wheel or shortcuts.
-- Virtualized lists, bounded thumbnail caches, and background thumbnail workers.
-
-### Preview pane and supported formats
-
-Select a file to preview it beside the file list. Toggle the pane with the rightmost **Preview** button or Ctrl+P.
-
-| Content | Preview features |
-|---|---|
-| PDF | Embedded PDF viewing; page rendering also supports comparison. |
-| HTML / XHTML | Rendered page; scripts disabled by default with an explicit scripts option. |
-| Markdown | Rendered document and source toggle. |
-| JSON family | Expandable tree, expand/collapse all, raw view. Recognizes JSON, GeoJSON, JSONC, and HAR; parsing depends on valid content. |
-| Text / code | Text display, syntax highlighting for recognized languages, and word wrap. |
-| CSV / TSV | Table preview with a header-row toggle. |
-| Word | Rendered `.docx`, `.docm`, `.dotx`, zoom, and fit width. |
-| Spreadsheets | Sheet selection and table preview for `.xlsx`, `.xlsm`, `.xls`, `.xlsb`, `.ods`. |
-| Images | Zoom, pan, fit, actual size, rotate, fullscreen, metadata/EXIF, previous/next, Copy, Edit. |
-| Animated images | GIF/WebP/APNG playback, pause, frame stepping, speed controls where supported by the decoder. |
-| Audio / video | Playback, seeking, speed, metadata/codec details, fullscreen video, audio album art, and waveform where supported. Nearby `.srt`/`.vtt` subtitles are detected. |
-| Archives | Filterable contents list and archive-entry actions. |
-| Windows preview handlers | PowerPoint, legacy `.doc`, Outlook `.msg`, RTF, EML, Visio, OneNote, MHT/MHTML when a suitable handler is registered. |
-| Other files | Text/binary detection and hex preview for unknown binaries. |
-
-**Code highlighting** recognizes XML/XAML and related project/config files; C/C++/C#, Java, Kotlin, Python, JavaScript/TypeScript/JSX/TSX, CSS/SCSS/Less, SQL, YAML, INI/TOML/properties, shell/PowerShell/batch, Go, Rust, Ruby, PHP, Swift, VB, Gradle/Groovy, Dockerfile, diff/patch, GraphQL, R, and supported template formats.
-
-**Recognized image extensions** include PNG, JPEG/JFIF, GIF, BMP/DIB, WebP, ICO, AVIF, APNG, SVG, TIFF, HEIC/HEIF/HIF, JPEG XR, DDS, and camera RAW families DNG, CR2/CR3, NEF/NRW, ARW/SR2, ORF, RW2, RAF, PEF, SRW. Less common formats require Windows codecs.
-
-**Recognized media** includes MP4/M4V, WebM, MOV, MKV, OGV, MP3, WAV, OGG/OGA, M4A/AAC, FLAC, Opus, WEBA. Windows Media Foundation handles additional families such as AVI, WMV/ASF, MPEG, MPEG transport streams, 3GP, FLV, VOB, WTV, WMA, AIFF, AC3 where codecs are installed. Playback depends on the streams inside the file. An **Open in default player** fallback is available for unsupported media.
-
-Large previews use limits to keep the application responsive: text loading is capped at 20 MB, highlighting is skipped for large text, tables show up to 5,000 rows, and waveform decoding is limited to smaller audio files.
-
-### Quick View
-
-- Select exactly one supported file and press **Space** or use Quick View for a larger preview.
-- Navigate files with arrow keys; close with Space/Escape when the embedded player is not consuming those keys.
-- Reuse the main pane's document, image, media, archive, and hex preview infrastructure.
-- Folders and multiple selections do not activate Quick View.
-
-### File comparison
-
-Select exactly two compatible files, then use **Compare** or Ctrl+D.
-
-- Render side by side, swap sides, or choose replacement files.
-- Show line-by-line text differences for compatible text, code, JSON, XML, CSV, Markdown, HTML, and related content.
-- Show only changes, ignore whitespace, and normalize JSON key order for JSON comparisons.
-- Compare compatible files with different extensions. Compatibility follows preview families: text, images, media, Word, spreadsheets, PDF pairs, and files using the same registered Windows preview handler.
-- Synchronize scrolling for supported rendered content, including PDFs. Images and PowerPoint do not use synchronized scrolling.
-- See an explanatory tooltip when Compare is unavailable. Folders, incompatible types, and selections other than two files are excluded.
-
-### Folder comparison and synchronization
-
-Use **Tools > Compare folders**, or select two folders and use the context menu.
-
-- Compare recursively or at the top level, optionally including hidden files and verifying contents.
-- Identify identical items, files on only one side, newer versions, differing content, and conflicts.
-- Synchronize left to right, right to left, or both ways.
-- Review proposed actions before applying them; override individual items to copy, skip, or delete.
-- Optionally apply deletions or replace newer destination files. Two-way sync uses saved baselines to identify changes since the previous sync.
-- Send replaced/removed files to the Recycle Bin.
-
-### Archives
-
-- Browse ZIP/ZIPX, 7z, RAR, TAR, compressed TAR, GZ, BZ2, and XZ contents like folders.
-- Recognize TAR.GZ/TGZ, TAR.BZ2/TBZ/TBZ2, TAR.XZ/TXZ, TAR.ZST, and TAR.LZ variants. Successful extraction depends on the compression method and available reader/fallback support.
-- Preview or open entries, copy or drag items out, and extract here, into a named folder, or to a chosen destination.
-- Supply passwords for supported encrypted archives and resolve extraction conflicts.
-- Create ZIP, TAR, TAR.GZ, TAR.BZ2, and single-file GZ archives, with compression settings where supported.
-- Create 7z or password-protected AES-256 ZIP archives when Windows `tar.exe` supports them. AES ZIP output may require another archive tool rather than File Explorer to open.
-- Enforce extraction-size, expansion-ratio, and preview-size limits, with checks against unsafe paths and links.
-- Choose whether double-clicking archives browses them as folders in Settings > Advanced.
-
-### Search
-
-- Filter the current folder while typing, with an option to disable live filtering.
-- Press Enter to search recursively in **Subfolders** scope; use **This folder** for local scope.
-- Press Ctrl+Enter for results in a new tab; stop active searches when needed.
-- Use `*`/`?` wildcards; choose files, folders, or both.
-- Use normal file actions, path copying, and **Open file location** on results.
-- Open **Advanced search** with Ctrl+Shift+F: name contains/wildcard/regex, case sensitivity, extensions, size range, creation/modification dates, content text/regex, tags, hidden/system items.
-- Content search examines text files up to 32 MB.
-- Save, reuse, and delete advanced-search filters; run saved searches through the palette.
-
-### Batch rename, duplicates, folder sizes, and checksums
-
-| Tool | Features |
-|---|---|
-| Batch rename | Live plan; templates; counters with start/step/padding; find/replace or regex; character removal; space replacement; case changes; prefixes/suffixes; extension replacement/lowercasing; optional folder renaming; invalid-name/conflict detection. Tokens: `{name}`, `{n:000}`, `{ext}`, `{folder}`, `{date:yyyy-MM-dd}`, `{created:yyyy-MM-dd}`. |
-| Duplicate finder | Scan multiple folders with subfolder, hidden-file, minimum-size, and extension options; verify content with SHA-256; select duplicates while keeping the newest, oldest, or shortest-path copy; move selected duplicates to the Recycle Bin. |
-| Folder sizes | Analyze disk usage and explore a folder/file treemap. |
-| Checksums | SHA-256, SHA-512, SHA-1, MD5; compare expected values; copy results; verify checksum files; save `.sha256` files. SHA-1/MD5 support legacy checksum compatibility. |
-
-### Tags and color labels
-
-- Apply/remove tags and color labels from the context menu.
-- Show tag chips beside names and in selection status; show labels as color indicators.
-- Browse tagged items in the sidebar or filter tags in advanced search.
-- Preserve associations for renames/moves performed within Fyltrix.
-- Clean up entries for missing files from Tools.
-
-### Image editing and conversion
-
-- Open **Edit** from image previews to rotate, flip horizontally/vertically, crop, or resize.
-- Keep proportions, enter pixel dimensions, or use percentage resizing shortcuts.
-- Undo/reset edits before saving to a new file beside the original.
-- Batch-convert supported images to PNG, JPEG, WebP, TIFF, BMP, GIF, ICO.
-- Choose quality, output size, and lossless WebP where offered; preserve EXIF where supported.
-
-### Audio and video conversion
-
-With FFmpeg installed, select compatible media and choose **Convert**.
-
-- Video presets: MP4, WebM, MKV, MOV, AVI, animated GIF.
-- Audio presets: MP3, M4A/AAC, FLAC, WAV, OGG Vorbis, Opus.
-- Extract audio from video with audio-only presets.
-- Choose quality, output folder, and maximum video resolution; monitor progress or cancel.
-- Output capabilities depend on the installed FFmpeg build.
-
-### PDF tools
-
-- View page thumbnails and document information.
-- Reorder, rotate, or remove pages from a new composition.
-- Extract selected pages, split into page groups, or export pages as PNG.
-- Merge PDFs; convert one image or combine multiple images into a PDF.
-- Save edited documents as new files, preserving originals.
-
-### Command palette, IDE integration, and custom actions
-
-- **Ctrl+Shift+P:** find commands, create files from templates, run saved searches, restore clipboard sets, or jump to a Favourite, Recent folder, drive, or typed path.
-- Detect Visual Studio Code, Cursor, VSCodium, Windsurf, Zed, JetBrains IDEs, Android Studio, Visual Studio, Sublime Text.
-- Enable/disable IDE entries, detect again, or add custom executables/arguments through Settings > Context menu. `{path}` supplies the folder.
-- Launch IDEs from folder/background/sidebar menus or the palette.
-- Define **Custom actions** with program, arguments, extension filters, and file/folder applicability; reorder them and run through the context menu or palette.
-- Action tokens: `{path}`, `{paths}`, `{folder}`, `{name}`. `{path}` runs once per item; `{paths}` supplies the selection together.
+- Duplicate finder with SHA-256 content verification, multiple scan roots, hidden/subfolder/size/extension filters, keep-copy selection helpers, and Recycle Bin cleanup.
+- Disk usage and folder-size analysis with an explorable treemap.
+- SHA-256, SHA-512, SHA-1, and MD5 checksums; compare expected values, verify checksum files, copy results, or save `.sha256` files. SHA-1/MD5 are provided for legacy checksum compatibility.
+- Batch image conversion to PNG, JPEG, WebP, TIFF, BMP, GIF, and ICO, with available quality, size, lossless WebP, and EXIF options.
+- Image cropping, pixel/percentage resizing, rotation, flipping, and undo/reset before saving a new file.
+- PDF thumbnails, merging, splitting, page extraction/reordering/rotation/removal, PNG page export, and image-to-PDF composition. Save edits to new files to preserve originals.
+- Optional FFmpeg conversion to video presets such as MP4, WebM, MKV, MOV, AVI, GIF, and audio presets such as MP3, M4A/AAC, FLAC, WAV, OGG, Opus. Extract audio, choose quality/resolution/output, and monitor or cancel work. Available encoders depend on the FFmpeg build.
+- Tags and color labels in context menus, name chips, selection status, the sidebar, and advanced search. Associations follow supported renames/moves within Fyltrix; Tools can clean missing entries.
+- Custom file templates.
 
 ### Automation
 
-Automation is optional and **disabled by default**. Rules run while Fyltrix is open.
+Create optional rules to automate repetitive file operations.
 
-- Trigger on new files, new/changed files, intervals, or manual execution.
-- Watch folders with optional subfolders and extension, wildcard-name, and size filters.
-- Move, copy, rename, extract, compress to ZIP, convert images, organize into date folders, or run a configured program.
-- Optionally move originals after processing.
-- Dry-run proposed work and inspect the activity log.
-- Wait for files to settle, ignore common partial-download names, and avoid repeatedly processing the engine's own outputs.
+Supported automation includes:
 
-### Temporary sharing
+- Watching folders for new or modified files.
+- Moving or copying matching files.
+- Organizing files into date-based folders.
+- Renaming files automatically.
+- Extracting and compressing archives.
+- Converting images.
+- Running configured external commands.
 
-Use **Share on this network** for selected files or folders. Shares are read-only and served by this computer.
+Automation is disabled by default and runs only while Fyltrix is open. Configure subfolder, extension, wildcard-name, and size filters; trigger on file changes, intervals, or manually. Dry-run planned work and inspect its activity log. The engine waits for files to settle, skips common partial-download names, and avoids repeatedly processing its own outputs.
 
-- Temporary token-protected HTTP links and QR codes, with automatic expiry.
-- This-computer-only access by default; explicit opt-in for LAN access.
-- Network-address selection and firewall/Public-network diagnostics. Default port 8765, with fallback ports when needed.
-- Copy, extend, or stop existing shares; manage sessions through **Tools > Active shares**.
-- Closing the share dialog leaves sharing active. On exit, choose to stop shares or keep them running in the background with a notification-area icon until they expire.
-- Persist session records with tokens encrypted for the current Windows account. Interrupted sessions require explicit resumption.
-- Offer a narrowly scoped firewall rule with administrator approval when policy permits. Organization-managed network policy can still block access.
+### Temporary File Sharing
 
-## Settings and defaults
+Share files with other devices through temporary links.
 
-Open Settings using the gear immediately before the rightmost Preview button, Tools, or the palette.
+- Share files or folders over a local network.
+- Generate shareable links and QR codes.
+- Configure expiration periods.
+- Manage or revoke active shares.
+- Use read-only, token-protected HTTP links; choose addresses, extend or stop sessions, and inspect network/firewall diagnostics.
+- Keep shares running in the notification area on exit when explicitly chosen, or stop them when closing Fyltrix.
+- Protect saved session tokens with Windows-account encryption; interrupted sessions require explicit resumption.
+- Keep sharing restricted to the current computer unless LAN access is explicitly enabled.
 
-| Page | Options |
+LAN sharing may require administrator approval for a firewall rule and appropriate network configuration. Organization policy can block access. Cross-device sharing has not been verified in every environment; token-protected HTTP links are not HTTPS transport encryption.
+
+### Fully Customizable Workspace
+
+Make Fyltrix work the way you prefer.
+
+- Light, Dark, and System themes.
+- Customizable toolbar buttons and labels.
+- Configurable context menu actions.
+- Per-folder view preferences.
+- Quick Access and sidebar customization.
+- IDE configurations.
+- File-creation template management.
+- Search preferences.
+- Recent and Favourites management.
+- Startup and tab restoration preferences.
+- Template, automation, custom-action, and sharing management alongside the main Settings pages.
+
+The default toolbar keeps **+ New** as icon and text; Cut, Copy, Paste, Rename, and Delete use icons with tooltips. File-operation labels and secondary labels can be enabled independently. **Settings** stays immediately before the rightmost **Preview** button. Toolbar visibility and extra commands are customizable, with a restore-default option.
+
+Settings changes apply when saved; themes apply on the next launch. Defaults include System theme, visible extensions, hidden files excluded, restored tabs, remembered folder views, HTML scripts off, and automation off. Explicit saved preferences take precedence over defaults.
+
+---
+
+## Download and Installation
+
+### Latest Published Version
+
+**[View the latest published version](https://github.com/imamulkadir/Fyltrix/releases/latest)** (the version badge above updates automatically).
+
+For the most recent available build, always use:
+
+**[Download Fyltrix — Latest Release](https://github.com/imamulkadir/Fyltrix/releases/latest)**
+
+### Portable Version
+
+1. Open the latest GitHub Release.
+2. Download the Windows x64 ZIP package.
+3. Extract the archive to your preferred folder.
+4. Launch the **root** `Fyltrix.exe`; keep `current.json`, `app-<version>`, and all other package files together.
+5. Start exploring your files.
+
+The portable release is self-contained with respect to the .NET runtime. Some preview and conversion capabilities require separate Windows components or optional dependencies.
+
+### Installer Version
+
+The latest published release includes **`Fyltrix-Setup-win-x64.exe`**. To install:
+
+1. Download the Fyltrix setup executable.
+2. Launch the installer.
+3. Accept the MIT agreement, choose an installation directory, and optionally create a desktop shortcut. Installation is per-user.
+4. Start Fyltrix from the Start Menu or desktop shortcut.
+
+**Note:** Use the assets on the selected release page, not GitHub’s source-code ZIP. Older releases may offer different packages. Setup installs the stable root launcher and its versioned payload; do not pin or launch an `app-<version>` executable directly. The desktop shortcut is optional.
+
+**In development:** the current source unifies Windows taskbar identity and keeps running-window pins on the root launcher. This fix is not yet in the latest published release. After installing a release containing it, old pins need a one-time refresh from the updated Start Menu shortcut. See [taskbar verification](docs/WINDOWS_TASKBAR.md) for remaining manual checks.
+
+Current unsigned builds may trigger Windows publisher or SmartScreen warnings. Only download Fyltrix from its official GitHub repository.
+
+---
+
+## System Requirements
+
+| Component | Requirement |
 |---|---|
-| Appearance | Dark/Light/System theme; extensions; hidden files; tab icons; preview startup behavior. |
-| Navigation | Restore tabs; startup folder; new-tab destination; multiple-tab close confirmation. |
-| Sidebar | Sections and Quick access places; remembered collapsed state; Recent tracking; clear Recent/Favourites. |
-| Views | Default view; per-folder memory; reset current/all folder views; default sorting. |
-| Context menu | Action visibility; detected/custom IDEs; New-menu types; restore default menu. Open and Refresh remain available. |
-| Toolbar | Button visibility; extra catalog commands; separate operation/secondary labels; restore default toolbar. Navigation/address controls and Settings stay accessible. |
-| Search | Enter-to-search subfolders; files/folders/both; live filtering. |
-| Advanced | Archive browsing; HTML scripts; archive extraction/preview limits; FFmpeg path. |
+| Operating System | Windows 10 version 1809 or later / Windows 11 |
+| Architecture | x64 |
+| Framework | .NET 8 |
+| UI Framework | WPF |
+| Administrator Rights | Per-user installation and ordinary operations need none; protected files and optional firewall changes can require elevation |
+| WebView2 Runtime | Required for supported embedded previews |
+| FFmpeg | Optional for audio/video conversion and fallback video thumbnails; configure in Settings or on PATH |
+| Windows codecs | Required for certain image/media formats |
+| Windows preview handlers | Optional for PowerPoint, legacy Word, Outlook, and other shell-preview formats |
+| Windows `tar.exe` | Optional for supported 7z and AES ZIP creation |
 
-**Save** applies settings without restarting, except theme changes, which apply on the next start. Clear/reset actions for lists and folder views take effect immediately as indicated in the dialog.
+The published portable distribution does not require a separately installed .NET runtime.
 
-Fresh installations and **Restore default toolbar** use this baseline:
+---
 
-- **+ New:** icon and label.
-- **Cut, Copy, Paste, Rename, Delete:** icons only with tooltips.
-- Secondary actions: icons only; operation and secondary labels can be enabled independently.
-- **Settings** immediately before **Preview**; Preview is rightmost.
-- Share actions use a share-arrow icon.
-- Separate New folder, Favourite, Explorer, Terminal buttons hidden; commands remain available elsewhere. Active shares is included as an extra toolbar command.
+## Build from Source
 
-Other defaults include System theme, extensions shown, hidden files hidden, restored tabs, remembered folder views, HTML scripts off, and automation off. Defaults live in `Core/ApplicationDefaults.cs` and `Core/AppSettings.cs`. Explicit saved preferences take precedence; missing properties use application defaults. Personal paths, Favourites, history, and window placement are not captured as application-wide defaults.
+### Prerequisites
 
-## Keyboard shortcuts
+- Windows 10 version 1809 or later, or Windows 11, x64.
+- .NET 8 SDK.
+- Git.
+- PowerShell.
+- Microsoft Edge WebView2 Runtime for embedded previews.
 
-Shortcuts apply to the active tab and respect command availability. Text fields and embedded viewers can consume their own keys.
-
-| Shortcut | Action |
-|---|---|
-| Ctrl+T / Ctrl+W | New / close tab |
-| Ctrl+Tab / Ctrl+Shift+Tab | Next / previous tab |
-| Ctrl+1 through Ctrl+9 | Corresponding tab |
-| Alt+Left / Alt+Right | Back / Forward |
-| Alt+Up or Backspace | Up one level |
-| F5 | Refresh |
-| Ctrl+L, Alt+D, F4 | Address bar |
-| Ctrl+F, Ctrl+E, F3 | Search box |
-| Enter / Ctrl+Enter in search | Search / search in a new tab |
-| Ctrl+Shift+F | Advanced search |
-| Ctrl+Shift+P | Command palette |
-| Ctrl+P | Toggle preview |
-| Space | Quick View |
-| Ctrl+D | Compare two compatible files |
-| Ctrl+X / Ctrl+C / Ctrl+V | Cut / copy / paste |
-| Ctrl+Shift+C | Copy selected paths |
-| Ctrl+Shift+N | New folder |
-| F2 | Rename / batch rename |
-| Delete / Shift+Delete | Recycle / permanent delete |
-| Ctrl+Z | Undo supported operation |
-| Ctrl+H | Hidden files |
-| Alt+Enter | Properties |
-| Shift+F10 or Menu key | Context menu |
-| Ctrl+Shift+1 / 2 / 3 / 4 | Thumbnails: 256 / 160 / 96 / 48 px |
-| Ctrl+Shift+6 | Details view |
-| Ctrl+mouse wheel | Thumbnail size |
-
-In image previews: `+`/`-` zoom, `0` fit, `1` actual size, `R` rotate, `F` fullscreen, Left/Right previous/next. Animation controls include `K` play/pause and `,`/`.` frame stepping. Quick View supports arrows to navigate and Escape to close or leave fullscreen.
-
-## Application data and diagnostics
-
-Portable describes deployment: preferences live in the current Windows user's profile. The legacy **FileLens** folders preserve existing preferences after rebranding.
-
-| Location | Contents |
-|---|---|
-| `%AppData%\FileLens\settings.json` | Settings, tabs, Favourites, Recent, saved searches, views, custom actions, IDE configuration. |
-| `%AppData%\FileLens\templates.json` | Template definitions/customization. |
-| `%AppData%\FileLens\tags.json` | Tags and labels. |
-| `%AppData%\FileLens\automation.json`, `automation.log` | Rules and activity. |
-| `%AppData%\FileLens\sync\` | Sync baselines. |
-| `%AppData%\FileLens\shares.json` | Share sessions with Windows-account-encrypted tokens. |
-| `%AppData%\FileLens\error.log`, `crashes\` | Rolling log and crash reports. Share links are masked. |
-| `%LocalAppData%\FileLens\WebView2` | Preview browser data/cache. |
-| `%LocalAppData%\FileLens\Thumbs` | FFmpeg thumbnail cache, bounded to 256 MB. |
-| `%LocalAppData%\FileLens\ArchiveCache` | Temporary archive previews, cleaned on exit. |
-| `%LocalAppData%\Fyltrix\Updates\` | Verified update staging plus check/notification history and saved-stage metadata; separate from existing user settings. |
-
-**Tools > About Fyltrix** provides access to the diagnostics folder. Back up data before manually editing settings. Moving the executable or checkout does not require renaming these folders. Older shortcuts targeting `FileLens.exe` must be pointed at the new `Fyltrix.exe`; the new publish does not generate a legacy launcher. Legacy release files are preserved in the external migration backup. Existing program-scoped firewall rules may need reauthorization for the new executable path. The sharing dialog updates its existing named rule instead of adding a duplicate; broader legacy rules are left untouched.
-
-## Development and verification
-
-The current source adds manual application updates through **Tools > Check for updates** or the command palette (`Ctrl+Shift+P`). Click **Check for updates**, then **Download**, then explicitly confirm **Install and restart** after finishing file operations and closing tools/shares. The dialog shows download progress and plain-text release notes after manifest verification; closing it cancels active checks/downloads. Opening it does not perform a network check. Unsupported/development copies link to the manual installer. This interface is not in the already published `v0.1.5`; it requires a later reviewed build. See [manual updates](docs/MANUAL_UPDATES.md).
-
-**Settings > Updates** offers **Notify only** (the unchanged default), **Manual only**, **Automatic download, manual installation**, and **Automatic download and install on exit**. Scheduled checks start after a 60-second delay, then run every six hours while Fyltrix is open, respecting server retry delays. A verified newer release produces a dismissible in-app banner with update details and a Settings shortcut. Settings shows the current version, last check, last verified available version, current progress and **Check now**. Automatic download requires an update-enabled layout and adds cancellation and a verified **ready to install** notice. Saved packages are reauthenticated and hashed before being offered after restart. Notification history suppresses repeated notices when saved successfully. Other existing preferences are preserved. Install on exit is opt-in: it applies a ready download after an accepted, safe normal close and leaves Fyltrix closed. Active work, tools, sharing, automation, close cancellation or Windows session ending prevent exit installation. Manual **Install and restart** still asks for confirmation. See [update preferences and downloads](docs/MANUAL_UPDATES.md).
-
-The separate [release-layout tooling](docs/RELEASE_LAYOUT.md) builds an isolated versioned payload and native launcher. The Stage 3 [Inno Setup installer](docs/INSTALLER.md) adds per-user installation, with a separate Sandbox identity for testing. Neither build script runs an installer or replaces `publish.ps1 -Run`; automatic installation is off by default. Stage approvals and current installation/update work are tracked in [PROJECT_PROGRESS.md](docs/PROJECT_PROGRESS.md).
-
-Stage 4 introduced separate [release discovery and signed package verification tooling](docs/UPDATES.md), with offline test feeds. Later stages reuse it for manual and scheduled checks. A dedicated owner-managed Fyltrix public signing key is pinned; existing installations need a manually reviewed bootstrap build to receive that trust and the new interface.
-
-Stage 5 adds explicit [manual download/staging and safe handover tooling](docs/MANUAL_UPDATES.md), plus internal shutdown guards that preserve active work and existing close confirmations. Stage 6 adds the [verified apply, isolated health trial, rollback and recovery backend](docs/APPLY_AND_RECOVERY.md), with installed Sandbox tests and owned-file uninstall cleanup. Stage 7B connects the manual update interface; notification-plan Stages 1–3 add settings, scheduled notices, optional verified downloads and safe exit installation. Owner review/bootstrap rollout remains separate. Pinned trust alone does not enable installation.
-
-[Release automation](docs/RELEASING.md) follows DyanamicEye: update [CHANGELOG.md](CHANGELOG.md), prepare the version and push a `vX.Y.Z` tag yourself. GitHub then tests/builds/packages and prepares a draft with changelog notes. An owner-run local helper verifies provenance, signs with the dedicated Fyltrix key and optionally publishes. The private key and encrypted backup stay outside Git; the owner-run `v0.1.5` tag workflow and public-feed authentication passed. Later source features still require a new reviewed release.
+### 1. Clone the Repository
 
 ```powershell
-dotnet restore .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj
+git clone https://github.com/imamulkadir/Fyltrix.git
+cd Fyltrix
+```
+
+### 2. Build the Application
+
+```powershell
+dotnet build .\src\Fyltrix\Fyltrix.csproj -p:Platform=x64
+```
+
+### 3. Run from Source
+
+```powershell
+dotnet run --project .\src\Fyltrix\Fyltrix.csproj -p:Platform=x64
+```
+
+### 4. Publish a Portable Build
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\publish.ps1
+```
+
+Output:
+
+```text
+artifacts\
+└── Fyltrix\
+    └── Fyltrix.exe
+```
+
+For a normal published folder, distribute the complete output directory, not just the executable.
+
+### 5. Publish and Launch
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\publish.ps1 -Run
+```
+
+### 6. Run Tests
+
+```powershell
 dotnet test .\tests\Fyltrix.Tests\Fyltrix.Tests.csproj -p:Platform=x64
 ```
 
-The latest verified application suite has **441 passing tests**, covering core operations, offscreen UI behavior, update preferences/notifications, optional downloads/exit installation, safe update closing and strict copied-profile compatibility. Separate updater, packaging, release-tooling and installer-builder suites bring the total to **630 passing tests**. Five isolated native update lifecycle cases also passed, including manual restart, exit installation without restart, failed-health rollback, close cancellation and worker-start refusal, plus successful/failed-update next-start checks. UI tests render real windows without taking desktop focus; clipboard tests use isolated providers. Tests do not certify every codec, shell handler, or network environment.
-
-Fyltrix is available under the [MIT licence](LICENSE); bundled third-party components retain their own licences. Interactive installers show the agreement before directory selection and require acceptance to continue. `LICENSE.txt` is included with application outputs. Current installers are not Authenticode-signed, so Windows may warn about an unknown publisher or an unrecognized download. The updater's signed manifest is separate from Windows executable signing; see [installer documentation](docs/INSTALLER.md).
-
-`tests/Fyltrix.PlacementProbe` provides native placement checks, theme renders, and resource benchmarks. Build it before use:
+The separate updater and packaging suites can also be run with:
 
 ```powershell
-dotnet build .\tests\Fyltrix.PlacementProbe\Fyltrix.PlacementProbe.csproj -c Release
-.\tests\Fyltrix.PlacementProbe\bin\Release\net8.0-windows10.0.19041.0\Fyltrix.PlacementProbe.exe render System "C:\TestData" "C:\TestOutput\fyltrix.png"
-.\tests\Fyltrix.PlacementProbe\bin\Release\net8.0-windows10.0.19041.0\Fyltrix.PlacementProbe.exe bench "C:\TestData" "C:\TestOutput\benchmark.json"
+dotnet test .\tests\Fyltrix.Updates.Tests\Fyltrix.Updates.Tests.csproj
+dotnet test .\tests\Fyltrix.Packaging.Tests\Fyltrix.Packaging.Tests.csproj
 ```
 
-Create directories first and use dedicated test data: the benchmark creates a data set, and render writes isolated settings/WebView2 data under its supplied folder.
+Installer/release-layout packaging is a separate workflow; NativeAOT additionally needs the Windows C++/SDK toolchain and installer compilation needs Inno Setup. The normal `publish.ps1 -Run` workflow is unchanged. For additional development information, see [`docs/`](docs/).
 
-Optional checks: `FL_MEDIA=<folder>` previews files and writes `sweep.log` there; `FL_LAN_CHECK=1` checks a share through this computer's LAN address. Cross-device sharing, native Snap flyouts, taskbar appearance, and third-party Open with placement still benefit from a manual check on the target machine.
+---
 
-## Project structure
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl + T` | New tab |
+| `Ctrl + W` | Close tab |
+| `Ctrl + Tab` / `Ctrl + Shift + Tab` | Next / previous tab |
+| `Ctrl + 1` through `Ctrl + 9` | Corresponding tab |
+| `Alt + Left` | Back |
+| `Alt + Right` | Forward |
+| `Alt + Up` / `Backspace` | Parent folder |
+| `Ctrl + L` / `Alt + D` / `F4` | Address bar |
+| `Ctrl + F` / `Ctrl + E` / `F3` | Search box |
+| `Enter` / `Ctrl + Enter` in search | Search / search in a new tab |
+| `Ctrl + Shift + F` | Advanced search |
+| `Ctrl + Shift + P` | Command palette |
+| `Ctrl + P` | Toggle Preview |
+| `Space` | Quick View |
+| `Ctrl + D` | Compare compatible files |
+| `Ctrl + C` | Copy |
+| `Ctrl + X` | Cut |
+| `Ctrl + V` | Paste |
+| `Ctrl + Shift + N` | New folder |
+| `F2` | Rename / batch rename for multiple selections |
+| `Delete` | Delete to Recycle Bin |
+| `Shift + Delete` | Permanent delete |
+| `Ctrl + Z` | Undo supported operations |
+| `F5` | Refresh |
+| `Alt + Enter` | Properties |
+| `Ctrl + Shift + C` | Copy selected paths |
+| `Ctrl + H` | Toggle hidden files |
+| `Shift + F10` / Menu key | Context menu |
+| `Ctrl + Shift + 1` / `2` / `3` / `4` | Thumbnail sizes: 256 / 160 / 96 / 48 px |
+| `Ctrl + Shift + 6` | Details view |
+| `Ctrl + mouse wheel` | Thumbnail size |
+
+Shortcuts are context-sensitive and may be handled by focused text fields or embedded viewers.
+
+Image previews also support `+`/`-` to zoom, `0` for fit, `1` for actual size, `R` to rotate, `F` for fullscreen, and arrow keys for previous/next. Supported animations use `K` for play/pause and `,`/`.` for frame stepping.
+
+---
+
+## Updates and Releases
+
+Fyltrix uses GitHub Releases for application distribution and update delivery.
+
+The update infrastructure supports:
+
+- Manual update checks.
+- Automatic update notifications and a dismissible in-app banner; **Notify only** is the default, not automatic installation.
+- **Settings → Updates** modes: Manual only, Notify only, Automatic download with manual installation, or Automatic download and install on exit.
+- Optional installation at a safe normal exit without restarting; active work, tools, sharing, automation, cancelled closing, or Windows session ending prevent exit installation. Manual Install and restart still requires confirmation.
+- Release notes and version information.
+- Signed update metadata and package verification.
+- Update recovery and rollback mechanisms.
+
+The current published release includes these update controls; see the [latest release notes](https://github.com/imamulkadir/Fyltrix/releases/latest). Open **Tools → Check for updates**, the command palette, or **Settings → Updates**. Settings shows version/check information, progress, cancellation, and verified ready-to-install status. Scheduled checks begin after a 60-second startup delay and normally repeat every six hours while Fyltrix is open, respecting server retry delays.
+
+Update availability depends on the distribution and release version. A release-layout ZIP or installed copy must pass the updater’s eligibility checks; flat development/portable publishes and unsupported layouts use the manual-installer path. Downloaded packages are reauthenticated before reuse after restart. Release metadata signatures are separate from Windows executable signing and do not suppress SmartScreen warnings.
+
+**Your settings and personal configurations are intended to remain separate from replaceable application binaries.**
+
+For technical details, see:
+
+- [Update documentation](docs/UPDATES.md)
+- [Manual updates](docs/MANUAL_UPDATES.md)
+- [Installation and recovery](docs/APPLY_AND_RECOVERY.md)
+- [Release process](docs/RELEASING.md)
+
+---
+
+## Privacy and Data
+
+Fyltrix is designed around local file management.
+
+- Everyday file operations run on your computer.
+- Automation is optional and disabled by default.
+- LAN sharing requires explicit activation.
+- Update checks communicate with GitHub when enabled or requested.
+- Recent history and other application preferences can be controlled through Settings.
+
+Preferences are stored in the Windows user profile even for portable copies. Fyltrix deliberately retains these legacy filesystem identifiers to preserve existing data after rebranding:
+
+| Compatibility location | Purpose |
+|---|---|
+| `%AppData%\FileLens` | Settings, tabs, Favourites, Recent, templates, tags, automation, sharing records, synchronization baselines, and diagnostics |
+| `%LocalAppData%\FileLens` | WebView2, thumbnail, and archive-preview caches |
+| `%LocalAppData%\Fyltrix\Updates` | Separate update staging and notification/check metadata |
+
+These are internal persistence paths, not the current application name. **Do not rename them manually.** Moving the checkout or executable does not require a profile migration.
+
+HTML preview scripts are off by default. Previewing network-dependent content or opening external links can contact remote services. Sharing serves selected content from this computer only when requested.
+
+Back up important configuration data before manually editing application files.
+
+---
+
+## Project Structure
 
 ```text
-src/Fyltrix/
-  App.cs                 Startup, settings, theme, crash handlers
-  Assets/                Existing SVG/ICO/PNG logo
-  Core/                  File operations, undo, settings/defaults, shell integration
-    Archives/            Archive reading, extraction, creation, browsing
-    Templates/           Templates and Windows ShellNew discovery
-    Imaging/             Image decoding, transforms, encoding
-    Media/               Metadata, subtitles, thumbnails, caches
-    Pdf/                 PDF page operations and rendering
-    Conversion/          FFmpeg discovery, presets, conversion
-    Tools/               Search, rename, duplicates, sizes, hashes, tags, sync
-    Automation/          Rules, engine, persistence, activity
-    Sharing/             Sessions, HTTP host, network/firewall checks
-  UI/                    Main window, folder views, settings, tool dialogs
-  Preview/               WebView2 pane, preview API/server, native/shell hosting
-  Viewer/                Embedded HTML/CSS/JS viewer and bundled libraries
-  Templates/             Blank Office documents
-tests/Fyltrix.Tests/    xUnit core and offscreen UI tests
-tests/Fyltrix.PlacementProbe/
-                        Placement, screenshot, benchmark helper
-tools/LogoGen/           Existing logo generator
-tools/OfficeTemplates/   Office template generator/validator
-publish.ps1              Portable win-x64 publishing
-docs/                    Reports and verification evidence
+Fyltrix/
+├── src/
+│   ├── Fyltrix/
+│   │   ├── Assets/
+│   │   ├── Core/
+│   │   ├── UI/
+│   │   ├── Preview/
+│   │   ├── Viewer/
+│   │   └── Fyltrix.csproj
+│   ├── Fyltrix.Launcher/
+│   ├── Fyltrix.Bootstrap/
+│   └── Fyltrix.Updates/
+├── tests/
+├── tools/
+├── packaging/installer/
+├── docs/
+├── .github/
+├── publish.ps1
+├── CHANGELOG.md
+├── LICENSE
+└── README.md
 ```
 
-Dependencies include WebView2, SharpCompress, SkiaSharp, PDFsharp, QRCoder. The embedded viewer includes marked, DOMPurify, highlight.js, docx-preview, SheetJS, PapaParse, JSZip, jsdiff, loaded as needed. Package versions live in the project file.
+The project is built primarily with C# and WPF. Additional components support previews, archives, document processing, image conversion, and update management.
 
-## Implementation reports
+---
 
-- [Current implementation status](docs/IMPLEMENTATION_STATUS.md)
-- [Initial feature implementation](docs/IMPLEMENTATION_REPORT.md)
-- [Round 2 fixes and verification](docs/ROUND2_REPORT.md)
-- [Rebranding and compatibility identities](docs/REBRANDING_REPORT.md)
-- [Project-directory relocation audit](docs/PROJECT_RELOCATION_REPORT.md)
-- [Complete identity migration and compatibility audit](docs/FYLTRIX_MIGRATION_REPORT.md)
-- [Round 7 benchmark](docs/ROUND7_BENCHMARK.json) and [Round 8 benchmark](docs/ROUND8_BENCHMARK.json)
+## Roadmap
 
-Reports preserve development history. Historical paths and old display names are not required checkout locations or instructions to rename internal identifiers.
+Fyltrix is actively evolving.
+
+Areas tracked through project documentation and issues include:
+
+- Improving performance and resource efficiency.
+- Expanding file preview compatibility.
+- Improving advanced file operations.
+- Refining the Windows-native interface.
+- Improving installer and update reliability.
+- Enhancing user customization.
+- Strengthening test coverage and compatibility.
+
+See [Releases](https://github.com/imamulkadir/Fyltrix/releases), [Issues](https://github.com/imamulkadir/Fyltrix/issues), and [Project Progress](docs/PROJECT_PROGRESS.md) for current information.
+
+---
+
+## Contributing
+
+Contributions, feedback, and suggestions are welcome.
+
+If you want to improve Fyltrix:
+
+1. Explore the existing repository and documentation.
+2. Check open issues for known problems.
+3. Open an issue to discuss a proposed change.
+4. Submit a pull request with a clear description and relevant tests.
+
+Please avoid including personal files, credentials, or sensitive information in bug reports or screenshots.
+
+---
+
+## Found a Bug or Have an Idea?
+
+Your feedback helps Fyltrix improve.
+
+- [Report a Bug](https://github.com/imamulkadir/Fyltrix/issues/new)
+- [Request a Feature](https://github.com/imamulkadir/Fyltrix/issues/new)
+- [Browse Existing Issues](https://github.com/imamulkadir/Fyltrix/issues)
+
+When reporting issues, include your Windows version, Fyltrix version, steps to reproduce, and relevant non-sensitive screenshots or logs.
+
+---
+
+## Support Fyltrix
+
+### Love Fyltrix? Give it a Star!
+
+If Fyltrix makes file management easier for you, consider giving the repository a **GitHub Star**.
+
+It only takes a second, but it makes a real difference:
+
+- Helps more people discover the project.
+- Encourages continued development.
+- Supports the growth of an open-source alternative to traditional file managers.
+- Shows which projects the community finds useful.
+
+**[Star Fyltrix on GitHub](https://github.com/imamulkadir/Fyltrix)**
+
+You can also support the project by sharing it, reporting bugs, suggesting improvements, or contributing code.
+
+Every contribution helps make Fyltrix better.
+
+---
+
+## License
+
+Fyltrix is open-source software distributed under the [MIT License](LICENSE).
+
+Third-party libraries and bundled components retain their respective licenses.
+
+---
+
+<div align="center">
+
+### Fyltrix
+
+**Your Files. Your Rules.**
+
+Built with C# and .NET for Windows.
+
+If you find Fyltrix useful, please consider giving it a star.
+
+[![Star on GitHub](https://img.shields.io/github/stars/imamulkadir/Fyltrix?style=social)](https://github.com/imamulkadir/Fyltrix)
+
+</div>
