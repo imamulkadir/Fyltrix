@@ -4,6 +4,10 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.8 draft verified and signed locally — 2026-11-02
+
+The actual tag workflow passed all 640 tests on Windows image 20261030.294.1. Actual CI ZIP/Setup sizes, hashes, checksum sidecars and exact tagged provenance passed; shipped versions/layout/licence/hooks were checked. Locally signed metadata passed default production trust in the shipped update DLLs, with tamper rejection. All 997 protected profile/application/key/backup hashes and Git refs match. The release remains a four-asset draft: owner upload of the two locally prepared public metadata files is next, followed by uploaded-byte verification before owner publication. No upload/publication/install/Setup execution was performed. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+
 ### Comparison browser-host fixture update — 2026-11-02
 
 Manual 0.1.8 preparation run 41446270527 failed before WebView2 controller readiness. Green/failed runs used different Windows image revisions; exact cause remains unconfirmed and an unchanged private-desktop baseline passed locally. Tests now use deterministic laid-out window sizes, wait for initial controllers before normal mode changes, isolate browser profiles per host, log native state/runtime and separately cover immediate mode switching. All 640 regression cases and 22 final normal/private comparison executions pass locally; 991 protected hashes and Git refs match. Product/workflow/security settings are unchanged. Keep 0.1.8 and validate this new source on hosted master before tagging; no 0.1.8 tag exists yet. The newer failing image still needs confirmation. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
@@ -38,6 +42,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Release 0.1.8 actual draft/signing | Actual tagged CI provenance/checksums/versions, guarded local signing and shipped default-pin/tamper verification | Passed; two local metadata files await owner upload; release remains draft |
 | Comparison browser-host fixture | Fixed viewport, per-host profile, controlled startup and separate fast-switch regression with native diagnostics | 640 regression cases and 22 normal/private focused executions passed locally; hosted image confirmation pending |
 | Release 0.1.8 preparation | Carry forward unpublished 0.1.7 work with hosted-validated test readiness; prepare version/notes | 639 tests, both installer builds, 0.1.8 native Sandbox smoke and preservation passed; owner push/hosted validation pending |
 | Comparison test readiness hardening | Separate browser/content/layout readiness and timeout diagnostics; original scroll assertions retained | 639 regression cases and 30 focused executions passed locally; hosted confirmation pending |
