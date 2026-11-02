@@ -6,6 +6,13 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Changed
+
+- Harden comparison-scroll tests by waiting separately for browser startup,
+  expected document content, layout and scroll hooks. Include browser-state
+  diagnostics on timeout without changing application behavior or skipping
+  scrolling assertions.
+
 ## [0.1.7] - 2026-11-02
 
 ### Fixed

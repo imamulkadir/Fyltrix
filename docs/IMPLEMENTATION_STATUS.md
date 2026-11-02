@@ -4,6 +4,10 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Comparison test readiness hardening — 2026-11-02
+
+The second tagged attempt failed the same Markdown content wait. The comparison test now waits separately for browser startup, expected DOM content and actual layout/scroll hooks, with useful browser state in timeout reports. Production code and existing scroll assertions are unchanged. Three focused runs (30 cases) and all 639 regression cases passed locally; 991 protected file hashes and Git refs match. Hosted confirmation of this test change is pending. The exact prior runner failure remains unproven; do not claim a hosted fix or retry the old tag again. Owner commit/push and manual master validation are next; a later release must use a new version/tag. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
+
 ### Release 0.1.7 tagged CI investigation — 2026-11-02
 
 The owner's exact preparation commit passed manual CI, then its tagged run failed one comparison-preview content-readiness wait (441/442 application tests passed). No package/draft was created. The same default Release configuration passed all 10 comparison-scroll cases locally, two additional runs of the failing case and the full 442 application suite. Precise cause remains unconfirmed; no source/test/workflow changes or weakened checks were introduced. One owner-triggered retry of the unchanged tagged run is next. This does not claim that hosted CI is fixed or green. See [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md).
@@ -26,6 +30,7 @@ The owner completed the tag/signing/publication workflow for `v0.1.5`, and the p
 
 | Round | What | Status |
 |---|---|---|
+| Comparison test readiness hardening | Separate browser/content/layout readiness and timeout diagnostics; original scroll assertions retained | 639 regression cases and 30 focused executions passed locally; hosted confirmation pending |
 | Release 0.1.7 tagged CI investigation | One intermittent comparison content wait; exact source unchanged | Local 442 application cases and 12 focused cases pass; owner retry of tagged workflow pending |
 | Release 0.1.7 preparation | Dated changelog/version, full regression, isolated native layout and both Setup modes | 639 tests, 0.1.7 Sandbox smoke and preservation checks passed; owner commit/push and hosted validation pending |
 | Windows taskbar identity (2026-11-02) | Shared process/window/shortcut identity, stable root relaunch, separate portable/development/Sandbox grouping | 639 tests and fresh private-desktop Sandbox install/launch/uninstall passed; visual pinning review pending |

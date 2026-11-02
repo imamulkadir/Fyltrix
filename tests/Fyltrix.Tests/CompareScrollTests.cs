@@ -46,8 +46,31 @@ public class CompareScrollTests
         Put("xl/_rels/workbook.xml.rels", "<?xml version=\"1.0\"?><Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/></Relationships>");
         Put("xl/worksheets/sheet1.xml", "<?xml version=\"1.0\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>" + rows + "</sheetData></worksheet>");
     }
-    private static void WaitForText(PreviewPane pane, string text) =>
-        Sta.WaitUntil(() => pane.IsReady && Eval(pane, "String(document.body?.innerText || '')").Contains(text), "content " + text, 20000);
+    private static void WaitForText(PreviewPane pane, string text)
+    {
+        try
+        {
+            // Startup and asynchronous viewer rendering are separate phases (as in PreviewUiTests.Host).
+            // In particular, do not spend the content deadline creating a cold WebView2 browser.
+            Sta.WaitUntil(() => pane.IsReady, "comparison WebView2 initialization", 30000);
+            // Read DOM content rather than layout-dependent body.innerText on an off-screen window.
+            Sta.WaitUntil(() => Eval(pane, "String((document.getElementById('root') || document.body)?.textContent || '')").Contains(text),
+                "comparison content " + text, 20000);
+            // Content exists before layout and the host's navigation-completed scroll script necessarily finish.
+            Sta.WaitUntil(() => Eval(pane, "String(typeof window.__flPos === 'function' && typeof window.__flScrollTo === 'function' && (() => { const r = document.getElementById('root') || document.scrollingElement; return r.clientHeight > 0 && r.scrollHeight > r.clientHeight + 1500; })())") == "true",
+                "comparison layout and scrolling hooks", 15000);
+        }
+        catch (TimeoutException ex)
+        {
+            string state;
+            try
+            {
+                state = pane.IsReady ? Eval(pane, "JSON.stringify({url:location.href,ready:document.readyState,visibility:document.visibilityState,text:(document.body?.textContent || '').slice(0,1200),scrollHook:typeof window.__flPos,rootHeight:document.getElementById('root')?.clientHeight,rootScrollHeight:document.getElementById('root')?.scrollHeight})") : "WebView2 not initialized";
+            }
+            catch (Exception snapshotError) { state = "Snapshot failed: " + snapshotError.Message; }
+            throw new TimeoutException(ex.Message + "\nFile: " + pane.CurrentPath + "\nBrowser state: " + state, ex);
+        }
+    }
 
     private static int Top(PreviewPane pane, string scroller) => (int)double.Parse(Eval(pane, $"String({scroller}.scrollTop)"), System.Globalization.CultureInfo.InvariantCulture);
 

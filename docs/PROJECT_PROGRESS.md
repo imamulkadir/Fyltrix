@@ -10,6 +10,27 @@ Last updated: 2026-11-02.
 - Preserve the current application, user profile, and `publish.ps1 -Run`. Installer experiments must use separate output/install directories and a distinct sandbox installer identity.
 - Keep fully automatic installation disabled until manual installation, verification, rollback, and user-data preservation have passed, followed by explicit approval for any further rollout.
 
+## Comparison preview readiness hardening after repeated tagged CI failure (2026-11-02)
+
+Status: **Test change verified locally; hosted confirmation pending.** Attempt 2 of [tagged run 41434209477](https://github.com/imamulkadir/Fyltrix/actions/runs/41434209477) again failed the same `CompareScrollTests.Side_by_side_scrolls_together_and_can_be_switched_off` wait for `Left paragraph 300`: 441 application cases passed and one timed out. It stopped before package/attestation/draft creation. A separate green [manual master run 41440637685](https://github.com/imamulkadir/Fyltrix/actions/runs/41440637685) is not a successful tagged release. The prior one-retry recommendation has been exhausted; do not repeat the unchanged tag again to try to obtain green.
+
+Changed only the comparison test's readiness helper, with no production application or workflow changes:
+
+- Browser initialization gets its own bounded 30-second wait, matching the existing preview-host and wheel-test pattern. Previously it consumed part of the same 20 seconds used for document content.
+- The unchanged 20-second content wait checks the expected fixture text in the viewer root/body DOM, rather than layout-dependent whole-body `innerText` on an off-screen window.
+- A separate bounded 15-second check requires the real scroll hooks and enough laid-out scroll range for the 1500-pixel assertions. Existing bidirectional synchronization, independent scrolling when disabled and immediate alignment when enabled remain asserted.
+- On timeout, TRX now contains the current file, document URL/readiness/visibility, text excerpt, scroll-hook presence and root geometry. This will distinguish startup, navigation/rendering and layout/hook failures on the next hosted attempt. No retries, skipped tests, weakened expected text or removed scroll assertions were introduced.
+
+This addresses a test-readiness weakness; local results **do not prove the precise cause of either hosted failure or guarantee a green hosted run**. Reference contracts: [WebView2 initialization](https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.wpf.webview2.ensurecorewebview2async) and the HTML standard's [rendered innerText](https://html.spec.whatwg.org/multipage/dom.html#the-innertext-idl-attribute).
+
+Verification: the **10 comparison-scroll cases passed in three separate test-host runs** (30 focused executions), then the complete **442 application cases passed**. Fresh updater (134), packaging (39), release-tooling (14) and installer-builder (10) suites also passed: **639 total regression cases**, plus the focused runs. Compilation succeeded with the existing nullable/high-DPI warnings. All **991** protected installed/profile/portable file hashes and Git refs match. Application/installer/update/shutdown/persistence code, published 0.1.6, `publish.ps1 -Run`, signing stores and existing pins were not changed. No performance benchmark or package rebuild was repeated for a test-only change.
+
+Files modified: `tests/Fyltrix.Tests/CompareScrollTests.cs`, `CHANGELOG.md` (Unreleased only), this file, `docs/IMPLEMENTATION_STATUS.md`, `docs/RELEASING.md`. Evidence: `C:\Users\imamu\AppData\Local\Temp\Fyltrix-compare-readiness-20261102-181620`; pointer `%TEMP%\Fyltrix-compare-readiness-current.txt`. No commit, push, merge, tag, workflow dispatch/rerun, signing, release publication or installed-application launch was performed.
+
+Suggested owner commit: `test(compare): wait for preview initialization and layout`.
+
+**Next owner action:** review, commit and push these five files to master, then run Actions → Release → Run workflow → master to validate the updated test. Do not retry `v0.1.7` expecting it to include an untagged fix. After hosted confirmation and approval, prepare a new release version/tag (next candidate 0.1.8), preserving the existing failed 0.1.7 tag. This stage intentionally leaves application version at 0.1.7 and does not begin the next release-preparation stage. **Stop here.**
+
 ## Release 0.1.7 tagged-workflow failure investigation (2026-11-02)
 
 Status: **Investigated; one retry of the unchanged tagged run recommended, hosted result pending.** The owner committed preparation as `fa454b25abceaf3b2bbaf1cc82ff95ce709cc115`, passed manual [workflow 41430955550](https://github.com/imamulkadir/Fyltrix/actions/runs/41430955550), and created/pushed annotated `v0.1.7` (tag object `1a0e108a5f4f9d352a61bf274d7ec9d900ec98f6`). The tag and HEAD resolve to that same preparation commit. Tagged [workflow 41434209477](https://github.com/imamulkadir/Fyltrix/actions/runs/41434209477) failed in the application-test step: 441 passed, one failed.
