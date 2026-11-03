@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
 using Fyltrix.Core;
@@ -45,9 +46,63 @@ public class IdeIntegrationTests
         var ide = new IdeEntry { Name = "Copier", Program = "robocopy.exe", Arguments = "{path} " + IdeCatalog.Quote(dest) + " marker.txt" };
         Assert.Null(ide.Validate());
         ide.Open(src);
-        var deadline = DateTime.UtcNow.AddSeconds(15);
-        while (!File.Exists(Path.Combine(dest, "marker.txt")) && DateTime.UtcNow < deadline) Thread.Sleep(100);
-        Assert.Equal("ok", File.ReadAllText(Path.Combine(dest, "marker.txt")));
+        WaitForCopiedText(Path.Combine(dest, "marker.txt"), "ok", TimeSpan.FromSeconds(15));
+    }
+
+    private static void WaitForCopiedText(string path, string expected, TimeSpan timeout)
+    {
+        // File creation precedes copy completion. Robocopy can still hold the destination
+        // exclusively, or have written only part of it, when the directory entry appears.
+        var elapsed = Stopwatch.StartNew();
+        string? actual = null;
+        IOException? lastError = null;
+        do
+        {
+            try
+            {
+                actual = File.ReadAllText(path);
+                lastError = null;
+                if (actual == expected) return;
+            }
+            catch (IOException error) { lastError = error; }
+            Thread.Sleep(25);
+        } while (elapsed.Elapsed < timeout);
+
+        Assert.Fail($"Copy did not produce readable expected contents within {timeout}: {path}. " +
+            $"Expected: '{expected}'; last contents: '{actual}'; last I/O error: {lastError?.Message ?? "none"}");
+    }
+
+    [Fact]
+    public async Task Copy_completion_waits_for_the_destination_writer_to_release_the_file()
+    {
+        using var t = new TempDir();
+        var path = t["marker.txt"];
+        using var writer = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+        writer.Write("ok"u8);
+        writer.Flush();
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var reader = Task.Run(() =>
+        {
+            started.SetResult();
+            WaitForCopiedText(path, "ok", TimeSpan.FromSeconds(5));
+        });
+        try
+        {
+            await started.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            // An existing but locked file is not a completed copy.
+            Assert.NotSame(reader, await Task.WhenAny(reader, Task.Delay(100)));
+        }
+        finally { writer.Dispose(); }
+        await reader.WaitAsync(TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void Copy_completion_rejects_incorrect_contents_with_a_bounded_failure()
+    {
+        using var t = new TempDir();
+        var error = Assert.Throws<Xunit.Sdk.FailException>(() =>
+            WaitForCopiedText(t.File("marker.txt", "wrong"), "ok", TimeSpan.FromMilliseconds(100)));
+        Assert.Contains("last contents: 'wrong'", error.Message);
     }
 
     [Fact]
