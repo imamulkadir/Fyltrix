@@ -1329,7 +1329,8 @@ public sealed partial class MainWindow : Window, IFolderHost
         }
         else if (key == Key.Escape)
         {
-            if (_quickView != null) _quickView.Close();
+            if (View.MarqueePending) View.CancelMarquee();
+            else if (_quickView != null) _quickView.Close();
             else if (View.IsSearchResults) { _search.Text = ""; View.EndSearch(); }
             else if (_search.Text.Length > 0) { _search.Text = ""; View.SetFilter(""); }
             else View.List.SelectedItems.Clear();

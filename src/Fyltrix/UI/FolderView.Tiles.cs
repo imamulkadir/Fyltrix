@@ -39,6 +39,7 @@ public sealed partial class FolderView
             List.PreviewMouseWheel += OnTileWheel;
         }
         if (mode == Mode && (mode == ViewMode.Details || tileSize == TileSize)) { TileSize = tileSize; return; }
+        CancelMarquee();
         var selected = SelectedItems;
         var focused = FocusedItem;
         _detailsPanel ??= List.ItemsPanel;

@@ -11,6 +11,17 @@ namespace Fyltrix.UI;
 /// </summary>
 internal static class WindowPlacement
 {
+    /// <summary>Initial placement for an independent window, without creating native/WPF ownership.</summary>
+    internal static void CenterOn(Window window, Window reference)
+    {
+        var hwnd = new WindowInteropHelper(window).Handle;
+        var referenceHwnd = new WindowInteropHelper(reference).Handle;
+        if (hwnd == IntPtr.Zero || referenceHwnd == IntPtr.Zero) return;
+        var position = Position(referenceHwnd, window.ActualHeight > 0 ? window.ActualHeight : window.Height,
+            window.ActualWidth > 0 ? window.ActualWidth : window.Width, null);
+        SetWindowPos(hwnd, IntPtr.Zero, position.X, position.Y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+
     /// <summary>Places <paramref name="w"/> over <paramref name="owner"/> once its handle exists: centred horizontally and
     /// <paramref name="top"/> DIPs below the owner's top edge (centred vertically when null). Call before Show.</summary>
     public static void OverOwner(Window w, Window owner, double? top)

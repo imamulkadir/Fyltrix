@@ -313,8 +313,8 @@ async function renderDocx(src, name) {
 }
 
 /* ------------------------------------------------------------------ pdf, page by page (Compare) */
-// Edge's PDF viewer is a plugin that pages can't scroll, so Compare draws the pages itself (Windows' PDF engine renders each
-// one as an image when it comes near the view). Then both sides are ordinary scrolling pages and can scroll together.
+// Legacy image-page route for explicit pdfpages requests. Preview and Compare now navigate
+// directly to the original PDF in WebView2; they do not use this renderer or its scroll synchronization.
 async function renderPdfPages(name) {
   const res = await fetch(q.get('api'));
   if (!res.ok) { post('pdf-native'); return; } // password-protected or damaged: the standard viewer explains it

@@ -38,27 +38,52 @@ public sealed class CompareWindow : Window
         catch { return false; }
     }
     private string _left, _right;
-    private readonly PreviewPane _leftPane = new(showHeader: true, showPopOut: false);
-    private readonly PreviewPane _rightPane = new(showHeader: true, showPopOut: false);
+    private readonly PreviewPane _leftPane = new(showHeader: true, showPopOut: false, nativePdfInput: true);
+    private readonly PreviewPane _rightPane = new(showHeader: true, showPopOut: false, nativePdfInput: true);
     private readonly PreviewPane _diffPane = new(showHeader: false, showPopOut: false);
     private readonly Grid _sideBySide = new();
     private readonly Button _btnSide, _btnDiff;
     private readonly TextBlock _leftLabel = new(), _rightLabel = new();
     private readonly CheckBox _syncScroll;
     private bool _diffMode;
+    private bool _nativePdf, _closed;
+    private readonly PdfCommentsPanel _leftComments = new(), _rightComments = new();
+    private readonly PdfCommentsFlyout _leftFlyout, _rightFlyout;
+    private NativePdfWheelMirror? _pdfWheel;
+    private NativePdfAccess? _pdfAccess;
+    private int _pdfGeneration;
 
     public CompareWindow(Window owner, string left, string right)
     {
         _left = left;
         _right = right;
-        Owner = owner;
+        // Use the opening window for initial placement/lifetime only. WPF ownership would
+        // keep Compare above it even when the user activates the directory window.
         Title = "Compare";
         Background = Theme.Brush("Bg1");
         var wa = SystemParameters.WorkArea;
         Width = Math.Min(1700, wa.Width * 0.9);
         Height = Math.Min(1000, wa.Height * 0.88);
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        SourceInitialized += (_, _) => Shell.UseDarkTitleBar(this);
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        ShowInTaskbar = true;
+        Icon = AppIcon.ForWindow();
+        void PlaceInitially()
+        {
+            // Respect explicit/offscreen placement. No activation or ongoing Z-order changes.
+            if (WindowStartupLocation != WindowStartupLocation.Manual && WindowState == WindowState.Normal)
+                WindowPlacement.CenterOn(this, owner);
+        }
+        SourceInitialized += (_, _) => { Shell.UseDarkTitleBar(this); TaskbarIdentity.Apply(this); AppIcon.ApplyToHwnd(this); PlaceInitially(); };
+        Loaded += (_, _) => PlaceInitially(); // after the destination monitor's DPI has been applied
+        Loaded += (_, _) =>
+        {
+            _pdfWheel ??= new NativePdfWheelMirror(_leftPane, _rightPane, () => _pdfAccess, () => _nativePdf && SyncScrolling);
+            ConnectPdfAccess();
+        };
+        LocationChanged += (_, _) => _pdfAccess?.RefreshGeometry();
+        SizeChanged += (_, _) => _pdfAccess?.RefreshGeometry();
+        void OpeningWindowClosed(object? sender, EventArgs args) { if (!_closed) Close(); }
+        owner.Closed += OpeningWindowClosed;
 
         var root = new DockPanel();
         // ---------- toolbar ----------
@@ -76,7 +101,13 @@ public sealed class CompareWindow : Window
             Content = "Sync scrolling", IsChecked = true, Foreground = Theme.Brush("Fg1"), VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 12, 0), ToolTip = "Scroll both files together",
         };
-        _syncScroll.Checked += (_, _) => _leftPane.RequestScrollReport(); // line the right side up with the left
+        ToolTipService.SetShowOnDisabled(_syncScroll, true);
+        _syncScroll.Checked += (_, _) =>
+        {
+            if (_nativePdf) _pdfAccess?.EnableSync(true);
+            else if (SyncScrolling) _leftPane.RequestScrollReport();
+        };
+        _syncScroll.Unchecked += (_, _) => _pdfAccess?.EnableSync(false);
         tools.Children.Add(_syncScroll);
         tools.Children.Add(_btnSide);
         tools.Children.Add(_btnDiff);
@@ -104,10 +135,16 @@ public sealed class CompareWindow : Window
         _sideBySide.ColumnDefinitions.Add(new ColumnDefinition());
         var splitter = new GridSplitter { HorizontalAlignment = HorizontalAlignment.Stretch, Background = Theme.Brush("Line") };
         Grid.SetColumn(splitter, 1);
+        _leftFlyout = new PdfCommentsFlyout(this, _leftPane, _leftComments, () => _left);
+        _rightFlyout = new PdfCommentsFlyout(this, _rightPane, _rightComments, () => _right);
         Grid.SetColumn(_rightPane, 2);
         _sideBySide.Children.Add(_leftPane);
         _sideBySide.Children.Add(splitter);
         _sideBySide.Children.Add(_rightPane);
+        _leftComments.PageRequested += (page, heights) => _pdfAccess?.GoToPage(0, page, heights);
+        _rightComments.PageRequested += (page, heights) => _pdfAccess?.GoToPage(1, page, heights);
+        _leftPane.NativePdfLoaded += (_, _) => RefreshPdfAccess(0);
+        _rightPane.NativePdfLoaded += (_, _) => RefreshPdfAccess(1);
         body.Children.Add(_sideBySide);
         body.Children.Add(_diffPane);
         root.Children.Add(body);
@@ -121,7 +158,16 @@ public sealed class CompareWindow : Window
         _diffPane.EscapePressed += (_, _) => Close();
         _leftPane.EscapePressed += (_, _) => Close();
         _rightPane.EscapePressed += (_, _) => Close();
-        Closed += (_, _) => { _leftPane.DisposeWeb(); _rightPane.DisposeWeb(); _diffPane.DisposeWeb(); };
+        Closed += (_, _) =>
+        {
+            _closed = true;
+            ++_pdfGeneration;
+            _pdfWheel?.Dispose();
+            _pdfAccess?.Dispose();
+            _leftFlyout.Dispose(); _rightFlyout.Dispose();
+            owner.Closed -= OpeningWindowClosed;
+            _leftPane.DisposeWeb(); _rightPane.DisposeWeb(); _diffPane.DisposeWeb();
+        };
 
         bool bothText = FileKinds.IsTextLike(FileKinds.KindFor(left, false)) && FileKinds.IsTextLike(FileKinds.KindFor(right, false));
         _diffMode = bothText;
@@ -129,11 +175,17 @@ public sealed class CompareWindow : Window
     }
 
     /// <summary>Whether scrolling one side scrolls the other (the "Sync scrolling" checkbox; on by default).</summary>
-    public bool SyncScrolling { get => _syncScroll.IsChecked == true; set => _syncScroll.IsChecked = value; }
+    public bool SyncScrolling { get => (!_nativePdf || _syncScroll.IsEnabled) && _syncScroll.IsChecked == true; set => _syncScroll.IsChecked = value; }
 
     internal PreviewPane LeftPane => _leftPane;
     internal PreviewPane RightPane => _rightPane;
     internal CheckBox SyncScrollCheck => _syncScroll;
+    internal PdfCommentsPanel LeftComments => _leftComments;
+    internal PdfCommentsPanel RightComments => _rightComments;
+    internal NativePdfAccess? PdfAccess => _pdfAccess;
+    internal NativePdfWheelMirror? PdfWheel => _pdfWheel;
+    internal PdfCommentsFlyout LeftCommentsFlyout => _leftFlyout;
+    internal PdfCommentsFlyout RightCommentsFlyout => _rightFlyout;
 
     private FrameworkElement FilePicker(TextBlock label, bool isLeft)
     {
@@ -167,6 +219,7 @@ public sealed class CompareWindow : Window
 
     private void Reload()
     {
+        _leftFlyout.Close(); _rightFlyout.Close();
         _leftLabel.Text = Path.GetFileName(_left);
         _leftLabel.ToolTip = _left;
         _rightLabel.Text = Path.GetFileName(_right);
@@ -174,8 +227,13 @@ public sealed class CompareWindow : Window
         Title = $"Compare – {Path.GetFileName(_left)}  ↔  {Path.GetFileName(_right)}";
         _btnSide.Background = _diffMode ? Theme.Brush("Bg2") : Theme.Brush("Sel");
         _btnDiff.Background = _diffMode ? Theme.Brush("Sel") : Theme.Brush("Bg2");
-        _syncScroll.IsEnabled = !_diffMode;
-        _syncScroll.ToolTip = _diffMode ? "The text diff always scrolls both files together" : "Scroll both files together";
+        _nativePdf = !_diffMode && (FileKinds.KindFor(_left, false) == PreviewKind.Pdf || FileKinds.KindFor(_right, false) == PreviewKind.Pdf);
+        _leftPane.ReportsScroll = FileKinds.KindFor(_left, false) != PreviewKind.Pdf;
+        _rightPane.ReportsScroll = FileKinds.KindFor(_right, false) != PreviewKind.Pdf;
+        _syncScroll.IsEnabled = !_diffMode && !_nativePdf;
+        _syncScroll.ToolTip = _nativePdf
+            ? "Connecting native PDF accessibility scrolling…"
+            : _diffMode ? "The text diff always scrolls both files together" : "Scroll both files together";
 
         if (_diffMode)
         {
@@ -190,6 +248,48 @@ public sealed class CompareWindow : Window
             _leftPane.Show(_left, delayMs: 0);
             _rightPane.Show(_right, delayMs: 0);
         }
+        _leftComments.ShowFile(_diffMode ? "" : _left);
+        _rightComments.ShowFile(_diffMode ? "" : _right);
+        ConnectPdfAccess();
+    }
+
+    private void RefreshPdfAccess(int side)
+    {
+        if (_closed || !_nativePdf) return;
+        if (_pdfAccess == null) { ConnectPdfAccess(); return; }
+        bool left = FileKinds.KindFor(_left, false) == PreviewKind.Pdf;
+        bool right = FileKinds.KindFor(_right, false) == PreviewKind.Pdf;
+        if (!_pdfAccess.MatchesHandles(left ? _leftPane.Web.Handle : IntPtr.Zero, right ? _rightPane.Web.Handle : IntPtr.Zero))
+        { ConnectPdfAccess(); return; }
+        _syncScroll.IsEnabled = false;
+        _syncScroll.ToolTip = "Reconnecting native PDF accessibility scrolling...";
+        _pdfAccess.Refresh(side);
+        _pdfAccess.EnableSync(_syncScroll.IsChecked == true);
+    }
+
+    private void ConnectPdfAccess()
+    {
+        int generation = ++_pdfGeneration;
+        _pdfAccess?.Dispose();
+        _pdfAccess = null;
+        if (!_nativePdf || !IsLoaded || _closed) return;
+        _syncScroll.IsEnabled = false;
+        _syncScroll.ToolTip = "Connecting native PDF accessibility scrolling…";
+        bool left = FileKinds.KindFor(_left, false) == PreviewKind.Pdf;
+        bool right = FileKinds.KindFor(_right, false) == PreviewKind.Pdf;
+        _pdfAccess = new NativePdfAccess(new System.Windows.Interop.WindowInteropHelper(this).Handle,
+            left ? _leftPane.Web.Handle : IntPtr.Zero, right ? _rightPane.Web.Handle : IntPtr.Zero,
+            (a, b, error) => Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_closed || generation != _pdfGeneration) return;
+                _leftComments.NavigationAvailable = a;
+                _rightComments.NavigationAvailable = b;
+                _syncScroll.IsEnabled = left && right && a && b && error == null;
+                _syncScroll.ToolTip = error ?? (_syncScroll.IsEnabled
+                    ? "Synchronize native PDFs by relative vertical position. Different page counts are supported."
+                    : "Native PDF scroll interfaces are not ready for both documents.");
+            })));
+        _pdfAccess.EnableSync(_syncScroll.IsChecked == true && left && right);
     }
 
     public void Release(IEnumerable<string> paths)

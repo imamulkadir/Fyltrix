@@ -161,7 +161,7 @@ Inspect files without opening separate applications.
 
 Supported image families include PNG, JPEG, GIF, BMP, WebP, ICO, SVG, TIFF, AVIF, HEIC/HEIF, JPEG XR, DDS, and camera RAW formats. Audio/video recognition includes MP4, WebM, MOV, MKV, AVI, WMV, MP3, WAV, OGG, AAC, FLAC, and Opus, among others. Recognition does not guarantee that every codec or stream can be decoded. Some formats require installed Windows codecs, preview handlers, or optional tools; an external-player fallback is available for unsupported media.
 
-Previews use bounded loading: text up to 20 MB, table previews up to 5,000 rows, and reduced processing for large content. PDF comparison renders pages as images; text selection is unavailable there.
+Previews use bounded loading: text up to 20 MB, table previews up to 5,000 rows, and reduced processing for large content. In the current source build, PDF comparison uses the same interactive native WebView2 PDF viewer as Preview, preserving text selection and native document controls. Each PDF in Compare has a **Comments** button with an available-comment count. It opens a read-only flyout showing comment text, author, type and page, including sticky notes whose native popup is unavailable. No permanent bottom panel reduces the PDF viewport.
 
 **Quick View:** Select exactly one supported file and press `Space` to open a larger preview window. Navigate with arrow keys and close with Escape or Space when the viewer is not consuming the key. Folders and multiple selections do not activate Quick View.
 
@@ -193,7 +193,7 @@ Analyze differences without leaving Fyltrix.
 - JSON comparison with key-order normalization.
 - Ignore whitespace and show only changes.
 - Compare supported images, media, Word documents, spreadsheets, PDFs, and files using the same registered Windows preview handler. Compatible files may have different extensions.
-- Swap sides or select replacement files; synchronize scrolling for supported rendered content, including PDFs. Images and PowerPoint do not use synchronized scrolling.
+- Swap sides or select replacement files; synchronize scrolling for supported rendered content. Native PDFs mirror ordinary mouse-wheel scrolling into both viewers at the start of the gesture, with relative-position scaling for different document lengths and fallback synchronization for other navigation. Native scrollbar/touch behavior and exact frame timing depend on the embedded viewer. Turn off **Sync scrolling** for independent navigation; zoom remains independent. Images and PowerPoint do not use synchronized scrolling.
 
 **Folder Comparison**
 - Compare folder contents recursively or at the top level, optionally including hidden items and content verification.

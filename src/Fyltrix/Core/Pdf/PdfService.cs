@@ -6,6 +6,11 @@ using PdfSharp.Pdf.IO;
 namespace Fyltrix.Core.Pdf;
 
 public sealed record PdfInfo(int Pages, int Version, bool Encrypted, bool Signed, IReadOnlyList<(string Label, string Value)> Metadata);
+public sealed record PdfComment(int Page, string Type, string Author, string Text, DateTime? Modified)
+{
+    public string Heading => $"Page {Page} · {Type}" + (Author.Length == 0 ? "" : $" · {Author}");
+}
+public sealed record PdfComments(IReadOnlyList<PdfComment> Items, IReadOnlyList<double> PageHeights, bool Partial);
 
 public sealed class PdfPasswordException : Exception
 {
@@ -20,6 +25,81 @@ public sealed class PdfPasswordException : Exception
 /// </summary>
 public static class PdfService
 {
+    /// <summary>Read original annotation dictionaries. Never runs annotation actions or writes the document.</summary>
+    public static PdfComments ReadComments(string path, string? password = null, CancellationToken cancellation = default)
+    {
+        cancellation.ThrowIfCancellationRequested();
+        using var document = Open(path, PdfDocumentOpenMode.Import, password);
+        var comments = new List<PdfComment>();
+        var heights = new List<double>();
+        bool partial = false;
+        string ReadString(PdfDictionary annotation, string key)
+        {
+            try { return annotation.Elements.GetString(key); }
+            catch (Exception ex) when (ex is InvalidCastException or InvalidOperationException or ArgumentException)
+            { partial = true; return ""; }
+        }
+        for (int page = 0; page < document.PageCount; page++)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            var current = document.Pages[page];
+            heights.Add(Math.Max(1, current.Height.Point));
+            var annotations = current.Elements.GetArray("/Annots");
+            if (annotations == null) continue;
+            for (int index = 0; index < annotations.Elements.Count; index++)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                // Bound untrusted metadata separately from native PDF rendering.
+                if (comments.Count >= 10000) { partial = true; break; }
+                try
+                {
+                    var annotation = annotations.Elements.GetDictionary(index);
+                    if (annotation == null) { partial = true; continue; }
+                    string subtype = annotation.Elements.GetName("/Subtype").TrimStart('/');
+                    if (subtype == "Popup") continue; // parent annotation owns its content
+                    string text = CleanComment(ReadString(annotation, "/Contents"));
+                    if (text.Length == 0) text = RichCommentText(ReadString(annotation, "/RC"));
+                    if (text.Length == 0) continue; // links/widgets without comments are not comments
+                    var modified = DateTime.MinValue;
+                    try { modified = annotation.Elements.GetDateTime("/M", DateTime.MinValue); }
+                    catch (Exception ex) when (ex is FormatException or ArgumentException) { partial = true; }
+                    string type = subtype switch
+                    {
+                        "Text" => "Sticky note", "FreeText" => "Free text", "StrikeOut" => "Strikeout",
+                        "Highlight" or "Underline" or "Ink" or "Square" or "Circle" or "Line" or "Stamp" or "Caret" => subtype,
+                        _ => subtype.Length == 0 ? "Unknown annotation" : subtype + " (other annotation)",
+                    };
+                    comments.Add(new PdfComment(page + 1, type, CleanComment(ReadString(annotation, "/T")), text,
+                        modified == DateTime.MinValue ? null : modified));
+                }
+                catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or InvalidCastException or FormatException)
+                { partial = true; } // one malformed annotation must not hide other comments
+            }
+        }
+        return new PdfComments(comments, heights, partial);
+    }
+
+    private static string CleanComment(string text)
+    {
+        if (text.Length > 100000) text = text[..100000] + "\n[Comment truncated]";
+        return System.Text.RegularExpressions.Regex.Replace(text, "[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\u202A-\\u202E\\u2066-\\u2069]", "").Trim();
+    }
+
+    private static string RichCommentText(string text)
+    {
+        if (text.Length == 0) return "";
+        if (text.Length > 1000000) return "[Rich comment exceeds the metadata limit]";
+        try
+        {
+            using var reader = System.Xml.XmlReader.Create(new StringReader(text), new System.Xml.XmlReaderSettings
+            { DtdProcessing = System.Xml.DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 1000000 });
+            var xml = System.Xml.Linq.XDocument.Load(reader);
+            var paragraphs = xml.Descendants().Where(element => element.Name.LocalName == "p").ToArray();
+            return CleanComment(paragraphs.Length == 0 ? xml.Root?.Value ?? "" : string.Join("\n", paragraphs.Select(p => p.Value)));
+        }
+        catch (System.Xml.XmlException) { return "[Rich comment could not be read safely]"; }
+    }
+
     private static PdfDocument Open(string path, PdfDocumentOpenMode mode, string? password)
     {
         int asked = 0;

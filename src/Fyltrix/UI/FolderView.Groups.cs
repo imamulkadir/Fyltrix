@@ -42,6 +42,7 @@ public sealed partial class FolderView
     /// <summary>Called after the items are set: adds or removes the date groups.</summary>
     private void ApplyGrouping()
     {
+        CancelMarquee();
         if (!_groupStyleAdded)
         {
             _groupStyleAdded = true;
@@ -63,6 +64,7 @@ public sealed partial class FolderView
     /// <summary>Re-sorts and regroups the current items (grouping switched on/off, view mode changed, a new day began).</summary>
     public void RefreshGrouping()
     {
+        CancelMarquee();
         if (IsSearchResults || Items.Count == 0) { ApplyGrouping(); return; }
         var selected = SelectedItems.Select(i => i.FullPath).ToList();
         SetItems(SortItems(Items.ToList()), selected, scrollToSelection: selected.Count > 0);

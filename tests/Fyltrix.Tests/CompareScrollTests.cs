@@ -189,7 +189,6 @@ public class CompareScrollTests
     [InlineData("html")]
     [InlineData("docx")]
     [InlineData("xlsx")]
-    [InlineData("pdf")]
     public void Wheel_on_either_side_scrolls_both(string ext)
     {
         using var t = new TempDir();

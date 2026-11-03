@@ -35,6 +35,8 @@ public sealed class PreviewPane : Grid
     private readonly Button _btnScripts, _btnUnblock, _btnOpen, _btnPopOut;
 
     private bool _ready, _failed, _initializing;
+    private readonly bool _nativePdfInput;
+    private bool _pdfInputMode, _hostInputEnabled;
     /// <summary>Bumped when the engine is released, so an initialisation still running for the old one stops.</summary>
     private int _engine;
     private string? _pendingUrl, _expectedUrl;
@@ -55,14 +57,23 @@ public sealed class PreviewPane : Grid
     public event EventHandler<Point>? Scrolled;
 
     /// <summary>Compare uses this to scroll two previews together: each page reports its scroll position and can be scrolled to one.</summary>
-    public bool ReportsScroll { get; set; }
+    private bool _reportsScroll;
+    public bool ReportsScroll
+    {
+        get => _reportsScroll;
+        set { _reportsScroll = value; if (!value) _scrollPoll?.Stop(); }
+    }
 
     public string? CurrentPath => _currentPath;
     internal WebView2 Web => _web;
     internal bool IsReady => _ready;
+    internal event EventHandler? NativePdfLoaded;
+    internal bool HasNativePdfInput => _hostInputEnabled && _currentKind == PreviewKind.Pdf;
+    internal void AddHeaderAction(Button button) => _actions.Children.Insert(0, button);
 
-    public PreviewPane(bool showHeader = true, bool showPopOut = true)
+    public PreviewPane(bool showHeader = true, bool showPopOut = true, bool nativePdfInput = false)
     {
+        _nativePdfInput = nativePdfInput;
         Background = Theme.Brush("Bg1");
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -177,6 +188,7 @@ public sealed class PreviewPane : Grid
         _expectedUrl = null;
         _ready = false;
         _initializing = false;
+        _pdfInputMode = _hostInputEnabled = false;
         var old = _web;
         _web = NewWeb();
         _body.Children.Insert(_body.Children.IndexOf(old), _web);
@@ -192,10 +204,28 @@ public sealed class PreviewPane : Grid
         _initializing = true;
         int engine = _engine;
         var web = _web;
+        bool routePdfInput = _nativePdfInput && _currentKind == PreviewKind.Pdf;
+        _pdfInputMode = routePdfInput;
         try
         {
             var env = await GetEnvironment();
-            await web.EnsureCoreWebView2Async(env);
+            if (engine != _engine) return;
+            CoreWebView2ControllerOptions? options = null;
+            if (routePdfInput)
+            {
+                try
+                {
+                    options = env.CreateCoreWebView2ControllerOptions();
+                    options.AllowHostInputProcessing = true;
+                    _hostInputEnabled = true;
+                }
+                catch (Exception ex) when (ex is NotSupportedException or NotImplementedException or System.Runtime.InteropServices.COMException)
+                {
+                    options = null;
+                    Diagnostics.Info("PDF input", "Host input routing is unavailable; retaining accessibility synchronization.");
+                }
+            }
+            await web.EnsureCoreWebView2Async(env, options);
             if (engine != _engine) return; // released while starting
             var core = web.CoreWebView2;
             core.Settings.AreDevToolsEnabled = false;
@@ -237,7 +267,12 @@ public sealed class PreviewPane : Grid
                         break;
                 }
             };
-            core.NavigationCompleted += (_, e) => { if (ReportsScroll && e.IsSuccess) OnScrollPageLoaded(core); };
+            core.NavigationCompleted += (_, e) =>
+            {
+                if (ReportsScroll && e.IsSuccess) OnScrollPageLoaded(core);
+                if (e.IsSuccess && _currentKind == PreviewKind.Pdf && _currentPath != null && SameUrl(core.Source, PreviewUrls.FileUrl(_currentPath)))
+                    NativePdfLoaded?.Invoke(this, EventArgs.Empty);
+            };
             core.ContainsFullScreenElementChanged += (_, _) => FullScreenChanged?.Invoke(this, core.ContainsFullScreenElement);
             core.ProcessFailed += (_, _) => StatusMessage?.Invoke(this, "The preview engine restarted. Select the file again if the preview is blank.");
             _ready = true;
@@ -572,23 +607,14 @@ public sealed class PreviewPane : Grid
         if (!File.Exists(path)) { ShowInfo("File not found", path); UpdateActions(); return; }
 
         _currentKind = FileKinds.KindFor(path, false);
+        if ((_ready || _initializing) && _pdfInputMode != (_nativePdfInput && _currentKind == PreviewKind.Pdf))
+            ReleaseEngine(); // preserve ordinary input handling when replacing a PDF with another format
         UpdateActions();
         var name = Path.GetFileName(path);
         var src = PreviewUrls.FileUrl(path);
 
         switch (_currentKind)
         {
-            case PreviewKind.Pdf when ReportsScroll:
-                // Compare: Edge's PDF viewer can't be scrolled from outside, so draw the pages in the viewer instead
-                Navigate(PreviewUrls.ViewerUrl(new Dictionary<string, string>
-                {
-                    ["mode"] = "view",
-                    ["kind"] = "pdfpages",
-                    ["name"] = name,
-                    ["api"] = PreviewUrls.ApiUrl("pdfpages", path),
-                    ["page"] = PreviewUrls.ApiUrl("pdfpage", path),
-                }));
-                break;
             case PreviewKind.Pdf:
             case PreviewKind.Html:
                 Navigate(src);

@@ -129,6 +129,7 @@ public sealed partial class FolderView : Grid
         };
         IsVisibleChanged += (_, _) =>
         {
+            if (!IsVisible) CancelMarquee();
             if (!IsVisible || !_changedWhileHidden || _closed) return;
             _changedWhileHidden = false;
             if (!IsSearchResults) _ = Refresh();
@@ -152,7 +153,7 @@ public sealed partial class FolderView : Grid
         VirtualizingPanel.SetVirtualizationMode(List, VirtualizationMode.Recycling);
         ScrollViewer.SetIsDeferredScrollingEnabled(List, false);
         TextSearch.SetTextPath(List, nameof(FileItem.Name));
-        List.SelectionChanged += (_, _) => _host.OnSelectionChanged(this);
+        List.SelectionChanged += (_, _) => { if (!_marqueeUpdating) _host.OnSelectionChanged(this); };
         List.MouseDoubleClick += OnDoubleClick;
         List.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnHeaderClick));
         List.PreviewMouseLeftButtonDown += OnPreviewMouseDown;
@@ -178,6 +179,8 @@ public sealed partial class FolderView : Grid
         _empty.TextWrapping = TextWrapping.Wrap;
         _empty.TextAlignment = TextAlignment.Center;
         Children.Add(_empty);
+
+        InitializeMarquee();
 
         UpdateHeaders();
         Navigate(path, addHistory: false, select: select);
@@ -389,6 +392,7 @@ public sealed partial class FolderView : Grid
     private void OnHeaderClick(object sender, RoutedEventArgs e)
     {
         if (e.OriginalSource is not GridViewColumnHeader h || h.Tag is not SortColumn col) return;
+        CancelMarquee();
         if (Sort == col) Ascending = !Ascending;
         else { Sort = col; Ascending = col != SortColumn.Modified; }
         UpdateHeaders();
@@ -399,6 +403,7 @@ public sealed partial class FolderView : Grid
     /// <summary>Sorts as a click on the column header would (tests).</summary>
     internal void SortBy(SortColumn col, bool ascending)
     {
+        CancelMarquee();
         Sort = col;
         Ascending = ascending;
         UpdateHeaders();
@@ -445,6 +450,7 @@ public sealed partial class FolderView : Grid
 
     public void Navigate(string path, bool addHistory = true, string? select = null)
     {
+        CancelMarquee();
         path = NormalizePath(path);
         if (!Exists(path))
         {
@@ -507,6 +513,7 @@ public sealed partial class FolderView : Grid
 
     private void NavigateNoHistory(string path, string? select)
     {
+        CancelMarquee();
         if (!Exists(path)) { _host.SetStatus($"'{path}' no longer exists."); return; }
         CancelSearch();
         IsSearchResults = false;
@@ -522,6 +529,7 @@ public sealed partial class FolderView : Grid
 
     public Task Refresh(IEnumerable<string>? select = null)
     {
+        CancelMarquee();
         if (IsSearchResults) return Task.CompletedTask;
         bool explicitSelect = select != null;
         var keep = select?.ToList() ?? SelectedItems.Select(i => i.FullPath).ToList();
@@ -647,6 +655,7 @@ public sealed partial class FolderView : Grid
 
     private void SetItems(List<FileItem> items, IEnumerable<string>? select, bool scrollToSelection = true)
     {
+        CancelMarquee();
         Items = new ObservableCollection<FileItem>(items);
         List.ItemsSource = Items;
         ApplyFilter();
@@ -739,6 +748,7 @@ public sealed partial class FolderView : Grid
 
     public void Close()
     {
+        CancelMarquee();
         _closed = true;
         _loadVersion++;
         CancelSearch();
@@ -760,6 +770,7 @@ public sealed partial class FolderView : Grid
 
     private void ApplyFilter()
     {
+        CancelMarquee();
         var view = CollectionViewSource.GetDefaultView(Items);
         if (view == null) return;
         if (string.IsNullOrEmpty(_filter) || IsSearchResults) view.Filter = null;
@@ -851,6 +862,7 @@ public sealed partial class FolderView : Grid
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (cts.IsCancellationRequested || !ReferenceEquals(target, Items)) return;
+                CancelMarquee();
                 foreach (var it in items) Items.Add(it);
                 FitTypeColumn(items, reset: false);
                 ItemsLoaded?.Invoke(this, EventArgs.Empty);
@@ -891,6 +903,7 @@ public sealed partial class FolderView : Grid
 
     private void BeginResults(string label)
     {
+        CancelMarquee();
         CancelSearch();
         _loadVersion++;
         if (!IsSearchResults) { _back.Push(CurrentPath); _forward.Clear(); }
@@ -921,6 +934,7 @@ public sealed partial class FolderView : Grid
     public void EndSearch()
     {
         if (!IsSearchResults) return;
+        CancelMarquee();
         CancelSearch();
         IsSearchResults = false;
         SearchQuery = "";
@@ -1036,6 +1050,7 @@ public sealed partial class FolderView : Grid
 
     private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
+        CancelMarquee();
         var src = e.OriginalSource as DependencyObject;
         if (IsChrome(src) || VisualTree.FindAncestor<TextBox>(src) != null) { _dragItem = null; return; }
         var item = ItemAt(src, e.GetPosition(List));
@@ -1045,8 +1060,8 @@ public sealed partial class FolderView : Grid
         bool modifiers = (Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Shift)) != 0;
         if (item == null)
         {
-            if (!modifiers) List.SelectedItems.Clear();
-            List.Focus();
+            BeginMarquee(e.GetPosition(List), Keyboard.Modifiers);
+            e.Handled = true; // Details row containers extend beyond their selectable columns.
             return;
         }
         if (e.ClickCount == 1 && !modifiers && List.SelectedItems.Contains(item) && List.SelectedItems.Count > 1)
@@ -1059,6 +1074,12 @@ public sealed partial class FolderView : Grid
 
     private void OnPreviewMouseUp(object sender, MouseButtonEventArgs e)
     {
+        if (MarqueePending)
+        {
+            FinishMarquee();
+            e.Handled = true;
+            return;
+        }
         if (_pendingSingle != null && !_dragging)
         {
             var item = _pendingSingle;
@@ -1072,6 +1093,13 @@ public sealed partial class FolderView : Grid
 
     private void OnPreviewMouseMove(object sender, MouseEventArgs e)
     {
+        if (MarqueePending)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed) CancelMarquee();
+            else MoveMarquee(e.GetPosition(List));
+            e.Handled = true;
+            return;
+        }
         if (e.LeftButton != MouseButtonState.Pressed || _dragItem == null || _dragging || _dragItem.IsEditing) return;
         var pos = e.GetPosition(List);
         if (Math.Abs(pos.X - _dragStart.X) < SystemParameters.MinimumHorizontalDragDistance &&
@@ -1145,6 +1173,7 @@ public sealed partial class FolderView : Grid
 
     private void OnRightDown(object sender, MouseButtonEventArgs e)
     {
+        CancelMarquee();
         var src = e.OriginalSource as DependencyObject;
         if (IsChrome(src)) return;
         SelectForRightClick(ItemAt(src, e.GetPosition(List)));
