@@ -6,6 +6,46 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-11-03
+
+### Added
+
+- Select multiple files by holding the left mouse button on blank file-list
+  space and dragging a selection rectangle. Supports Details and thumbnail
+  views, grouped listings, modifier keys, cancellation and edge auto-scrolling.
+- Read existing PDF annotation comments in a per-document Comments flyout in
+  Compare, with available-comment counts, author/type/page information and
+  navigation to the associated page. Source PDFs remain unchanged.
+
+### Fixed
+
+- Restore the interactive native WebView2 PDF viewer in Compare, preserving
+  selectable text, native document controls and independent zoom.
+- Mirror ordinary vertical mouse-wheel input into both native PDF panes at
+  the start of the gesture, with relative-position scaling for different
+  document lengths. Preserve optional independent scrolling and align the
+  other pane when navigating from a comment, including immediately after scrolling.
+- Allow the main window and Compare to switch focus normally without an owned
+  Compare window remaining above the main window.
+- Prevent intermittent release-test sharing violations by waiting for the IDE
+  launch test's copied file to contain complete, readable output.
+
+### Changed
+
+- Replace permanent bottom comment panels with on-demand flyouts, leaving more
+  space for the PDF pages.
+- Add six actual application screenshots to the README.
+- Update the WebView2 SDK to 1.0.3351.48 for supported native PDF host-input routing.
+
+### Notes
+
+- Comments are read-only. Native note icons do not gain Microsoft Edge's own
+  popup cards; use the Comments button to inspect their text.
+- Native scrollbar, touch and keyboard synchronization use the accessibility
+  fallback. Exact frame lock and semantic page matching are not guaranteed.
+- Existing preferences, user-data locations and the portable development
+  workflow are preserved.
+
 ## [0.1.8] - 2026-11-02
 
 ### Fixed
