@@ -8,7 +8,7 @@
 
 **Your Files. Your Rules.**
 
-*A modern, powerful, and highly customizable Windows file manager that goes beyond traditional File Explorer.*
+_A modern, powerful, and highly customizable Windows file manager that goes beyond traditional File Explorer._
 
 [![Latest Release](https://img.shields.io/github/v/release/imamulkadir/Fyltrix?style=for-the-badge&label=Version)](https://github.com/imamulkadir/Fyltrix/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/imamulkadir/Fyltrix/total?style=for-the-badge&label=Downloads)](https://github.com/imamulkadir/Fyltrix/releases)
@@ -26,6 +26,9 @@
 ---
 
 ## Meet Fyltrix
+
+<img src="docs/screenshots/Fyltrix-Thumbnail-1920x1080.png" alt="Fyltrix Logo" style="border:4px solid white; border-radius:10px;"/>
+<media
 
 Windows File Explorer gets the job done. **Fyltrix is built for everything beyond that.**
 
@@ -88,7 +91,7 @@ Customize toolbar buttons and choose which labels to display.
 
 ![Fyltrix Toolbar settings showing button visibility and label customization](docs/screenshots/settings.png)
 
-*Captured from the real 0.1.8 application UI on Windows. Dialog images show their client content; the preview includes the actual WebView2-rendered document.*
+_Captured from the real 0.1.8 application UI on Windows. Dialog images show their client content; the preview includes the actual WebView2-rendered document._
 
 ---
 
@@ -141,23 +144,23 @@ Manage files without constantly switching between different tools.
 
 Inspect files without opening separate applications.
 
-| File Type | Preview Capabilities |
-|---|---|
-| Images | Zoom, pan, rotate, metadata, fullscreen |
-| PDF | Embedded viewing and page navigation |
-| Word | Render `.docx`, `.docm`, `.dotx`; zoom and fit width |
-| Spreadsheets | Sheet selection and tables for `.xlsx`, `.xlsm`, `.xls`, `.xlsb`, `.ods` |
-| JSON family | Expandable tree and raw content; recognizes JSON, JSONC, GeoJSON, HAR |
-| Markdown | Rendered and source views |
-| HTML / XHTML | Rendered preview; scripts off by default, with an explicit opt-in |
-| Code | Syntax highlighting |
-| CSV / TSV | Table preview and header-row toggle |
-| Animated images | GIF/WebP/APNG playback, pause, frame stepping, and supported speed controls |
-| Audio | Playback, seeking, speed, metadata, album art, and supported waveforms |
-| Video | Playback, seeking, speed, fullscreen, codec details, nearby SRT/VTT subtitles |
-| Archives | Browse contents and preview entries |
+| File Type                | Preview Capabilities                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| Images                   | Zoom, pan, rotate, metadata, fullscreen                                                                |
+| PDF                      | Embedded viewing and page navigation                                                                   |
+| Word                     | Render `.docx`, `.docm`, `.dotx`; zoom and fit width                                                   |
+| Spreadsheets             | Sheet selection and tables for `.xlsx`, `.xlsm`, `.xls`, `.xlsb`, `.ods`                               |
+| JSON family              | Expandable tree and raw content; recognizes JSON, JSONC, GeoJSON, HAR                                  |
+| Markdown                 | Rendered and source views                                                                              |
+| HTML / XHTML             | Rendered preview; scripts off by default, with an explicit opt-in                                      |
+| Code                     | Syntax highlighting                                                                                    |
+| CSV / TSV                | Table preview and header-row toggle                                                                    |
+| Animated images          | GIF/WebP/APNG playback, pause, frame stepping, and supported speed controls                            |
+| Audio                    | Playback, seeking, speed, metadata, album art, and supported waveforms                                 |
+| Video                    | Playback, seeking, speed, fullscreen, codec details, nearby SRT/VTT subtitles                          |
+| Archives                 | Browse contents and preview entries                                                                    |
 | Windows preview handlers | PowerPoint, legacy Word, Outlook messages, RTF, and other formats when a suitable handler is installed |
-| Unknown binary files | Text/binary detection and hex preview |
+| Unknown binary files     | Text/binary detection and hex preview                                                                  |
 
 Supported image families include PNG, JPEG, GIF, BMP, WebP, ICO, SVG, TIFF, AVIF, HEIC/HEIF, JPEG XR, DDS, and camera RAW formats. Audio/video recognition includes MP4, WebM, MOV, MKV, AVI, WMV, MP3, WAV, OGG, AAC, FLAC, and Opus, among others. Recognition does not guarantee that every codec or stream can be decoded. Some formats require installed Windows codecs, preview handlers, or optional tools; an external-player fallback is available for unsupported media.
 
@@ -187,6 +190,7 @@ Find files and folders beyond the current directory.
 Analyze differences without leaving Fyltrix.
 
 **File Comparison**
+
 - Compare exactly two supported, compatible files. Folders, incompatible files, and other selection counts disable Compare with an explanatory tooltip.
 - Side-by-side viewing.
 - Text and code differences.
@@ -196,6 +200,7 @@ Analyze differences without leaving Fyltrix.
 - Swap sides or select replacement files; synchronize scrolling for supported rendered content. Native PDFs mirror ordinary mouse-wheel scrolling into both viewers at the start of the gesture, with relative-position scaling for different document lengths and fallback synchronization for other navigation. Native scrollbar/touch behavior and exact frame timing depend on the embedded viewer. Turn off **Sync scrolling** for independent navigation; zoom remains independent. Images and PowerPoint do not use synchronized scrolling.
 
 **Folder Comparison**
+
 - Compare folder contents recursively or at the top level, optionally including hidden items and content verification.
 - Identify missing, changed, or identical files.
 - Review differences before synchronization.
@@ -337,18 +342,18 @@ Current unsigned builds may trigger Windows publisher or SmartScreen warnings. O
 
 ## System Requirements
 
-| Component | Requirement |
-|---|---|
-| Operating System | Windows 10 version 1809 or later / Windows 11 |
-| Architecture | x64 |
-| Framework | .NET 8 |
-| UI Framework | WPF |
-| Administrator Rights | Per-user installation and ordinary operations need none; protected files and optional firewall changes can require elevation |
-| WebView2 Runtime | Required for supported embedded previews |
-| FFmpeg | Optional for audio/video conversion and fallback video thumbnails; configure in Settings or on PATH |
-| Windows codecs | Required for certain image/media formats |
-| Windows preview handlers | Optional for PowerPoint, legacy Word, Outlook, and other shell-preview formats |
-| Windows `tar.exe` | Optional for supported 7z and AES ZIP creation |
+| Component                | Requirement                                                                                                                  |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| Operating System         | Windows 10 version 1809 or later / Windows 11                                                                                |
+| Architecture             | x64                                                                                                                          |
+| Framework                | .NET 8                                                                                                                       |
+| UI Framework             | WPF                                                                                                                          |
+| Administrator Rights     | Per-user installation and ordinary operations need none; protected files and optional firewall changes can require elevation |
+| WebView2 Runtime         | Required for supported embedded previews                                                                                     |
+| FFmpeg                   | Optional for audio/video conversion and fallback video thumbnails; configure in Settings or on PATH                          |
+| Windows codecs           | Required for certain image/media formats                                                                                     |
+| Windows preview handlers | Optional for PowerPoint, legacy Word, Outlook, and other shell-preview formats                                               |
+| Windows `tar.exe`        | Optional for supported 7z and AES ZIP creation                                                                               |
 
 The published portable distribution does not require a separately installed .NET runtime.
 
@@ -424,39 +429,39 @@ Installer/release-layout packaging is a separate workflow; NativeAOT additionall
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-|---|---|
-| `Ctrl + T` | New tab |
-| `Ctrl + W` | Close tab |
-| `Ctrl + Tab` / `Ctrl + Shift + Tab` | Next / previous tab |
-| `Ctrl + 1` through `Ctrl + 9` | Corresponding tab |
-| `Alt + Left` | Back |
-| `Alt + Right` | Forward |
-| `Alt + Up` / `Backspace` | Parent folder |
-| `Ctrl + L` / `Alt + D` / `F4` | Address bar |
-| `Ctrl + F` / `Ctrl + E` / `F3` | Search box |
-| `Enter` / `Ctrl + Enter` in search | Search / search in a new tab |
-| `Ctrl + Shift + F` | Advanced search |
-| `Ctrl + Shift + P` | Command palette |
-| `Ctrl + P` | Toggle Preview |
-| `Space` | Quick View |
-| `Ctrl + D` | Compare compatible files |
-| `Ctrl + C` | Copy |
-| `Ctrl + X` | Cut |
-| `Ctrl + V` | Paste |
-| `Ctrl + Shift + N` | New folder |
-| `F2` | Rename / batch rename for multiple selections |
-| `Delete` | Delete to Recycle Bin |
-| `Shift + Delete` | Permanent delete |
-| `Ctrl + Z` | Undo supported operations |
-| `F5` | Refresh |
-| `Alt + Enter` | Properties |
-| `Ctrl + Shift + C` | Copy selected paths |
-| `Ctrl + H` | Toggle hidden files |
-| `Shift + F10` / Menu key | Context menu |
-| `Ctrl + Shift + 1` / `2` / `3` / `4` | Thumbnail sizes: 256 / 160 / 96 / 48 px |
-| `Ctrl + Shift + 6` | Details view |
-| `Ctrl + mouse wheel` | Thumbnail size |
+| Shortcut                             | Action                                        |
+| ------------------------------------ | --------------------------------------------- |
+| `Ctrl + T`                           | New tab                                       |
+| `Ctrl + W`                           | Close tab                                     |
+| `Ctrl + Tab` / `Ctrl + Shift + Tab`  | Next / previous tab                           |
+| `Ctrl + 1` through `Ctrl + 9`        | Corresponding tab                             |
+| `Alt + Left`                         | Back                                          |
+| `Alt + Right`                        | Forward                                       |
+| `Alt + Up` / `Backspace`             | Parent folder                                 |
+| `Ctrl + L` / `Alt + D` / `F4`        | Address bar                                   |
+| `Ctrl + F` / `Ctrl + E` / `F3`       | Search box                                    |
+| `Enter` / `Ctrl + Enter` in search   | Search / search in a new tab                  |
+| `Ctrl + Shift + F`                   | Advanced search                               |
+| `Ctrl + Shift + P`                   | Command palette                               |
+| `Ctrl + P`                           | Toggle Preview                                |
+| `Space`                              | Quick View                                    |
+| `Ctrl + D`                           | Compare compatible files                      |
+| `Ctrl + C`                           | Copy                                          |
+| `Ctrl + X`                           | Cut                                           |
+| `Ctrl + V`                           | Paste                                         |
+| `Ctrl + Shift + N`                   | New folder                                    |
+| `F2`                                 | Rename / batch rename for multiple selections |
+| `Delete`                             | Delete to Recycle Bin                         |
+| `Shift + Delete`                     | Permanent delete                              |
+| `Ctrl + Z`                           | Undo supported operations                     |
+| `F5`                                 | Refresh                                       |
+| `Alt + Enter`                        | Properties                                    |
+| `Ctrl + Shift + C`                   | Copy selected paths                           |
+| `Ctrl + H`                           | Toggle hidden files                           |
+| `Shift + F10` / Menu key             | Context menu                                  |
+| `Ctrl + Shift + 1` / `2` / `3` / `4` | Thumbnail sizes: 256 / 160 / 96 / 48 px       |
+| `Ctrl + Shift + 6`                   | Details view                                  |
+| `Ctrl + mouse wheel`                 | Thumbnail size                                |
 
 Shortcuts are context-sensitive and may be handled by focused text fields or embedded viewers.
 
@@ -505,11 +510,11 @@ Fyltrix is designed around local file management.
 
 Preferences are stored in the Windows user profile even for portable copies. Fyltrix deliberately retains these legacy filesystem identifiers to preserve existing data after rebranding:
 
-| Compatibility location | Purpose |
-|---|---|
-| `%AppData%\FileLens` | Settings, tabs, Favourites, Recent, templates, tags, automation, sharing records, synchronization baselines, and diagnostics |
-| `%LocalAppData%\FileLens` | WebView2, thumbnail, and archive-preview caches |
-| `%LocalAppData%\Fyltrix\Updates` | Separate update staging and notification/check metadata |
+| Compatibility location           | Purpose                                                                                                                      |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `%AppData%\FileLens`             | Settings, tabs, Favourites, Recent, templates, tags, automation, sharing records, synchronization baselines, and diagnostics |
+| `%LocalAppData%\FileLens`        | WebView2, thumbnail, and archive-preview caches                                                                              |
+| `%LocalAppData%\Fyltrix\Updates` | Separate update staging and notification/check metadata                                                                      |
 
 These are internal persistence paths, not the current application name. **Do not rename them manually.** Moving the checkout or executable does not require a profile migration.
 
