@@ -4,6 +4,14 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.10 uploaded metadata verification (2026-11-05)
+
+Status: **Uploaded assets verified; owner publication pending.** Read-only GitHub checks confirm the existing stable 0.1.10 draft contains exactly the six expected assets. Downloaded `Fyltrix-release.json` (327 bytes, SHA-256 `8757c01d1ae3cfd19a4d157a921475ce776225fa91593823e631492cd421b084`) and `Fyltrix-release.json.sig` (88 bytes, SHA-256 `8b76311c7fc7b2b349307c996a2d02581a2b304965d37faeb715c358125aa211`) are byte-identical to the previously signed local files; both match GitHub sizes/digests. Original four package/checksum asset identities, creation/update timestamps, sizes and digests are unchanged.
+
+Rebuilt only the isolated temporary verifier harness referencing the updater DLL extracted from the actual 0.1.10 ZIP. With default production pinning and the downloaded metadata, both original packages verify; altered manifest bytes and a same-size changed Setup copy are rejected. This uses an explicit offline published-shape draft preview, not a live public feed. Evidence is retained alongside previous checks in `%TEMP%\Fyltrix-release-0.1.10-0196fc54547845608f77c44b3ea38ae0`: `draft-uploaded.json`, `uploaded/`, `uploaded-preview.json`, `uploaded-shipped-verification.json`. No application/full test suite, installer or desktop interaction was run in this stage.
+
+Next action: owner publish the existing stable 0.1.10 draft as latest through GitHub; retain all six assets and the original tag. Then request read-only public-feed verification and perform normal installation/update acceptance with preserved preferences. No publication, upload, Git mutation, asset replacement or installed-app changes were performed by the agent. Modified documentation: `docs/PROJECT_PROGRESS.md`, `docs/IMPLEMENTATION_STATUS.md`, `docs/RELEASING.md`. Suggested commit: `docs(release): record v0.1.10 uploaded metadata verification`.
+
 ### Release 0.1.10 draft verification and local signing (2026-11-05)
 
 Status: **Actual draft verified; metadata signed locally; owner upload/publication pending.** The owner reported the tag run green. Read-only checks confirmed clean master/HEAD, local tag and remote peeled tag/master at `34f59e80abaa46ed6bacc2557ba176bfc51a8432` (annotated tag object `ae378cec93c58fd7c4936687b7d6ec35055346b7`). [Successful tag workflow 41995380310](https://github.com/imamulkadir/Fyltrix/actions/runs/41995380310) passed 591 application, 134 updater, 39 packaging, 10 installer-guard and 14 release-tool tests (788 total), then packaged/attested the ZIP and installer. No new full suite was run locally during this verification.
