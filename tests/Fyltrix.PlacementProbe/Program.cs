@@ -22,6 +22,7 @@ internal static class Program
     private static int Main(string[] args)
     {
         MainWindow.ClipboardFactory = () => new ProbeClipboard();
+        if (args.Length is 3 or 4 && args[0] == "thumbnail-bench") return ThumbnailBench.Run(args[1], args[2], args.Length == 4 && args[3] == "capture");
         if (args.Length == 3 && args[0] == "compare-desktop") return CompareDesktopProbe.Run(args[1], args[2]);
         if (args.Length >= 3 && args[0] == "bench") return Bench.Run(args[1], args[2], System.Diagnostics.Process.GetCurrentProcess().StartTime);
         if (args.Length >= 4 && args[0] == "render") return RenderTheme(Enum.Parse<ThemeMode>(args[1]), args[2], args[3]);

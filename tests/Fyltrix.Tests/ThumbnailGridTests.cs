@@ -15,7 +15,7 @@ public class ThumbnailGridTests
     private static string Fixture(string name) => Path.Combine(AppContext.BaseDirectory, "Fixtures", name);
 
     private static List<ThumbnailImage> Tiles(FolderView view) =>
-        VisualTree.FindDescendants<ThumbnailImage>(view.List).ToList();
+        VisualTree.FindDescendants<ThumbnailImage>(view.List).Where(t => !t.ImageFilesOnly).ToList();
 
     private static ThumbnailImage TileFor(FolderView view, string name) =>
         Tiles(view).First(t => t.Item?.Name == name);
@@ -36,6 +36,10 @@ public class ThumbnailGridTests
             try
             {
                 var view = w.View!;
+                var initialRows = VisualTree.FindDescendants<ThumbnailImage>(view.List).Where(t => t.ImageFilesOnly).ToList();
+                Assert.Equal(5, initialRows.Count);
+                Sta.WaitUntil(() => initialRows.Single(t => t.Item?.Name == "wide.png").HasThumbnail, "cold Details image thumbnail", 20000);
+                Assert.All(initialRows.Where(t => t.Item?.Name is "notes.txt" or "folder" or "clip.mkv"), t => Assert.False(t.HasThumbnail));
                 // select two items in Details, then switch to large thumbnails
                 view.SelectPaths(new[] { t["pics/wide.png"], t["pics/notes.txt"] });
                 w.SetView(160);
@@ -60,6 +64,12 @@ public class ThumbnailGridTests
                 Assert.Equal(ViewMode.Details, view.Mode);
                 Assert.Equal(new[] { "notes.txt", "wide.png" }, view.SelectedItems.Select(i => i.Name).OrderBy(n => n));
                 Assert.Empty(Tiles(view));
+                var rows = VisualTree.FindDescendants<ThumbnailImage>(view.List).Where(t => t.ImageFilesOnly).ToList();
+                Assert.Equal(5, rows.Count);
+                Sta.WaitUntil(() => rows.Single(t => t.Item?.Name == "wide.png").HasThumbnail, "Details image thumbnail");
+                Assert.InRange(ThumbnailOf(rows.Single(t => t.Item?.Name == "wide.png")).PixelWidth /
+                    (double)ThumbnailOf(rows.Single(t => t.Item?.Name == "wide.png")).PixelHeight, 1.9, 2.1);
+                Assert.All(rows.Where(t => t.Item?.Name is "notes.txt" or "folder" or "clip.mkv"), t => Assert.False(t.HasThumbnail));
 
                 // returning to the folder in tile view uses the cache (no new work for unchanged files)
                 w.SetView(96);

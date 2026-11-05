@@ -13,6 +13,11 @@ public static class ShellThumbnails
 {
     /// <param name="thumbnailOnly">True: return null instead of falling back to the file-type icon.</param>
     public static BitmapSource? Get(string path, int size, bool thumbnailOnly = true)
+        => GetCore(path, size, thumbnailOnly, false);
+
+    internal static BitmapSource? GetIcon(string path, int size) => GetCore(path, size, false, true);
+
+    private static BitmapSource? GetCore(string path, int size, bool thumbnailOnly, bool iconOnly)
     {
         IShellItemImageFactory? factory = null;
         IntPtr hbm = IntPtr.Zero;
@@ -20,7 +25,7 @@ public static class ShellThumbnails
         {
             var iid = typeof(IShellItemImageFactory).GUID;
             if (SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out factory) != 0 || factory == null) return null;
-            int flags = SIIGBF_BIGGERSIZEOK | (thumbnailOnly ? SIIGBF_THUMBNAILONLY : 0);
+            int flags = SIIGBF_BIGGERSIZEOK | (iconOnly ? SIIGBF_ICONONLY : thumbnailOnly ? SIIGBF_THUMBNAILONLY : 0);
             if (factory.GetImage(new SIZE { cx = size, cy = size }, flags, out hbm) != 0 || hbm == IntPtr.Zero) return null;
             var bmp = FromHBitmap(hbm, out _);
             // Folder previews sometimes come back flattened onto a white or black square (opaque corners). Pictures

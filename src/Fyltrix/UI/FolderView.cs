@@ -223,8 +223,10 @@ public sealed partial class FolderView : Grid
         dot.SetBinding(UIElement.VisibilityProperty, new Binding(nameof(FileItem.HasLabel)) { Converter = new BoolToVisibility() });
         root.AppendChild(dot);
 
-        var img = new FrameworkElementFactory(typeof(Image));
-        img.SetBinding(Image.SourceProperty, new Binding(nameof(FileItem.Icon)));
+        var img = new FrameworkElementFactory(typeof(ThumbnailImage));
+        img.SetBinding(ThumbnailImage.ItemProperty, new Binding());
+        img.SetValue(ThumbnailImage.SizeProperty, 16.0);
+        img.SetValue(ThumbnailImage.ImageFilesOnlyProperty, true);
         img.SetValue(FrameworkElement.WidthProperty, 16.0);
         img.SetValue(FrameworkElement.HeightProperty, 16.0);
         img.SetValue(FrameworkElement.MarginProperty, new Thickness(2, 0, 7, 0));

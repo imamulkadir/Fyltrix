@@ -16,12 +16,25 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ### Fixed
 
+- Show compact image thumbnails in List/Details rows instead of only file-type
+  icons, while preserving folder and other file icons.
+
 - Keep Cut and Delete available for valid multi-selections when an individual
   item is open; let Windows report per-item operation failures.
 - Preserve skipped or failed cut/paste items on the clipboard, and retain a new
   clipboard selection made during a move.
 - Keep deletion bound to its original selection and tab across confirmation;
   report actual completion and preserve undo for successfully recycled items.
+- Prevent enlarged low-resolution placeholder icons and stale thumbnail results
+  during size/DPI changes. Hidden tabs cancel pending work and release displayed pixels.
+
+### Changed
+
+- Prioritize visible thumbnails, coalesce identical pending requests, reuse
+  larger cached images for smaller views, and share suitable fallback type icons
+  within the existing bounded cache.
+- Cancel obsolete FFmpeg frame extraction and clean up temporary output;
+  keep thumbnail workers, pending requests and disk/memory caches bounded.
 
 ## [0.1.9] - 2026-11-03
 

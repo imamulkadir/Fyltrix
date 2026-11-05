@@ -16,8 +16,11 @@ public sealed class ThumbnailRequest
     public bool IsVideo { get; init; }
     public required Action<BitmapSource?> Done { get; init; }
     private volatile bool _cancelled;
+    private volatile bool _visible = true;
+    internal Action? Changed;
     public bool Cancelled => _cancelled;
-    public void Cancel() => _cancelled = true;
+    public bool IsVisible { get => _visible; set { _visible = value; Changed?.Invoke(); } }
+    public void Cancel() { _cancelled = true; Changed?.Invoke(); }
 }
 
 /// <summary>
@@ -25,46 +28,61 @@ public sealed class ThumbnailRequest
 /// pages, album art; jumbo file-type icons otherwise) and Windows keeps its own disk cache of them. On top of that:
 ///  • a memory cache (LRU, bounded by pixel bytes) keyed by path + size + last-write time + length, so going back to
 ///    a folder doesn't regenerate anything and a changed file gets a fresh thumbnail;
-///  • a few worker threads taking the newest request first (what is on screen now), skipping cancelled ones;
+///  • a bounded, coalesced queue on a few worker threads, prioritizing visible tiles over prefetch;
 ///  • for videos Windows can't thumbnail (e.g. no codec extension), one frame from FFmpeg when it is installed,
 ///    cached on disk under %LocalAppData%\FileLens\Thumbs (bounded, oldest removed first).
 /// </summary>
 public sealed class ThumbnailService : IDisposable
 {
-    public static ThumbnailService Shared { get; } = new(workers: 3, memoryBudgetBytes: 192L * 1024 * 1024);
-
     private readonly object _gate = new();
-    private readonly LinkedList<ThumbnailRequest> _queue = new(); // newest first
-    private readonly SemaphoreSlim _signal = new(0);
-    private readonly CancellationTokenSource _stop = new();
+    private sealed class Job
+    {
+        internal required string Key;
+        internal required ThumbnailRequest Producer;
+        internal readonly List<ThumbnailRequest> Subscribers = new();
+        internal LinkedListNode<Job>? Node;
+        internal bool Visible => Subscribers.Any(r => r.IsVisible);
+    }
+    private readonly LinkedList<Job> _queue = new();
+    private readonly Dictionary<string, Job> _pending = new();
+    private readonly Func<ThumbnailRequest, BitmapSource?> _make;
+    private int _subscriptions, _working;
+    private volatile bool _disposed;
     private readonly Dictionary<string, LinkedListNode<(string key, BitmapSource bmp, long bytes)>> _cache = new();
     private readonly LinkedList<(string key, BitmapSource bmp, long bytes)> _lru = new();
     private readonly long _budget;
     private long _cachedBytes;
     private const int MaxQueue = 800;
+    internal int PendingCount { get { lock (_gate) return _subscriptions; } }
+    internal int WorkingCount { get { lock (_gate) return _working; } }
 
     public static string DiskCacheFolder { get; set; } = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "Thumbs");
     public static long DiskCacheBudgetBytes { get; set; } = 256L * 1024 * 1024;
     /// <summary>ffmpeg.exe for video frames Windows can't make; null = don't use FFmpeg.</summary>
     public static Func<string?> FfmpegPath { get; set; } = () => null;
+    public static ThumbnailService Shared { get; } = new(workers: 3, memoryBudgetBytes: 192L * 1024 * 1024);
 
     public long CachedBytes { get { lock (_gate) return _cachedBytes; } }
     public int CachedCount { get { lock (_gate) return _cache.Count; } }
 
-    public ThumbnailService(int workers, long memoryBudgetBytes)
+    public ThumbnailService(int workers, long memoryBudgetBytes) : this(workers, memoryBudgetBytes, null, true) { }
+
+    internal ThumbnailService(int workers, long memoryBudgetBytes, Func<ThumbnailRequest, BitmapSource?>? make, bool trimDisk = false)
     {
+        if (workers is < 1 or > 8 || memoryBudgetBytes <= 0) throw new ArgumentOutOfRangeException();
         _budget = memoryBudgetBytes;
+        _make = make ?? Make;
         for (int i = 0; i < workers; i++)
         {
             var t = new Thread(Work) { IsBackground = true, Name = "Fyltrix thumbnails", Priority = ThreadPriority.BelowNormal };
             t.SetApartmentState(ApartmentState.STA); // some thumbnail providers expect an STA
             t.Start();
         }
-        Task.Run(TrimDiskCache);
+        if (trimDisk) Task.Run(TrimDiskCache);
     }
 
     /// <summary>Thumbnail sizes are rounded up to a few steps so every zoom level doesn't create its own copy.</summary>
-    public static int Bucket(int pixels) => pixels <= 64 ? 64 : pixels <= 128 ? 128 : pixels <= 256 ? 256 : 512;
+    public static int Bucket(int pixels) => pixels <= 64 ? 64 : pixels <= 128 ? 128 : pixels <= 256 ? 256 : pixels <= 512 ? 512 : pixels <= 1024 ? 1024 : 2048;
 
     private static string Key(string path, int size, DateTime modified, long length) =>
         $"{path.ToUpperInvariant()}|{size}|{modified.Ticks}|{length}";
@@ -73,54 +91,112 @@ public sealed class ThumbnailService : IDisposable
     {
         lock (_gate)
         {
-            if (!_cache.TryGetValue(Key(path, Bucket(size), modified, length), out var node)) return null;
-            _lru.Remove(node);
-            _lru.AddFirst(node);
-            return node.Value.bmp;
+            for (int bucket = Bucket(size); bucket <= 2048; bucket *= 2)
+                if (_cache.TryGetValue(Key(path, bucket, modified, length), out var node))
+                {
+                    _lru.Remove(node);
+                    _lru.AddFirst(node);
+                    return node.Value.bmp;
+                }
+            return null;
         }
     }
 
     public void Request(ThumbnailRequest r)
     {
-        if (TryGetCached(r.Path, r.Size, r.Modified, r.Length) is { } hit) { r.Done(hit); return; }
+        BitmapSource? hit;
         lock (_gate)
         {
-            _queue.AddFirst(r);
-            // a fast scroll through thousands of files: the oldest requests are off screen by now
-            while (_queue.Count > MaxQueue) { _queue.Last!.Value.Cancel(); _queue.RemoveLast(); }
+            if (_disposed || r.Cancelled) { r.Cancel(); return; }
+            hit = TryGetCached(r.Path, r.Size, r.Modified, r.Length);
+            if (hit == null)
+            {
+                while (_subscriptions >= MaxQueue)
+                {
+                    var victim = _queue.LastOrDefault(j => !j.Visible) ?? _queue.Last?.Value ?? _pending.Values.First();
+                    var oldest = victim.Subscribers[0]; oldest.Changed = null; oldest.Cancel();
+                    Update(victim);
+                }
+                string key = Key(r.Path, Bucket(r.Size), r.Modified, r.Length);
+                if (!_pending.TryGetValue(key, out var job) || job.Producer.Cancelled)
+                {
+                    job = new Job { Key = key, Producer = new ThumbnailRequest { Path = r.Path, Size = Bucket(r.Size), Modified = r.Modified, Length = r.Length, IsVideo = r.IsVideo, Done = _ => { } } };
+                    _pending[key] = job;
+                    job.Node = _queue.AddFirst(job);
+                }
+                job.Subscribers.Add(r); _subscriptions++;
+                r.Changed = () => { lock (_gate) Update(job); };
+                Update(job); // includes cancellation racing with subscription
+                Monitor.PulseAll(_gate);
+            }
         }
-        _signal.Release();
+        if (hit != null && !r.Cancelled) Deliver(r, hit);
+    }
+
+    private void Update(Job job)
+    {
+        if (_disposed) return;
+        int removed = job.Subscribers.RemoveAll(r => { if (!r.Cancelled) return false; r.Changed = null; return true; });
+        _subscriptions -= removed;
+        if (job.Subscribers.Count != 0) return;
+        job.Producer.Cancel();
+        if (job.Node != null) { _queue.Remove(job.Node); job.Node = null; }
+        if (_pending.TryGetValue(job.Key, out var current) && ReferenceEquals(current, job)) _pending.Remove(job.Key);
+    }
+
+    private static void Deliver(ThumbnailRequest request, BitmapSource? bitmap)
+    {
+        try { if (!request.Cancelled) request.Done(bitmap); }
+        catch (Exception ex) { Diagnostics.Log("Thumbnail callback", ex, request.Path); }
     }
 
     private void Work()
     {
-        while (!_stop.IsCancellationRequested)
+        while (true)
         {
-            try { _signal.Wait(_stop.Token); } catch (OperationCanceledException) { return; }
-            ThumbnailRequest? r;
+            Job job;
             lock (_gate)
             {
-                r = _queue.First?.Value;
-                if (r != null) _queue.RemoveFirst();
+                while (_queue.Count == 0 && !_disposed) Monitor.Wait(_gate);
+                if (_disposed) return;
+                job = _queue.FirstOrDefault(j => j.Visible) ?? _queue.First!.Value;
+                _queue.Remove(job.Node!); job.Node = null;
+                _working++;
             }
-            if (r == null || r.Cancelled) continue;
+            var r = job.Producer;
             BitmapSource? bmp = null;
             try
             {
-                bmp = TryGetCached(r.Path, r.Size, r.Modified, r.Length) ?? Make(r);
-                if (bmp != null) Store(Key(r.Path, Bucket(r.Size), r.Modified, r.Length), bmp);
+                if (!r.Cancelled) bmp = TryGetCached(r.Path, r.Size, r.Modified, r.Length) ?? _make(r);
             }
             catch (Exception ex) { Diagnostics.Log("Thumbnails", ex, r.Path); }
-            if (!r.Cancelled) r.Done(bmp);
+            ThumbnailRequest[] subscribers;
+            lock (_gate)
+            {
+                if (!_disposed && !r.Cancelled && bmp != null) Store(job.Key, bmp);
+                subscribers = job.Subscribers.ToArray(); job.Subscribers.Clear();
+                _subscriptions -= subscribers.Length;
+                foreach (var subscriber in subscribers) subscriber.Changed = null;
+                if (_pending.TryGetValue(job.Key, out var current) && ReferenceEquals(current, job)) _pending.Remove(job.Key);
+            }
+            if (!_disposed) foreach (var subscriber in subscribers) Deliver(subscriber, bmp);
+            lock (_gate) _working--;
         }
     }
 
-    private static BitmapSource? Make(ThumbnailRequest r)
+    private BitmapSource? Make(ThumbnailRequest r)
     {
         int size = Bucket(r.Size);
         var bmp = ShellThumbnails.Get(r.Path, size, thumbnailOnly: true);
-        if (bmp == null && r.IsVideo && !r.Cancelled) bmp = FfmpegFrame(r.Path, size, r.Modified, r.Length);
-        if (bmp == null && !r.Cancelled) bmp = ShellThumbnails.Get(r.Path, size, thumbnailOnly: false); // the file-type icon
+        if (bmp == null && r.IsVideo && !r.Cancelled) bmp = FfmpegFrame(r.Path, size, r.Modified, r.Length, r);
+        if (bmp == null && !r.Cancelled)
+        {
+            string? iconKey = !Directory.Exists(r.Path) && !ShellInfo.UsesPerFileIcon(r.Path)
+                ? "@icon:" + Path.GetExtension(r.Path) : null;
+            bmp = iconKey == null ? null : TryGetCached(iconKey, size, DateTime.MinValue, 0);
+            bmp ??= ShellThumbnails.GetIcon(r.Path, size);
+            if (bmp != null && iconKey != null) Store(Key(iconKey, size, DateTime.MinValue, 0), Shrink(bmp, size));
+        }
         return bmp == null ? null : Shrink(bmp, size);
     }
 
@@ -140,6 +216,7 @@ public sealed class ThumbnailService : IDisposable
         long bytes = (long)bmp.PixelWidth * bmp.PixelHeight * 4;
         lock (_gate)
         {
+            if (_disposed) return;
             if (_cache.TryGetValue(key, out var old)) { _lru.Remove(old); _cachedBytes -= old.Value.bytes; _cache.Remove(key); }
             var node = _lru.AddFirst((key, bmp, bytes));
             _cache[key] = node;
@@ -161,8 +238,9 @@ public sealed class ThumbnailService : IDisposable
 
     // ---------------------------------------------------------------- FFmpeg frames (disk cached)
 
-    internal static BitmapSource? FfmpegFrame(string path, int size, DateTime modified, long length)
+    internal static BitmapSource? FfmpegFrame(string path, int size, DateTime modified, long length, ThumbnailRequest? request = null)
     {
+        if (request?.Cancelled == true) return null;
         var ffmpeg = FfmpegPath();
         if (ffmpeg == null) return null;
         var name = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(Key(path, size, modified, length)))) + ".png";
@@ -170,11 +248,17 @@ public sealed class ThumbnailService : IDisposable
         if (!File.Exists(cached))
         {
             Directory.CreateDirectory(DiskCacheFolder);
-            var tmp = cached + ".tmp.png";
-            // a few seconds in skips black lead-in frames; very short clips fall back to the first frame
-            if (!RunFfmpeg(ffmpeg, path, tmp, size, "3") && !RunFfmpeg(ffmpeg, path, tmp, size, "0")) return null;
-            try { File.Move(tmp, cached, overwrite: true); }
-            catch (IOException) { return null; }
+            var tmp = cached + "." + Guid.NewGuid().ToString("N") + ".tmp.png";
+            try
+            {
+                // A cancelled/replaced tile must not monopolize a video worker.
+                if (!RunFfmpeg(ffmpeg, path, tmp, size, "3", request) && !RunFfmpeg(ffmpeg, path, tmp, size, "0", request)) return null;
+                if (request?.Cancelled == true) return null;
+                File.Move(tmp, cached, overwrite: false);
+                TrimDiskCache();
+            }
+            catch (IOException) { if (!File.Exists(cached)) return null; }
+            finally { try { if (File.Exists(tmp)) File.Delete(tmp); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
         }
         try
         {
@@ -190,8 +274,9 @@ public sealed class ThumbnailService : IDisposable
         catch (Exception ex) when (ex is IOException or NotSupportedException or FileFormatException) { return null; }
     }
 
-    private static bool RunFfmpeg(string ffmpeg, string input, string output, int size, string seek)
+    private static bool RunFfmpeg(string ffmpeg, string input, string output, int size, string seek, ThumbnailRequest? request)
     {
+        if (request?.Cancelled == true) return false;
         var psi = new ProcessStartInfo(ffmpeg) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardError = true, RedirectStandardOutput = true };
         foreach (var a in new[] { "-hide_banner", "-loglevel", "error", "-nostdin", "-ss", seek, "-i", input, "-frames:v", "1",
                                   "-vf", $"scale='min({size},iw)':-2", "-f", "image2", "-c:v", "png", "-y", output })
@@ -202,7 +287,10 @@ public sealed class ThumbnailService : IDisposable
             if (p == null) return false;
             _ = p.StandardError.ReadToEndAsync();
             _ = p.StandardOutput.ReadToEndAsync();
-            if (!p.WaitForExit(15_000)) { try { p.Kill(true); } catch (InvalidOperationException) { } return false; }
+            var watch = Stopwatch.StartNew();
+            while (!p.WaitForExit(50))
+                if (request?.Cancelled == true || watch.ElapsedMilliseconds >= 15000)
+                { try { p.Kill(true); p.WaitForExit(2000); } catch (InvalidOperationException) { } return false; }
             return p.ExitCode == 0 && File.Exists(output) && new FileInfo(output).Length > 0;
         }
         catch (System.ComponentModel.Win32Exception) { return false; }
@@ -215,16 +303,32 @@ public sealed class ThumbnailService : IDisposable
         {
             var dir = new DirectoryInfo(DiskCacheFolder);
             if (!dir.Exists) return;
-            var files = dir.GetFiles("*.png").OrderByDescending(f => f.LastAccessTimeUtc > f.LastWriteTimeUtc ? f.LastAccessTimeUtc : f.LastWriteTimeUtc).ToList();
+            var files = dir.GetFiles("*.png").Where(f => !f.Name.Contains(".tmp.")).OrderByDescending(f => f.LastAccessTimeUtc > f.LastWriteTimeUtc ? f.LastAccessTimeUtc : f.LastWriteTimeUtc).ToList();
             long total = 0;
+            int count = 0;
             foreach (var f in files)
             {
                 total += f.Length;
-                if (total > DiskCacheBudgetBytes || f.Name.Contains(".tmp.")) { try { f.Delete(); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
+                if (total > DiskCacheBudgetBytes || ++count > 4096) { try { f.Delete(); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
     }
 
-    public void Dispose() => _stop.Cancel();
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            if (_disposed) return;
+            _disposed = true;
+            foreach (var job in _pending.Values.ToArray())
+            {
+                job.Producer.Cancel();
+                foreach (var r in job.Subscribers) { r.Changed = null; r.Cancel(); }
+                job.Subscribers.Clear();
+            }
+            _pending.Clear(); _queue.Clear(); _subscriptions = 0;
+            ClearMemory(); Monitor.PulseAll(_gate);
+        }
+    }
 }

@@ -1,5 +1,29 @@
 # Installation and update infrastructure progress
 
+## List/Details image thumbnail correction (2026-11-05)
+
+Status: **Completed locally; owner visual review pending.** Owner feedback identified that the Details name template used only type icons. Reused the existing thumbnail control at 16 DIPs for image files only, with existing asynchronous cache, DPI, recycling and tab-lifecycle handling. Folders, other files and archive entries retain normal icons. Existing row spacing and selection/rename behavior are preserved.
+
+Files modified for this follow-up: `src/Fyltrix/UI/FolderView.cs`, `src/Fyltrix/UI/ThumbnailImage.cs`, `tests/Fyltrix.Tests/ThumbnailGridTests.cs`, `README.md`, `CHANGELOG.md`, `docs/THUMBNAIL_PERFORMANCE.md`, `docs/PROJECT_PROGRESS.md`, `docs/IMPLEMENTATION_STATUS.md`.
+
+Verification: isolated Release build passed with three existing warnings; 31 focused thumbnail cases passed. The UI regression checks cold Details images, grid-to-Details return, actual image aspect ratio and unchanged folder/non-image icon behavior. full application regression: **591 passed, zero failures/skips**, in 3 minutes 33 seconds (`results/details-full.trx`). No desktop input, personal settings, installation, version, clipboard or source images were changed. Existing Stage 3 timings predate this correction; no new Details performance claim. Shared bounded workers and caches are reused rather than adding background threads.
+
+Next action: owner review of image thumbnails in Details at normal row size, folder changes, scrolling and grid switching, then owner-controlled commit/push. Suggested commit: `fix(thumbnails): load image thumbnails in details rows`. Stop for owner review.
+
+## Stage 3: thumbnail quality, scheduling and cache lifecycle (2026-11-05)
+
+Status: **Completed locally; owner review pending.** The owner pushed Stage 2 and approved the final thumbnail stage. Sharp cached vector placeholders replace 6.4x enlarged small icons. Request generations reject stale resize/DPI completions; hidden/unloaded tabs cancel work and release displayed bitmaps. A bounded coalesced queue prioritizes visible tiles over prefetch on the existing three STA workers; larger-cache reuse, type-icon fallback sharing, cancellation-aware FFmpeg and bounded cache maintenance reuse the existing pipeline.
+
+Before application edits, baseline samples/binaries were retained. Final same-harness old/new comparisons use generated images, 5,000 text files, disposable profiles and cloaked windows. Smaller-size reuse: 72/72 hits versus 0/72; final 72-image resize-back median **146.461 ms -> 0.143 ms**. Unique-image cold loading remained similar. Scrolling median was 824.503 -> 920.091 ms over 20 pages, with overlapping ranges; no guaranteed general speedup is claimed. CPU, memory, cold/warm timings, methodology, intermediate corrections and limits are documented in [THUMBNAIL_PERFORMANCE.md](THUMBNAIL_PERFORMANCE.md). Private-byte reductions include explicit service cleanup; they are not a general steady-state RAM percentage promise.
+
+Builds succeed with existing warnings; **31 focused cases pass**, including existing native image/video quality and virtualization cases, coalescing/priority/cancellation/budgets, DPI request math, queued stale callbacks, hidden tabs and a real blocked-FFmpeg cancellation check. Test profiles/data/clipboard are isolated. No physical desktop input, personal-data deletion, real Recycle Bin changes or installed-app replacement. Actual mixed-monitor moves, physical scrolling and broad provider/codec acceptance remain owner checks.
+
+Final full application regression suite: **591 passed, zero failures/skips**, in 3 minutes 32 seconds (`results/thumbnail-stage3-handover-full.trx`).
+
+Stage 3 file list and evidence are in [THUMBNAIL_PERFORMANCE.md](THUMBNAIL_PERFORMANCE.md); README, Unreleased changelog and both progress files are updated. File-operation/rename implementations, installer/launcher/updater/release workflow, dependencies, preferences, version and portable publish workflow remain unchanged. No commits, pushes, branches, tags or releases.
+
+All three requested implementation stages are now implemented and verified locally; owner acceptance remains. Next owner action: review thumbnail appearance, size changes, scrolling and tab/folder returns in a disposable demo folder using the usual development build. Suggested commit: `perf(thumbnails): optimize loading, caching and image quality`. Stop for owner review; no automatic release preparation.
+
 ## Stage 2: Explorer-style numbered multi-item rename (2026-11-05)
 
 Status: **Completed locally; owner review pending.** The owner pushed Stage 1 and explicitly approved continuing. Only Issue 2 is active; thumbnail performance/quality remains Stage 3 and has not been changed or benchmarked.

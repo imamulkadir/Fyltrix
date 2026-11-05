@@ -14,6 +14,7 @@ public static class ShellInfo
     private static readonly Dictionary<string, ImageSource?> IconCache = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, string> TypeCache = new(StringComparer.OrdinalIgnoreCase);
     internal const int MaxIcons = 3000, MaxTypes = 2000;
+    internal static bool UsesPerFileIcon(string path) => PerFileIcon.Contains(Path.GetExtension(path));
 
     internal static int CachedIcons { get { lock (IconCache) return IconCache.Count; } }
     private static readonly HashSet<string> PerFileIcon = new(StringComparer.OrdinalIgnoreCase) { ".exe", ".lnk", ".ico", ".url", ".cpl", ".msc", ".appref-ms" };

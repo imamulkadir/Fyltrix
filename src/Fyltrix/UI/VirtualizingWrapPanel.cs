@@ -110,6 +110,7 @@ public sealed class VirtualizingWrapPanel : VirtualizingPanel, IScrollInfo
             int index = generator.IndexFromGeneratorPosition(new GeneratorPosition(i, 0));
             if (index < 0) continue;
             var p = Position(index);
+            ThumbnailImage.SetIsInViewport(child, p.Y + ItemHeight > _offset.Y && p.Y < _offset.Y + _viewport.Height);
             child.Arrange(new Rect(p.X, p.Y - _offset.Y, ItemWidth, ItemHeight));
         }
         return final;

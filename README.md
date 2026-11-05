@@ -117,6 +117,7 @@ Move through your files faster with a familiar, flexible interface.
 - Reorder Favourites, manage Recent entries, and show or hide sidebar sections and Quick Access places.
 - Group Details and thumbnail views by modification date; Downloads uses date groups by default.
 - Choose 48, 96, 160, or 256-pixel thumbnails, with per-folder sorting and view memory.
+- Thumbnail views use sharp vector placeholders, prioritize visible items over prefetch, and reuse larger cached images when reducing icon size. Obsolete requests are cancelled when tiles, views or tabs change; file changes invalidate their cached entries. List/Details rows also load compact image thumbnails asynchronously; folders and other files retain their normal icons.
 
 ### Powerful File Operations
 
