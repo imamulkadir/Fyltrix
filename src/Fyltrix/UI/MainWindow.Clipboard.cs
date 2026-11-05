@@ -1,6 +1,7 @@
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
+using Fyltrix.Core;
 
 namespace Fyltrix.UI;
 
@@ -14,6 +15,46 @@ public sealed partial class MainWindow
 
     private readonly List<ClipEntry> _clipHistory = new();
     internal IReadOnlyList<ClipEntry> ClipHistory => _clipHistory;
+
+    private void CompleteCutPaste(string[] original, TransferResult result)
+    {
+        var moved = result.Moved.Select(p => p.from).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var remaining = original.Where(p => !moved.Contains(p) && FileOps.Exists(p)).ToArray();
+        try
+        {
+            // Shell progress/conflict dialogs pump messages. Do not overwrite a new
+            // clipboard selection made while this operation was in progress.
+            var current = _clipboard.Read();
+            if (current?.GetData(DataFormats.FileDrop) is not string[] paths ||
+                !paths.SequenceEqual(original, StringComparer.OrdinalIgnoreCase) ||
+                current.GetData("Preferred DropEffect") is not MemoryStream effect || effect.Length < 4)
+                return;
+            effect.Position = 0;
+            var bytes = new byte[4];
+            if (effect.Read(bytes, 0, 4) != 4 || (BitConverter.ToInt32(bytes, 0) & 2) == 0) return;
+            if (remaining.Length == 0) _clipboard.Clear();
+            else
+            {
+                var pending = new DataObject();
+                var files = new StringCollection();
+                files.AddRange(remaining);
+                pending.SetFileDropList(files);
+                pending.SetData("Preferred DropEffect", new MemoryStream(BitConverter.GetBytes(2)));
+                _clipboard.Write(pending);
+            }
+            _cutPaths.Clear();
+            _cutPaths.UnionWith(remaining);
+            if (remaining.Length > 0)
+                SetStatus(_statusRight.Text + $" {remaining.Length} item{(remaining.Length == 1 ? " remains" : "s remain")} cut.");
+        }
+        catch (Exception ex) { SetStatus("Move finished; couldn't update the clipboard: " + ex.Message); }
+        finally
+        {
+            _cutPaths.RemoveWhere(p => !FileOps.Exists(p));
+            foreach (var tab in _tabs) MarkCut(tab.View);
+            RefreshClipboardState();
+        }
+    }
 
     private void RememberClipboard(List<string> paths, bool cut)
     {

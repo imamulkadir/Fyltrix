@@ -947,13 +947,14 @@ public sealed partial class MainWindow : Window, IFolderHost
 
     private void CopySelection(bool cut)
     {
-        if (View == null || !CanExecute(cut ? "cut" : "copy")) return;
-        var sel = View.SelectedItems.Where(i => !i.IsDrive).ToList();
-        if (sel.Count == 0) return;
-        if (View.IsArchive)
+        var view = View;
+        if (view == null) return;
+        var sel = view.SelectedItems.ToList();
+        if (!Availability(view, sel, executing: true).Allows(cut ? "cut" : "copy")) return;
+        if (view.IsArchive)
         {
             if (cut) { SetStatus("Archives are read-only here. Use Copy, or extract the files first."); return; }
-            CopyVirtual(View, sel);
+            CopyVirtual(view, sel);
             return;
         }
         var paths = new StringCollection();
@@ -1022,21 +1023,19 @@ public sealed partial class MainWindow : Window, IFolderHost
         }
         catch (Exception ex) { SetStatus("Couldn't read the clipboard: " + ex.Message); return; }
 
-        Transfer(files, targetDir, move);
-        if (move)
-        {
-            try { _clipboard.Clear(); RefreshClipboardState(); } catch { }
-            _cutPaths.Clear();
-            foreach (var t in _tabs) MarkCut(t.View);
-        }
+        var result = Transfer(files, targetDir, move);
+        if (move) CompleteCutPaste(files, result);
     }
 
-    private void Transfer(IList<string> files, string targetDir, bool move)
+    internal Func<string, (ConflictChoice choice, bool applyToAll)>? ConflictForTest { get; set; }
+
+    private TransferResult Transfer(IList<string> files, string targetDir, bool move)
     {
         using var updateWork = TrackUpdateWork();
-        if (files.Count == 0) return;
+        if (files.Count == 0) return new TransferResult();
         if (move) ReleasePreviews(files);
-        var result = FileOps.Transfer(files, targetDir, move, Hwnd, target => ConflictDialog.Ask(this, target));
+        var result = FileOps.Transfer(files, targetDir, move, Hwnd, target =>
+            ConflictForTest?.Invoke(target) ?? ConflictDialog.Ask(this, target));
         foreach (var (from, to) in result.Moved) Core.Tools.TagStore.Shared.Move(from, to);
 
         var verb = move ? "Move" : "Copy";
@@ -1057,24 +1056,35 @@ public sealed partial class MainWindow : Window, IFolderHost
         if (result.Errors.Count > 0)
             MessageBox.Show(this, string.Join("\n", result.Errors), verb, MessageBoxButton.OK, MessageBoxImage.Warning);
         SetStatus(result.Cancelled ? $"{verb} cancelled after {done} item{(done == 1 ? "" : "s")}." : $"{(move ? "Moved" : "Copied")} {done} item{(done == 1 ? "" : "s")}.");
+        return result;
     }
+
+    internal Func<IList<string>, bool, IntPtr, bool>? DeleteFilesForTest { get; set; }
+    internal Func<string, DateTime, string?>? RestoreDeletedForTest { get; set; }
+    internal Func<int, bool>? ConfirmPermanentDeleteForTest { get; set; }
+    internal string OperationStatusForTest => _statusRight.Text;
 
     private void DeleteSelection(bool permanent)
     {
         using var updateWork = TrackUpdateWork();
-        if (View == null || !CanExecute("delete")) return;
-        if (View.IsArchive) { SetStatus("Archives are read-only here. Items inside them can't be deleted."); return; }
-        var sel = View.SelectedItems.Where(i => !i.IsDrive).ToList();
-        if (sel.Count == 0) return;
+        var view = View;
+        if (view == null) return;
+        var sel = view.SelectedItems.ToList();
+        if (!Availability(view, sel, executing: true).Delete) return;
         if (permanent)
         {
             var what = sel.Count == 1 ? $"'{sel[0].Name}'" : $"these {sel.Count} items";
-            if (MessageBox.Show(this, $"Permanently delete {what}?\nThis can't be undone.", "Delete permanently",
-                    MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+            bool confirmed = ConfirmPermanentDeleteForTest?.Invoke(sel.Count) ??
+                MessageBox.Show(this, $"Permanently delete {what}?\nThis can't be undone.", "Delete permanently",
+                    MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
+            if (!confirmed) return;
         }
+        // Confirmation/native dialogs can pump navigation or filesystem changes. Keep
+        // the original selection, but never act on paths that have become invalid.
+        if (!Availability(view, sel, executing: true).Delete) { SetStatus("The selected items are no longer available."); return; }
 
         // pick the item to select afterwards (like Explorer)
-        var items = View.Items.ToList();
+        var items = view.Items.ToList();
         int firstIndex = items.IndexOf(sel[0]);
         var remaining = items.Where(i => !sel.Contains(i)).ToList();
         string? next = remaining.Count == 0 ? null : remaining[Math.Clamp(firstIndex, 0, remaining.Count - 1)].FullPath;
@@ -1082,14 +1092,14 @@ public sealed partial class MainWindow : Window, IFolderHost
         var paths = sel.Select(s => s.FullPath).ToList();
         ReleasePreviews(paths);
         var when = DateTime.UtcNow;
-        bool ok = FileOps.Delete(paths, permanent, Hwnd);
+        bool ok = DeleteFilesForTest?.Invoke(paths, permanent, Hwnd) ?? FileOps.Delete(paths, permanent, Hwnd);
         var gone = paths.Where(p => !FileOps.Exists(p)).ToList();
-        if (!permanent && gone.Count > 0) _undo.Push(new DeleteUndo(gone, when));
-        _ = View.Refresh(next != null ? new[] { next } : Array.Empty<string>());
-        RefreshOtherViews(View, View.CurrentPath);
-        SetStatus(ok
+        if (!permanent && gone.Count > 0) _undo.Push(new DeleteUndo(gone, when, RestoreDeletedForTest ?? RecycleBin.Restore));
+        if (_tabs.Any(t => t.View == view)) _ = view.Refresh(next != null ? new[] { next } : Array.Empty<string>());
+        RefreshOtherViews(view, view.CurrentPath);
+        SetStatus(ok && gone.Count == paths.Count
             ? $"{(permanent ? "Permanently deleted" : "Moved to Recycle Bin:")} {gone.Count} item{(gone.Count == 1 ? "" : "s")}.{(permanent ? "" : "  Ctrl+Z to undo.")}"
-            : $"Delete stopped. {gone.Count} item{(gone.Count == 1 ? "" : "s")} deleted.");
+            : $"Delete stopped. {gone.Count} item{(gone.Count == 1 ? "" : "s")} deleted; {paths.Count - gone.Count} remaining.");
     }
 
     private void Undo()

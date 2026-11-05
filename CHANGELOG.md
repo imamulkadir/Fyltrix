@@ -6,6 +6,15 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Keep Cut and Delete available for valid multi-selections when an individual
+  item is open; let Windows report per-item operation failures.
+- Preserve skipped or failed cut/paste items on the clipboard, and retain a new
+  clipboard selection made during a move.
+- Keep deletion bound to its original selection and tab across confirmation;
+  report actual completion and preserve undo for successfully recycled items.
+
 ## [0.1.9] - 2026-11-03
 
 ### Added

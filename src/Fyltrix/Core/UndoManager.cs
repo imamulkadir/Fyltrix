@@ -146,12 +146,17 @@ public sealed class DeleteUndo : IUndoAction
 {
     private readonly List<string> _paths;
     private readonly DateTime _whenUtc;
+    private readonly Func<string, DateTime, string?> _restore;
     public string Description { get; }
 
-    public DeleteUndo(IEnumerable<string> paths, DateTime whenUtc)
+    public DeleteUndo(IEnumerable<string> paths, DateTime whenUtc) : this(paths, whenUtc, RecycleBin.Restore) { }
+
+    // A scoped boundary lets tests restore only their isolated recycle store.
+    internal DeleteUndo(IEnumerable<string> paths, DateTime whenUtc, Func<string, DateTime, string?> restore)
     {
         _paths = paths.ToList();
         _whenUtc = whenUtc;
+        _restore = restore;
         Description = _paths.Count == 1 ? $"Restore '{Path.GetFileName(_paths[0])}'" : $"Restore {_paths.Count} deleted items";
     }
 
@@ -159,7 +164,7 @@ public sealed class DeleteUndo : IUndoAction
 
     public string? Undo(IntPtr owner)
     {
-        var errors = _paths.Select(p => RecycleBin.Restore(p, _whenUtc)).Where(e => e != null).ToList();
+        var errors = _paths.Select(p => _restore(p, _whenUtc)).Where(e => e != null).ToList();
         return errors.Count > 0 ? string.Join("\n", errors) : null;
     }
 }

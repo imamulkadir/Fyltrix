@@ -96,7 +96,7 @@ public sealed partial class MainWindow
             : (view?.IsSearchResults == true || view != null && AppSettings.SameFolder(i.Folder, view.CurrentPath))
                 && (i.IsDirectory ? Directory.Exists(i.FullPath) : File.Exists(i.FullPath))));
         bool real = valid && !archive && sel.All(i => !i.IsVirtual);
-        bool mutable = real && sel.All(i => FileAccessPolicy.Deletable(i.FullPath));
+        bool mutable = real && sel.Count == 1 && FileAccessPolicy.Deletable(sel[0].FullPath);
         bool readable = valid && (archive || sel.All(i => FileAccessPolicy.Readable(i.FullPath)));
         bool destination = view?.CanModify == true && (executing
             ? FileAccessPolicy.WritableDirectory(view.CurrentPath)
@@ -108,8 +108,10 @@ public sealed partial class MainWindow
             : !real || !readable ? "Both files must be available and readable; extract archive entries first."
             : !CompareWindow.Compatible(sel[0].FullPath, sel[1].FullPath) ? "These files use incompatible comparison formats." : "";
         bool location = view != null && (view.IsThisPC || view.IsArchive && File.Exists(view.ArchiveFile) || Directory.Exists(view.CurrentPath));
-        return new(destination, mutable, readable, destination && (_clipboardFiles || _clipboardImage),
-            mutable && sel.Count == 1, mutable, quick, reason.Length == 0, location, reason);
+        // Cut only records paths. A transient DELETE-access probe must not block the
+        // whole set; Shell reports locks/permissions for each attempted move/delete.
+        return new(destination, real, readable, destination && (_clipboardFiles || _clipboardImage),
+            mutable && sel.Count == 1, real, quick, reason.Length == 0, location, reason);
     }
 
     private bool CanExecute(string id)

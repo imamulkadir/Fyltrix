@@ -123,6 +123,7 @@ Move through your files faster with a familiar, flexible interface.
 Manage files without constantly switching between different tools.
 
 - Cut, copy, paste, rename, move, and delete files.
+- Cut and delete mixed multi-selections through the toolbar, context menu or keyboard. If a cut/paste move is skipped or only partly completed, pending items remain cut for another attempt.
 - Undo supported copy, move, rename, creation, extraction, compression, conversion, and Recycle Bin deletion operations. Permanent deletion cannot be undone.
 - Batch rename with a live plan, templates, padded counters, find/replace or regex, case changes, prefixes/suffixes, extension changes, and conflict detection; optionally include folders.
 - Paste Snipping Tool screenshots and compatible clipboard images as PNG files through Paste or `Ctrl + V`.
