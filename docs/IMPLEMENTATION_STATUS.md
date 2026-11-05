@@ -4,6 +4,18 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.10 preparation (2026-11-05)
+
+Status: **Prepared locally; owner commit/push, candidate CI validation and tag pending.** The owner reported the Details correction working, pushed the implementation and requested a version update. Clean local `master` and remote `master` both resolved to `34449e598d98fe90a4b46ff5f6ea5a39e7154875` before preparation. Read-only GitHub checks confirm `v0.1.9` is the latest published release and [manual validation 41988557328](https://github.com/imamulkadir/Fyltrix/actions/runs/41988557328) succeeded at that exact base commit: 591 application, 134 updater, 39 packaging, 10 installer-guard and 14 release-tool cases (788 total), plus ZIP/Production installer compilation. That run validated pre-bump 0.1.9 metadata, not the new 0.1.10 candidate.
+
+Moved the completed Unreleased notes into `0.1.10`, dated 2026-11-05, and retained an empty Unreleased section for future work. Release notes cover multi-selection Cut/Delete and cut-clipboard preservation, Explorer-style numbered rename, thumbnail quality/lifecycle/cache scheduling, and compact image thumbnails in Details. No universal thumbnail speedup is claimed; measured limitations remain in THUMBNAIL_PERFORMANCE.md. The existing version helper updated only Version, AssemblyVersion and FileVersion in the application project to 0.1.10 / 0.1.10.0. Application behavior, dependencies, data paths, settings, publish.ps1, signing and workflows are unchanged.
+
+Files modified: `CHANGELOG.md`, `src/Fyltrix/Fyltrix.csproj`, `docs/RELEASING.md`, `docs/PROJECT_PROGRESS.md`, `docs/IMPLEMENTATION_STATUS.md`.
+
+Verification executed for this preparation: Set-ReleaseVersion and Test-Release passed for `v0.1.10`; isolated application Release build succeeded with zero errors and the two existing SettingsWindow nullable/WFAC010 warnings; all 14 release-tool tests passed. Compiled version metadata matches 0.1.10. The 788-case hosted result above belongs to the pushed pre-bump source, not a new local full-suite run. Build outputs are retained under `%TEMP%\Fyltrix-release-prep-0.1.10-20261105`; no production installation or desktop launch was performed.
+
+Next action: owner review, commit and push these five files to master using `chore(release): prepare v0.1.10`, then run Actions > Release > Run workflow on master. Wait for candidate validation to pass before owner-created `v0.1.10` tagging. Tagged packaging/attestation, actual draft verification, local metadata signing, upload and publication remain later owner-approved steps. No commit, push, branch, tag, signing, upload or publication was performed by the agent.
+
 ### List/Details image thumbnail correction (2026-11-05)
 
 Status: **Completed locally; owner visual review pending.** Owner feedback identified that the Details name template used only type icons. Reused the existing thumbnail control at 16 DIPs for image files only, with existing asynchronous cache, DPI, recycling and tab-lifecycle handling. Folders, other files and archive entries retain normal icons. Existing row spacing and selection/rename behavior are preserved.

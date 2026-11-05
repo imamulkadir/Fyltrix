@@ -6,6 +6,8 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-11-05
+
 ### Added
 
 - Simple numbered multi-item Rename through F2, the toolbar, context menu and
@@ -18,7 +20,6 @@ The release workflow uses that exact section as the GitHub release notes.
 
 - Show compact image thumbnails in List/Details rows instead of only file-type
   icons, while preserving folder and other file icons.
-
 - Keep Cut and Delete available for valid multi-selections when an individual
   item is open; let Windows report per-item operation failures.
 - Preserve skipped or failed cut/paste items on the clipboard, and retain a new
