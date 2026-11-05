@@ -121,7 +121,7 @@ public sealed partial class MainWindow
         }
         Cmd("Manage New-menu templates…", "New", ManageTemplates);
         Cmd("Rename", "Edit", RenameSelection, "F2", available.Rename);
-        Cmd("Batch rename…", "Edit", BatchRenameSelection, "F2", available.Delete);
+        Cmd("Batch rename…", "Edit", BatchRenameSelection, null, available.Delete);
         Cmd("Copy", "Edit", () => CopySelection(false), "Ctrl+C", available.Copy);
         Cmd("Cut", "Edit", () => CopySelection(true), "Ctrl+X", available.Cut);
         Cmd("Paste", "Edit", Paste, "Ctrl+V", available.Paste);

@@ -6,6 +6,14 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+
+- Simple numbered multi-item Rename through F2, the toolbar, context menu and
+  command palette. Enter one base name, preserve extensions, follow visible
+  selection order and skip occupied names without overwriting files.
+- Keep single-item inline Rename and the separate advanced Batch rename tool,
+  with existing batch rollback and undo reused for numbered renames.
+
 ### Fixed
 
 - Keep Cut and Delete available for valid multi-selections when an individual

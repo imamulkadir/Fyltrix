@@ -854,7 +854,7 @@ public sealed partial class MainWindow : Window, IFolderHost
         if (!first.IsDrive)
         {
             m.Items.Add(new Separator());
-            m.Items.Add(Theme.MenuItem("Rename", "\uE8AC", RenameSelection, "F2", sel.Count == 1));
+            m.Items.Add(Theme.MenuItem("Rename", "\uE8AC", RenameSelection, "F2"));
             m.Items.Add(Theme.MenuItem("Delete", "\uE74D", () => DeleteSelection(false), "Del"));
             m.Items.Add(Theme.MenuItem("Delete permanently", "\uE74D", () => DeleteSelection(true), "Shift+Del"));
         }

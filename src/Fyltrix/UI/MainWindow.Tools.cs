@@ -20,7 +20,7 @@ public sealed partial class MainWindow
         return new List<object>
         {
             Theme.MenuItem("Advanced search…", "", AdvancedSearch, "Ctrl+Shift+F", folder != null),
-            Theme.MenuItem("Batch rename…", "", () => BatchRenameSelection(), "F2", sel.Count > 0),
+            Theme.MenuItem("Batch rename…", "", () => BatchRenameSelection(), null, sel.Count > 0),
             new Separator(),
             Theme.MenuItem("Find duplicate files…", "", () => FindDuplicates(folder != null ? new[] { folder } : Array.Empty<string>())),
             Theme.MenuItem("Folder sizes…", "", () => FolderSizes(folder ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))),
@@ -60,7 +60,7 @@ public sealed partial class MainWindow
         if (actions.Count > 0)
             m.Items.Add(Theme.SubMenu("Actions", "\uE945", actions.Select(a => (object)Theme.MenuItem(a.Name, null, () => RunCustomAction(a, actionItems.Select(i => i.FullPath).ToList())))));
         m.Items.Add(Theme.MenuItem("Tags…", "", () => EditTags(real.Select(r => r.FullPath).ToList())));
-        if (view.CanModify && real.Count > 1) m.Items.Add(Theme.MenuItem("Batch rename…", "", () => BatchRenameSelection(), "F2"));
+        if (view.CanModify && real.Count > 1) m.Items.Add(Theme.MenuItem("Batch rename…", "", () => BatchRenameSelection()));
         m.Items.Add(Theme.MenuItem("Share on this network…", "\uE72D", () => ShareWith(real.Select(r => r.FullPath))));
         if (real.Any(r => !r.IsDirectory)) m.Items.Add(Theme.MenuItem("Checksums…", "", () => Checksums(real.Where(r => !r.IsDirectory).Select(r => r.FullPath).ToList())));
         var pdfs = real.Where(r => !r.IsDirectory && r.Extension.Equals(".pdf", StringComparison.OrdinalIgnoreCase)).Select(r => r.FullPath).ToList();

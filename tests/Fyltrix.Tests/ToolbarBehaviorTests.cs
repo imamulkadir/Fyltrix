@@ -83,16 +83,16 @@ public class ToolbarBehaviorTests
                 w.HandleFileShortcut(Key.Space, false, false);
                 Assert.DoesNotContain(Application.Current.Windows.Cast<Window>(), win => win is QuickViewWindow);
                 Select("a.json"); State(true, true, true, false);
-                Select("a.json", "b.xml"); State(true, false, false, true);
+                Select("a.json", "b.xml"); State(true, true, false, true);
                 var menu = w.BuildContextMenu(view, view.SelectedItems);
                 Assert.True(MainWindowUiTests.Item(menu, "Compare these two").IsEnabled);
                 Assert.False(MainWindowUiTests.Item(menu, "Quick view").IsEnabled);
-                Select("a.json", "picture.png"); State(true, false, false, false);
+                Select("a.json", "picture.png"); State(true, true, false, false);
                 Assert.Contains("incompatible", Button(w, "compare").ToolTip.ToString());
                 Click(Button(w, "compare")); w.HandleFileShortcut(Key.D, true, false);
                 Assert.DoesNotContain(Application.Current.Windows.Cast<Window>(), win => win is CompareWindow);
-                Select("folder", "a.json"); State(true, false, false, false);
-                Select("a.json", "b.xml", "c.txt"); State(true, false, false, false);
+                Select("folder", "a.json"); State(true, true, false, false);
+                Select("a.json", "b.xml", "c.txt"); State(true, true, false, false);
                 Select("binary.bin"); State(true, true, true, false); // existing hex preview remains available
                 Select("a.json");
                 File.Delete(t["a.json"]);

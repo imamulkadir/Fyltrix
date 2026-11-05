@@ -111,7 +111,7 @@ public sealed partial class MainWindow
         // Cut only records paths. A transient DELETE-access probe must not block the
         // whole set; Shell reports locks/permissions for each attempted move/delete.
         return new(destination, real, readable, destination && (_clipboardFiles || _clipboardImage),
-            mutable && sel.Count == 1, real, quick, reason.Length == 0, location, reason);
+            mutable || real && sel.Count > 1 && view?.CanModify == true, real, quick, reason.Length == 0, location, reason);
     }
 
     private bool CanExecute(string id)
@@ -119,11 +119,6 @@ public sealed partial class MainWindow
         if (id is not ("new" or "newfolder" or "cut" or "copy" or "paste" or "rename" or "delete" or "quickview" or "compare" or "view" or "sort")) return true;
         if (id == "paste") RefreshClipboardState();
         return Availability(executing: true).Allows(id);
-    }
-
-    private void RenameSelection()
-    {
-        if (CanExecute("rename")) View?.BeginRename();
     }
 
     private static bool SupportsQuickView(string path)
@@ -146,11 +141,7 @@ public sealed partial class MainWindow
         else if (ctrl && key == System.Windows.Input.Key.X) CopySelection(true);
         else if (ctrl && key == System.Windows.Input.Key.V) Paste();
         else if (ctrl && key == System.Windows.Input.Key.D) CompareSelection();
-        else if (key == System.Windows.Input.Key.F2)
-        {
-            if (View?.SelectedItems.Count > 1 && CanExecute("delete")) BatchRenameSelection();
-            else RenameSelection();
-        }
+        else if (key == System.Windows.Input.Key.F2) RenameSelection();
         else if (key == System.Windows.Input.Key.Delete) DeleteSelection(shift);
         else if (key == System.Windows.Input.Key.Space && !ctrl) ToggleQuickView(null);
         else return false;

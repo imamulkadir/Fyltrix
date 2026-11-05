@@ -125,7 +125,9 @@ Manage files without constantly switching between different tools.
 - Cut, copy, paste, rename, move, and delete files.
 - Cut and delete mixed multi-selections through the toolbar, context menu or keyboard. If a cut/paste move is skipped or only partly completed, pending items remain cut for another attempt.
 - Undo supported copy, move, rename, creation, extraction, compression, conversion, and Recycle Bin deletion operations. Permanent deletion cannot be undone.
+- Press `F2` or choose Rename with multiple items selected to enter a common base name: `Holiday (1).jpg`, `Holiday (2).png`, and so on. Numbering follows the visible order and keeps each file's extension; occupied names are skipped without overwriting files. Single-item Rename stays inline.
 - Batch rename with a live plan, templates, padded counters, find/replace or regex, case changes, prefixes/suffixes, extension changes, and conflict detection; optionally include folders.
+- Advanced renaming remains available separately under **Tools → Batch rename**, the context menu and the command palette.
 - Paste Snipping Tool screenshots and compatible clipboard images as PNG files through Paste or `Ctrl + V`.
 - Preserve clipboard PNG bytes where available; otherwise encode lossless PNG. Timestamped screenshot names avoid overwriting existing files.
 - File/folder clipboard data takes priority when both files and images are present. Invalid file-drop data does not silently become an image paste.
@@ -451,7 +453,7 @@ Installer/release-layout packaging is a separate workflow; NativeAOT additionall
 | `Ctrl + X`                           | Cut                                           |
 | `Ctrl + V`                           | Paste                                         |
 | `Ctrl + Shift + N`                   | New folder                                    |
-| `F2`                                 | Rename / batch rename for multiple selections |
+| `F2`                                 | Inline rename for one item; numbered rename for multiple items |
 | `Delete`                             | Delete to Recycle Bin                         |
 | `Shift + Delete`                     | Permanent delete                              |
 | `Ctrl + Z`                           | Undo supported operations                     |
