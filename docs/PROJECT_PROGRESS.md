@@ -1,5 +1,24 @@
 # Installation and update infrastructure progress
 
+## Release 0.1.11 preparation (2026-11-13)
+
+Status: **Prepared locally; owner commit/push/tag/sign/publish pending.** Published latest is `v0.1.10` (read-only `gh` check). Owner committed the feature work as `1bdb353` (preview recovery + `fyltrix.example`) and `b4dd020` (Fyltrix data folders). Release preparation edits (uncommitted): `CHANGELOG.md` (notes moved to `[0.1.11] - 2026-11-13`), `src/Fyltrix/Fyltrix.csproj` (0.1.11 via `tools/Set-ReleaseVersion.ps1`), `docs/RELEASING.md`, this file and `docs/IMPLEMENTATION_STATUS.md`.
+
+Local CI-equivalent verification, Release configuration: `Test-Release.ps1 -Tag v0.1.11` passed. Application **605/605**, updater **136/136** and packaging **39/39** passed. Installer guard (Python) **10/10** and release tooling **14/14** passed. `Publish-Layout.ps1 -Version 0.1.11` built `artifacts/distribution/0.1.11/Fyltrix-0.1.11-win-x64.zip` (88,067,081 bytes, 500 entries, SHA-256 `6e01ed125eb5c679311108efd6b6b5d2c1e5ba0fd18c1a70069cd89fe8c55d0e`, matches its `.sha256`). `Build-Installer.ps1 -Mode Production` **compiled only** `Fyltrix-Setup-win-x64.exe` (SHA-256 `d44c3dc812015ee1716051d25b352dedd2341f471980cddfbddadb64c8d105f5`); it was never run.
+
+Package inspection:
+- `UPDATE_PROTOCOL` is byte-identical to the 0.1.10 contract (`Fyltrix.Update/1\nFileLens.Profile/1\n`), so installed 0.1.10 updaters accept it.
+- `current.json` → 0.1.11.
+- `Fyltrix.dll` FileVersion 0.1.11.0, built from `b4dd020` plus the version change.
+- The DLL contains the `fyltrix.example` host and the recovery strings, and no `filelens.app`.
+- WebView2 loader and wrappers are present, and `LAYOUT.txt` names the Fyltrix folders.
+
+These local packages are verification artifacts only; GitHub builds, attests and drafts the official ones from the tag.
+
+Not verified: a real update from an installed 0.1.10 (old updater, trial, settings copy, rollback) on Sandbox/real install; a UAC firewall rename; the affected user's PC. The owner declined the Sandbox upgrade test (`tests/installer/verify_apply.py`) for this release on 2026-11-13; the first real 0.1.10 → 0.1.11 update is therefore the owner's post-publication acceptance check.
+
+Suggested owner commit: `chore(release): prepare v0.1.11`.
+
 ## FileLens → Fyltrix data folders, error log and firewall rule (2026-11-13)
 
 Status: **Implemented and verified with automated tests on the development PC; real upgrade from installed 0.1.10 not yet exercised.** Owner direction: "everything should be Fyltrix, not FileLens; the error log should be saved under Fyltrix."

@@ -6,6 +6,8 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-11-13
+
 ### Fixed
 
 - Previews no longer stop working for the rest of the session when the Microsoft Edge WebView2 preview engine
