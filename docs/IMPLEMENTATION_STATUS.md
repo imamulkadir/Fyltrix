@@ -4,6 +4,14 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.12 preparation, superseding the failed v0.1.11 tag (2026-11-13)
+
+Status: **Prepared locally; owner commit/push/manual run/tag/sign/publish pending.** The owner's manual run 43404084382 on `master` at `b4dd020` (feature commits, version still 0.1.10) passed. The owner then pushed annotated tag `v0.1.11` (object `5eee702`) at that same commit before committing the release preparation. Tag run 43405083520 failed in "Validate tag, master ancestry, versions and changelog" (`Get-ReleaseNotes.ps1`: no `0.1.11` section). Build, tests, packaging, attestation and draft were skipped. `gh release view v0.1.11` reports no release, and published latest remains `v0.1.10`. Owner chose to fix forward: `v0.1.11` stays unused, as `v0.1.7` did.
+
+Changes: the `CHANGELOG.md` section is renamed `[0.1.12] - 2026-11-13` (same notes). `Set-ReleaseVersion.ps1 -Version 0.1.12` set Version/FileVersion/AssemblyVersion, and `Test-Release.ps1 -Tag v0.1.12` passed. Code is unchanged from `b4dd020`; the full local CI-equivalent results in the 0.1.11 entry below (605/136/39 tests, 10/14 script tests, ZIP and compiled Production installer) apply to that code. The 0.1.11 local packages in `artifacts/distribution/0.1.11` differ only in version stamping and are not release artifacts.
+
+Owner steps: commit `CHANGELOG.md`, `src/Fyltrix/Fyltrix.csproj`, `docs/RELEASING.md`, this file and `docs/IMPLEMENTATION_STATUS.md` (`chore(release): prepare v0.1.12`), push, run Actions → Release → master, then tag/push `v0.1.12` and complete signing.
+
 ### Release 0.1.11 preparation (2026-11-13)
 
 Status: **Prepared locally; owner commit/push/tag/sign/publish pending.** Published latest is `v0.1.10` (read-only `gh` check). Owner committed the feature work as `1bdb353` (preview recovery + `fyltrix.example`) and `b4dd020` (Fyltrix data folders). Release preparation edits (uncommitted): `CHANGELOG.md` (notes moved to `[0.1.11] - 2026-11-13`), `src/Fyltrix/Fyltrix.csproj` (0.1.11 via `tools/Set-ReleaseVersion.ps1`), `docs/RELEASING.md`, this file and `docs/IMPLEMENTATION_STATUS.md`.

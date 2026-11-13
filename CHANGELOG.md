@@ -6,7 +6,7 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
-## [0.1.11] - 2026-11-13
+## [0.1.12] - 2026-11-13
 
 ### Fixed
 
