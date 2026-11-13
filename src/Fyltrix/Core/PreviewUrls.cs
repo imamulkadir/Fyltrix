@@ -1,15 +1,18 @@
 namespace Fyltrix.Core;
 
 /// <summary>
-/// Maps local paths to URLs on the private https://filelens.app/ host that the preview
+/// Maps local paths to URLs on the private https://fyltrix.example/ host that the preview
 /// WebView2 serves itself (nothing goes over the network). Using a path-shaped URL means
 /// relative links inside HTML files (images, CSS) keep working.
-///   C:\dir\a b.html      -> https://filelens.app/fs/C%3A/dir/a%20b.html
-///   \\server\share\x.pdf -> https://filelens.app/fs/UNC/server/share/x.pdf
+///   C:\dir\a b.html      -> https://fyltrix.example/fs/C%3A/dir/a%20b.html
+///   \\server\share\x.pdf -> https://fyltrix.example/fs/UNC/server/share/x.pdf
+/// The host is under the reserved ".example" top-level domain (RFC 2606), so it can never resolve on a real network:
+/// a request that ever escaped WebView2's interception fails instead of reaching someone else's server. (The former
+/// host, filelens.app, is a real domain owned by a third party; nothing was ever stored under that origin.)
 /// </summary>
 public static class PreviewUrls
 {
-    public const string Host = "filelens.app";
+    public const string Host = "fyltrix.example";
     public const string Origin = "https://" + Host;
     public const string FsPrefix = "/fs/";
     public const string ViewerPrefix = "/viewer/";

@@ -33,7 +33,9 @@ public class RebrandingTests
         var version = assembly.GetName().Version!;
         Assert.Equal(new Version(assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version), version);
         Assert.Equal(Diagnostics.Version.Split('-')[0], $"{version.Major}.{version.Minor}.{version.Build}");
-        Assert.Equal("filelens.app", PreviewUrls.Host);
+        // The private preview origin is Fyltrix-branded and can never resolve on a real network (reserved TLD).
+        Assert.Equal("fyltrix.example", PreviewUrls.Host);
+        Assert.DoesNotContain("filelens", PreviewUrls.Origin, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("FileLens file sharing", ShareFirewall.RuleName);
         using var icon = assembly.GetManifestResourceStream("Assets/Fyltrix.ico")!;
         Assert.DoesNotContain("Assets/FileLens.ico", assembly.GetManifestResourceNames());

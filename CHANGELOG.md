@@ -6,6 +6,21 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Previews no longer stop working for the rest of the session when the Microsoft Edge WebView2 preview engine
+  crashes, hangs or fails to start. The Preview pane, Compare, Quick View and Duplicates restart the engine and
+  show the file again automatically (at most three times a minute); after that, a message with a **Retry** button
+  is shown instead of a blank pane or repeated error dialogs. Selecting another file also retries.
+- Engine problems are now recorded in `error.log` (failure kind, exit code, WebView2 Runtime version, file kind —
+  no file paths or contents), so a preview failure on another computer can be diagnosed.
+
+### Security
+
+- The internal preview address moved from `filelens.app` (a real internet domain owned by a third party) to
+  `fyltrix.example`, a reserved name that can never resolve on a network. Previews were and remain served entirely
+  inside Fyltrix; this removes any chance of a preview request reaching an outside server.
+
 ## [0.1.10] - 2026-11-05
 
 ### Added

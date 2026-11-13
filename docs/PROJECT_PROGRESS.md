@@ -1,5 +1,19 @@
 # Installation and update infrastructure progress
 
+## Preview reliability: engine recovery and Fyltrix preview origin (2026-11-13)
+
+Status: **Implemented and verified on the development PC; affected-PC and clean-environment acceptance pending.** A user's `v0.1.10` (installer and portable ZIP) previews worked, then stopped; Compare failed too. Investigation (`docs/PREVIEW_RELIABILITY_INVESTIGATION.md`) confirmed by isolated reproduction that `PreviewPane` never recovered a WebView2 engine failure: after a browser-process exit every selection threw `The WebView control is no longer valid because the browser process crashed` (error dialog, pane dead until restart); one failed engine start was cached process-wide (`_envTask`) and per pane (`_failed`), disabling Preview and every later Compare/Quick View; a hung page froze its pane. Packaging was verified correct (published ZIP hash, WebView2 loader/wrappers, all embedded viewer resources). The trigger on the affected PC is **not** known; diagnostics are requested from that machine.
+
+Fix (owner-approved): bounded automatic recovery (browser/renderer exit, unresponsive renderer, 30 s navigation/start watchdog disarmed at content commit; max 3 per 60 s, then a message with **Retry**), safe access to the control (no more unhandled exceptions), self-healing environment cache, retry on file selection, and `Preview engine` log entries (kind, exit code, WebView2 Runtime version, file kind only - no paths/contents). The preview origin moved from `filelens.app` (a real third-party domain) to the reserved, non-resolvable `fyltrix.example` per the owner's "Fyltrix, not FileLens" direction; no origin-scoped data existed. Legacy `FileLens` data folders, update/installer profile contract, firewall rule and manifest identity are intentionally unchanged and need a separate approved migration stage (listed in the investigation report).
+
+Verification: new `PreviewRecoveryTests` 6/6 in three test-host runs; preview/Compare/PDF/media/rebranding suites 61/61; full application suite **597/597** on the final build. Interleaved 100-preview benchmark vs an untouched HEAD export: median 14.8 s before, 14.9 s after, same process count/memory. Updater/packaging/installer suites not rerun (unchanged subsystems). No commit, push, tag, release, installed-app change or real-desktop interaction.
+
+Files: `src/Fyltrix/Preview/PreviewPane.cs`, `src/Fyltrix/Core/PreviewUrls.cs`, `src/Fyltrix/Preview/PreviewServer.cs` (comment), `tests/Fyltrix.Tests/PreviewRecoveryTests.cs` (new), `tests/Fyltrix.Tests/RebrandingTests.cs`, `CHANGELOG.md` (Unreleased), `docs/PREVIEW_RELIABILITY_INVESTIGATION.md` (new), this file, `docs/IMPLEMENTATION_STATUS.md`.
+
+Suggested commit: `fix(preview): recover from WebView2 engine failures and use Fyltrix preview origin`.
+
+Next action: owner review/commit; send the opt-in diagnostic checklist (investigation report, "Remaining Evidence Required") to the affected user; after approval, cross-machine verification with a build of this change, then release preparation (candidate 0.1.11) as a separate stage. **Stop here.**
+
 ## Release 0.1.10 uploaded metadata verification (2026-11-05)
 
 Status: **Uploaded assets verified; owner publication pending.** Read-only GitHub checks confirm the existing stable 0.1.10 draft contains exactly the six expected assets. Downloaded `Fyltrix-release.json` (327 bytes, SHA-256 `8757c01d1ae3cfd19a4d157a921475ce776225fa91593823e631492cd421b084`) and `Fyltrix-release.json.sig` (88 bytes, SHA-256 `8b76311c7fc7b2b349307c996a2d02581a2b304965d37faeb715c358125aa211`) are byte-identical to the previously signed local files; both match GitHub sizes/digests. Original four package/checksum asset identities, creation/update timestamps, sizes and digests are unchanged.

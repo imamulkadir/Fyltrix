@@ -32,9 +32,27 @@ public sealed class PreviewPane : Grid
     private readonly TextBlock _infoText = new();
     private readonly TextBlock _title = new();
     private readonly StackPanel _actions = new() { Orientation = Orientation.Horizontal };
-    private readonly Button _btnScripts, _btnUnblock, _btnOpen, _btnPopOut;
+    private readonly Button _btnScripts, _btnUnblock, _btnOpen, _btnPopOut, _btnRetry;
 
-    private bool _ready, _failed, _initializing;
+    private bool _ready, _failed, _initializing, _disposed;
+    /// <summary>What the web view should be showing (null while a message, native player or shell handler is shown);
+    /// re-shown after the preview engine is recovered.</summary>
+    private string? _lastUrl;
+    /// <summary>WebView2's id of the navigation to <see cref="_expectedUrl"/>, so the watchdog can tell when it finished.</summary>
+    private ulong _expectedNav;
+    private string _failTitle = "", _failText = "";
+    /// <summary>When the engine was recovered automatically; bounded by <see cref="MaxRecoveries"/> per <see cref="RecoveryWindow"/>.</summary>
+    private readonly List<DateTime> _recoveries = new();
+    /// <summary>Fires when an issued preview neither finished loading nor started the engine in time (hung page or engine).</summary>
+    private System.Windows.Threading.DispatcherTimer? _watchdog;
+    internal const int MaxRecoveries = 3;
+    internal static TimeSpan RecoveryWindow = TimeSpan.FromSeconds(60);
+    /// <summary>How long a preview may take to start loading before the engine is considered hung (tests shorten it).</summary>
+    internal static TimeSpan NavigationTimeout = TimeSpan.FromSeconds(30);
+    /// <summary>The WebView2 Runtime version in use, recorded with every engine problem written to the log.</summary>
+    private static string? _runtimeVersion;
+    internal int RecoveryCount { get; private set; }
+    internal bool IsFailed => _failed;
     private readonly bool _nativePdfInput;
     private bool _pdfInputMode, _hostInputEnabled;
     /// <summary>Bumped when the engine is released, so an initialisation still running for the old one stops.</summary>
@@ -129,6 +147,12 @@ public sealed class PreviewPane : Grid
         var infoStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(24) };
         infoStack.Children.Add(_infoTitle);
         infoStack.Children.Add(_infoText);
+        _btnRetry = Theme.SmallButton("", "Retry", "Start the preview engine again and show this file");
+        _btnRetry.HorizontalAlignment = HorizontalAlignment.Center;
+        _btnRetry.Margin = new Thickness(0, 12, 0, 0);
+        _btnRetry.Visibility = Visibility.Collapsed;
+        _btnRetry.Click += (_, _) => RetryPreview();
+        infoStack.Children.Add(_btnRetry);
         _info.Child = infoStack;
         _info.Background = Theme.Brush("Bg1");
         body.Children.Add(_info);
@@ -147,10 +171,18 @@ public sealed class PreviewPane : Grid
     internal static string WebDataFolder { get; set; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "WebView2");
 
+    /// <summary>One environment (one browser process) for every preview in the process. A failed attempt is not kept:
+    /// the next preview creates the environment again instead of failing for the rest of the session.</summary>
     private static Task<CoreWebView2Environment> GetEnvironment()
     {
-        return _envTask ??= CoreWebView2Environment.CreateAsync(null, WebDataFolder);
+        var task = _envTask;
+        if (task == null || task.IsFaulted || task.IsCanceled)
+            _envTask = task = CreateEnvironment(WebDataFolder);
+        return task;
     }
+
+    /// <summary>Creates the WebView2 environment; tests replace it to simulate a start failure.</summary>
+    internal static Func<string, Task<CoreWebView2Environment>> CreateEnvironment = folder => CoreWebView2Environment.CreateAsync(null, folder);
 
     private void ShellHost()
     {
@@ -182,10 +214,19 @@ public sealed class PreviewPane : Grid
     public void ReleaseEngine()
     {
         if (!_ready && !_initializing) return;
+        ReplaceWeb();
+    }
+
+    /// <summary>Drops this pane's web view (live, starting, crashed or hung) for a fresh, unstarted one. Anything still
+    /// running for the old one sees <see cref="_engine"/> change and stops.</summary>
+    private void ReplaceWeb()
+    {
         _engine++;
         _scrollPoll?.Stop();
+        _watchdog?.Stop();
         _pendingUrl = null;
         _expectedUrl = null;
+        _expectedNav = 0;
         _ready = false;
         _initializing = false;
         _pdfInputMode = _hostInputEnabled = false;
@@ -193,7 +234,129 @@ public sealed class PreviewPane : Grid
         _web = NewWeb();
         _body.Children.Insert(_body.Children.IndexOf(old), _web);
         _body.Children.Remove(old);
-        try { old.Dispose(); } catch { }
+        try { old.Dispose(); } catch { } // a crashed control may refuse; it is unreachable either way
+    }
+
+    /// <summary>The live CoreWebView2, or null. A control whose browser process died throws on access: that is treated as
+    /// a lost engine (replaced here) instead of an error escaping to the user.</summary>
+    private CoreWebView2? TryCore()
+    {
+        if (!_ready) return null;
+        try { return _web.CoreWebView2; }
+        catch (InvalidOperationException ex)
+        {
+            EngineLost("preview control unusable: " + ex.Message);
+            return null;
+        }
+    }
+
+    private bool TryUseRecovery()
+    {
+        var now = DateTime.UtcNow;
+        _recoveries.RemoveAll(t => now - t > RecoveryWindow);
+        if (_recoveries.Count >= MaxRecoveries) return false;
+        _recoveries.Add(now);
+        RecoveryCount++;
+        return true;
+    }
+
+    private static void LogEngine(string message, string? kind) =>
+        Diagnostics.Info("Preview engine", message + (_runtimeVersion != null ? $" (WebView2 Runtime {_runtimeVersion})" : ""), kind);
+
+    /// <summary>The engine can't be used any more: replace it. When it keeps failing, stop retrying by itself and say so.</summary>
+    private void EngineLost(string reason)
+    {
+        LogEngine("engine lost: " + reason, KindName(_currentKind));
+        ReplaceWeb();
+        if (!TryUseRecovery())
+        {
+            LogEngine($"engine failed {MaxRecoveries} times within {RecoveryWindow.TotalSeconds:0} s; automatic recovery stopped", KindName(_currentKind));
+            Fail("The preview stopped working",
+                "The preview engine (Microsoft Edge WebView2) stopped several times in a row. Click Retry to start it again. Details were saved to " + Diagnostics.LogPath);
+        }
+    }
+
+    /// <summary>Replaces the engine and shows again what was on screen (process crash, hung page).</summary>
+    private void Recover(string reason)
+    {
+        if (_disposed) return;
+        var url = _lastUrl;
+        EngineLost(reason);
+        if (_failed || url == null || !IsVisible) return; // a hidden pane starts again when it is shown
+        StatusMessage?.Invoke(this, "The preview engine stopped and was restarted.");
+        Navigate(url);
+    }
+
+    private void Fail(string title, string text)
+    {
+        _failed = true;
+        _failTitle = title;
+        _failText = text;
+        ShowFailure();
+    }
+
+    private void ShowFailure()
+    {
+        var url = _lastUrl; // what Retry shows again (ShowInfo forgets it)
+        ShowInfo(_failTitle, _failText);
+        _lastUrl = url;
+        _btnRetry.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>Retry button: start over with a fresh engine and a fresh recovery allowance.</summary>
+    private void RetryPreview()
+    {
+        _failed = false;
+        _recoveries.Clear();
+        if (_ready || _initializing) ReplaceWeb();
+        var url = _lastUrl;
+        if (_currentPath != null) { var p = _currentPath; _currentPath = null; Load(p); }
+        else if (url != null) Navigate(url);
+        else Clear();
+    }
+
+    private void ArmWatchdog()
+    {
+        if (_watchdog == null)
+        {
+            _watchdog = new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background, Dispatcher);
+            _watchdog.Tick += (_, _) => OnWatchdog();
+        }
+        _watchdog.Stop();
+        _watchdog.Interval = NavigationTimeout;
+        _watchdog.Start();
+    }
+
+    private void OnWatchdog()
+    {
+        _watchdog?.Stop();
+        if (_disposed || _failed || _lastUrl == null || !IsVisible) return;
+        Recover(_ready
+            ? $"preview did not finish loading within {NavigationTimeout.TotalSeconds:0} s (page or engine not responding)"
+            : $"preview engine did not start within {NavigationTimeout.TotalSeconds:0} s");
+    }
+
+    private void OnProcessFailed(int engine, CoreWebView2ProcessFailedEventArgs e)
+    {
+        string detail;
+        try
+        {
+            detail = $"{e.ProcessFailedKind}, reason {e.Reason}, exit code {e.ExitCode}"
+                     + (string.IsNullOrEmpty(e.ProcessDescription) ? "" : ", " + e.ProcessDescription);
+        }
+        catch (Exception ex) when (ex is NotImplementedException or System.Runtime.InteropServices.COMException or InvalidCastException)
+        {
+            detail = e.ProcessFailedKind.ToString(); // older runtime without the extended details
+        }
+        LogEngine("process failed: " + detail, KindName(_currentKind));
+        if (engine != _engine || _disposed) return;
+        // GPU/utility processes are restarted by the runtime and the page keeps working; these three leave this pane
+        // unusable (closed control, dead or hung page) and are recovered with a fresh engine.
+        if (e.ProcessFailedKind is not (CoreWebView2ProcessFailedKind.BrowserProcessExited
+            or CoreWebView2ProcessFailedKind.RenderProcessExited or CoreWebView2ProcessFailedKind.RenderProcessUnresponsive)) return;
+        var kind = e.ProcessFailedKind;
+        // Not inside the failing control's own event: replace it once this call has returned.
+        Dispatcher.BeginInvoke(new Action(() => { if (engine == _engine) Recover("process failed: " + kind); }));
     }
 
     internal bool IsEngineStarted => _ready || _initializing;
@@ -210,6 +373,7 @@ public sealed class PreviewPane : Grid
         {
             var env = await GetEnvironment();
             if (engine != _engine) return;
+            try { _runtimeVersion ??= env.BrowserVersionString; } catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or InvalidOperationException) { }
             CoreWebView2ControllerOptions? options = null;
             if (routePdfInput)
             {
@@ -267,14 +431,21 @@ public sealed class PreviewPane : Grid
                         break;
                 }
             };
+            // The new page was committed: the engine and a page process are responsive. (Not NavigationCompleted alone: an
+            // HTML file's slow remote images can delay that for long, which is not a hang.)
+            core.ContentLoading += (_, e) => { if (engine == _engine && e.NavigationId == _expectedNav) _watchdog?.Stop(); };
             core.NavigationCompleted += (_, e) =>
             {
+                if (engine != _engine) return;
+                if (e.NavigationId == _expectedNav) _watchdog?.Stop(); // finished (or failed, e.g. an error page) without committing content
+                if (!e.IsSuccess && e.WebErrorStatus != CoreWebView2WebErrorStatus.OperationCanceled)
+                    LogEngine("preview page failed to load: " + e.WebErrorStatus, KindName(_currentKind));
                 if (ReportsScroll && e.IsSuccess) OnScrollPageLoaded(core);
                 if (e.IsSuccess && _currentKind == PreviewKind.Pdf && _currentPath != null && SameUrl(core.Source, PreviewUrls.FileUrl(_currentPath)))
                     NativePdfLoaded?.Invoke(this, EventArgs.Empty);
             };
             core.ContainsFullScreenElementChanged += (_, _) => FullScreenChanged?.Invoke(this, core.ContainsFullScreenElement);
-            core.ProcessFailed += (_, _) => StatusMessage?.Invoke(this, "The preview engine restarted. Select the file again if the preview is blank.");
+            core.ProcessFailed += (_, e) => OnProcessFailed(engine, e);
             _ready = true;
             _initializing = false;
             if (_pendingUrl != null) { var u = _pendingUrl; _pendingUrl = null; Navigate(u); }
@@ -290,12 +461,17 @@ public sealed class PreviewPane : Grid
         catch (Exception ex) when (engine != _engine) { Diagnostics.Info("Preview", "engine released while starting: " + ex.Message); }
         catch (Exception ex)
         {
-            _failed = true;
+            Diagnostics.Log("Preview engine", ex, "start" + (_runtimeVersion != null ? $" (WebView2 Runtime {_runtimeVersion})" : ""));
             bool missing = ex is WebView2RuntimeNotFoundException || ex.GetType().Name.Contains("RuntimeNotFound");
-            ShowInfo(missing ? "Microsoft Edge WebView2 Runtime not found" : "The preview engine couldn't start",
+            // The failed control is not reused, and the shared environment is created again if it was what failed
+            // (GetEnvironment): Retry, or selecting another file, starts cleanly.
+            var url = _lastUrl ?? _pendingUrl;
+            ReplaceWeb();
+            _lastUrl = url;
+            Fail(missing ? "Microsoft Edge WebView2 Runtime not found" : "The preview engine couldn't start",
                 missing
-                    ? $"{ProductBranding.Name} uses the WebView2 runtime that ships with Microsoft Edge. Install the 'Evergreen' runtime from Microsoft (a per-user install works without admin), then restart {ProductBranding.Name}."
-                    : ex.Message);
+                    ? $"{ProductBranding.Name} uses the WebView2 runtime that ships with Microsoft Edge. Install the 'Evergreen' runtime from Microsoft (a per-user install works without admin), then click Retry."
+                    : ex.Message + "\nClick Retry, or select another file, to try again.");
         }
         finally { if (engine == _engine) _initializing = false; }
     }
@@ -417,7 +593,7 @@ public sealed class PreviewPane : Grid
     private void OnNavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
     {
         if (e.Uri == "about:blank") return;
-        if (_expectedUrl != null && SameUrl(e.Uri, _expectedUrl)) return;
+        if (_expectedUrl != null && SameUrl(e.Uri, _expectedUrl)) { _expectedNav = e.NavigationId; return; }
         // Page-initiated redirects (meta refresh etc.): just block them.
         if (!e.IsUserInitiated) { e.Cancel = true; return; }
         // A link was clicked inside a preview: never navigate the preview away; open it outside instead.
@@ -446,23 +622,41 @@ public sealed class PreviewPane : Grid
 
     private void Navigate(string url)
     {
-        if (_failed) { _web.Visibility = Visibility.Collapsed; _info.Visibility = Visibility.Visible; return; }
+        _lastUrl = url;
+        if (_failed) { ShowFailure(); return; }
         HideNative();
         if (_formsHost != null) _formsHost.Visibility = Visibility.Collapsed;
+        _btnRetry.Visibility = Visibility.Collapsed;
         _info.Visibility = Visibility.Collapsed;
+        var core = TryCore(); // null when not started, or when its engine was just found dead (and replaced)
+        if (_failed) { ShowFailure(); return; }
         _web.Visibility = Visibility.Visible;
-        if (!_ready)
+        if (core == null)
         {
             _pendingUrl = url;
             ShowInfoKeepWeb("Loading preview…");
-            if (IsVisible) _ = InitAsync(); // after ReleaseEngine, the first preview starts it again
+            if (IsVisible)
+            {
+                ArmWatchdog(); // an engine that never finishes starting is recovered too
+                _ = InitAsync(); // after ReleaseEngine, the first preview starts it again
+            }
             return;
         }
-        // only rendered HTML can run its own scripts; SVG goes through the viewer as an <img>, where scripts never run
-        bool scripts = _currentKind != PreviewKind.Html || (Settings?.HtmlScripts ?? false);
-        _web.CoreWebView2.Settings.IsScriptEnabled = scripts;
-        _expectedUrl = url;
-        _web.CoreWebView2.Navigate(url);
+        try
+        {
+            // only rendered HTML can run its own scripts; SVG goes through the viewer as an <img>, where scripts never run
+            bool scripts = _currentKind != PreviewKind.Html || (Settings?.HtmlScripts ?? false);
+            core.Settings.IsScriptEnabled = scripts;
+            _expectedUrl = url;
+            _expectedNav = 0;
+            ArmWatchdog();
+            core.Navigate(url);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException)
+        {
+            // the browser process died between the check and the call
+            Recover("navigation refused: " + ex.Message);
+        }
     }
 
     private void ShowInfoKeepWeb(string title)
@@ -472,6 +666,17 @@ public sealed class PreviewPane : Grid
         _infoText.Text = "";
     }
 
+    /// <summary>Navigates the web view away from a preview that is no longer shown (frees the page). Never throws.</summary>
+    private void BlankWeb()
+    {
+        _watchdog?.Stop();
+        _lastUrl = null;
+        if (TryCore() is not { } core) return;
+        _expectedUrl = "about:blank";
+        try { core.Navigate("about:blank"); }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException) { } // dead engine: replaced on next use
+    }
+
     private void ShowInfo(string title, string text)
     {
         _pendingUrl = null;
@@ -479,7 +684,8 @@ public sealed class PreviewPane : Grid
         HideNative();
         if (_formsHost != null) _formsHost.Visibility = Visibility.Collapsed;
         _web.Visibility = Visibility.Collapsed;
-        if (_ready) { _expectedUrl = "about:blank"; _web.CoreWebView2.Navigate("about:blank"); }
+        BlankWeb();
+        _btnRetry.Visibility = Visibility.Collapsed;
         _info.Visibility = Visibility.Visible;
         _infoTitle.Text = title;
         _infoText.Text = text;
@@ -607,6 +813,9 @@ public sealed class PreviewPane : Grid
         if (!File.Exists(path)) { ShowInfo("File not found", path); UpdateActions(); return; }
 
         _currentKind = FileKinds.KindFor(path, false);
+        // Choosing a file is an explicit retry after an engine failure (fresh engine; the shared environment is created
+        // again if that was what failed). Automatic recoveries stay bounded separately.
+        if (_failed) _failed = false;
         if ((_ready || _initializing) && _pdfInputMode != (_nativePdfInput && _currentKind == PreviewKind.Pdf))
             ReleaseEngine(); // preserve ordinary input handling when replacing a PDF with another format
         UpdateActions();
@@ -655,6 +864,8 @@ public sealed class PreviewPane : Grid
     private void ShowShellHandler(string path)
     {
         _pendingUrl = null;
+        _watchdog?.Stop();
+        _lastUrl = null;
         _web.Visibility = Visibility.Collapsed;
         _info.Visibility = Visibility.Collapsed;
         ShellHost();
@@ -677,6 +888,7 @@ public sealed class PreviewPane : Grid
         _shellHost?.Unload();
         _currentPath = null;
         _currentKind = PreviewKind.Text;
+        _failed = false; // an explicit request is a retry after an engine failure
         _title.Text = "Text compare";
         UpdateActions();
         var q = new Dictionary<string, string>
@@ -711,7 +923,7 @@ public sealed class PreviewPane : Grid
         _shellHost?.Unload();
         if (_formsHost != null) _formsHost.Visibility = Visibility.Collapsed;
         _info.Visibility = Visibility.Collapsed;
-        if (_ready) { _expectedUrl = "about:blank"; _web.CoreWebView2.Navigate("about:blank"); }
+        BlankWeb();
         _web.Visibility = Visibility.Collapsed;
         var native = NativePlayer();
         native.Visibility = Visibility.Visible;
@@ -730,7 +942,11 @@ public sealed class PreviewPane : Grid
     public void FullScreenEnded()
     {
         _native?.ExitedFullScreen();
-        if (_ready && _web.CoreWebView2.ContainsFullScreenElement) _ = _web.CoreWebView2.ExecuteScriptAsync("document.exitFullscreen && document.exitFullscreen()");
+        try
+        {
+            if (TryCore() is { } core && core.ContainsFullScreenElement) _ = core.ExecuteScriptAsync("document.exitFullscreen && document.exitFullscreen()");
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException) { }
     }
 
     /// <summary>Copies the current image to the clipboard as a picture (for pasting into documents) and as a file.</summary>
@@ -756,6 +972,9 @@ public sealed class PreviewPane : Grid
 
     public void DisposeWeb()
     {
+        _disposed = true;
+        _engine++; // nothing may restart or recover this pane's engine any more
+        _watchdog?.Stop();
         _scrollPoll?.Stop();
         _native?.Close();
         _shellHost?.Unload();

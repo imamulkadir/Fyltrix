@@ -5,7 +5,7 @@ using Microsoft.Web.WebView2.Core;
 namespace Fyltrix.Preview;
 
 /// <summary>
-/// Answers requests for https://filelens.app/* inside a WebView2:
+/// Answers requests for https://fyltrix.example/* inside a WebView2:
 ///   /viewer/...  -> the bundled viewer (embedded in the exe)
 ///   /fs/...      -> local files (read-only)
 /// Nothing is served over the network; the host name only exists inside the WebView.
