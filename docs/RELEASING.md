@@ -99,3 +99,172 @@ This automates release production. Stage 7B connects the [apply/recovery backend
 The owner subsequently uploaded the manifest/signature and published `v0.1.5`. Read-only public-feed checks report an authenticated update for installed version `0.1.4` and `UpToDate` for `0.1.5`. Manual production-installer/application review remains an owner step; Stage 7B is later source work; published `v0.1.5` does not contain its new controls.
 
 GitHub references: [tag-triggered workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#push), [draft creation with existing tags](https://cli.github.com/manual/gh_release_create), [provenance verification](https://cli.github.com/manual/gh_attestation_verify), and [Windows runner software](https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md).
+
+## Agent-assisted release runbook (who does what)
+
+Written after 0.1.10–0.1.12 so a coding agent can resume a release quickly. **Owner:** every Git mutation (commit, push, tag), GitHub Actions runs, uploading the two signed files, and publishing. **Agent:** preparation, local verification, read-only GitHub checks, and local signing with the owner's key. The agent never uploads, publishes, tags, commits or pushes.
+
+### 1. Prepare (agent)
+
+1. Confirm the published latest release: `gh release list -R imamulkadir/Fyltrix -L 3`. The next version is the next unused `X.Y.Z`; check the remote tags too (`git ls-remote --tags origin 'v0.1.*'`), because a failed tag is never reused.
+2. Move the `CHANGELOG.md` → `Unreleased` notes into `## [X.Y.Z] - YYYY-MM-DD`.
+3. Set the version and validate the notes:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\tools\Set-ReleaseVersion.ps1 -Version X.Y.Z
+   powershell -ExecutionPolicy Bypass -File .\tools\Test-Release.ps1 -Tag vX.Y.Z
+   ```
+4. Optional local CI replica (about 10–15 minutes; the same steps as `.github/workflows/release.yml`):
+   - `dotnet test -c Release` for `tests/Fyltrix.Tests`, `tests/Fyltrix.Updates.Tests` and `tests/Fyltrix.Packaging.Tests`
+   - `python -m unittest discover -s tests/installer -p test_builder.py`
+   - `python -m unittest discover -s tests/release -p 'test_*.py'`
+   - `.\tools\Publish-Layout.ps1 -Version X.Y.Z`
+   - `.\tools\Build-Installer.ps1 -ReleaseDirectory artifacts\distribution\X.Y.Z -Mode Production`, which **compiles only and never runs Setup**
+
+   Output goes to `artifacts/distribution/` (ignored by Git). Never use `publish.ps1 -Run`.
+5. Update the "Current published release / Next candidate" lines above and add a dated entry to `PROJECT_PROGRESS.md` and `IMPLEMENTATION_STATUS.md`.
+
+### 2. Commit, validate, tag (owner) — order matters
+
+```powershell
+git add CHANGELOG.md src/Fyltrix/Fyltrix.csproj docs/RELEASING.md docs/PROJECT_PROGRESS.md docs/IMPLEMENTATION_STATUS.md
+git commit -m "chore(release): prepare vX.Y.Z"
+git push origin master
+# Actions → Release → Run workflow → master; wait for green on THIS commit
+git tag -a vX.Y.Z -m "Fyltrix X.Y.Z"
+git push origin vX.Y.Z
+```
+
+**Pitfall (happened with v0.1.11):** tagging before the preparation commit was pushed. The tag then points at a commit whose `Fyltrix.csproj`/`CHANGELOG.md` still declare the previous version. The tag run fails at "Validate tag, master ancestry, versions and changelog" (`Get-ReleaseNotes.ps1`), and nothing is built or drafted. Recovery: leave the tag, prepare the **next** version and tag again. Do not delete or move tags (the same was done after `v0.1.7`).
+
+Before tagging, the agent can confirm that the green manual run's `headSha` equals the preparation commit:
+
+```powershell
+gh run list -R imamulkadir/Fyltrix -w Release -L 4 --json databaseId,event,headBranch,headSha,status,conclusion
+```
+
+### 3. Verify the draft (agent, read-only)
+
+After the tag run passes:
+
+- **Run steps:** `gh run view <run id> -R imamulkadir/Fyltrix --json jobs` shows all steps succeeded.
+- **Assets:** `gh release view vX.Y.Z -R imamulkadir/Fyltrix --json isDraft,assets` shows a stable draft with exactly `Fyltrix-X.Y.Z-win-x64.zip`, `Fyltrix-Setup-win-x64.exe` and their two `.sha256` files.
+- **Checksums:** download into a scratch folder (`gh release download vX.Y.Z -R imamulkadir/Fyltrix -D <folder>`). The `sha256sum` of each package must equal its `.sha256` file and GitHub's asset digest.
+- **Provenance:** for each package, run
+  ```powershell
+  gh attestation verify <file> -R imamulkadir/Fyltrix --signer-workflow imamulkadir/Fyltrix/.github/workflows/release.yml --source-ref refs/tags/vX.Y.Z --source-digest <tag commit> --format json
+  ```
+  The exit code is 0. Without `--format json`, the success text may not match a simple grep.
+- **ZIP contents:**
+  - `UPDATE_PROTOCOL` is exactly `Fyltrix.Update/1\nFileLens.Profile/1\n` (36 bytes). Changing it would make every installed updater refuse the package.
+  - `current.json` names the new version.
+  - `app-X.Y.Z/Fyltrix.dll` ProductVersion is `X.Y.Z+<tag commit>`.
+- **Notes:** the draft body equals the changelog section (`gh release view vX.Y.Z --json body`).
+
+### 4. Sign locally, without uploading (agent, with the owner's key)
+
+The pinned key lives in `%LocalAppData%\Fyltrix-Signing` (`fyltrix-release-private.pem`, `fyltrix-release-public.txt`); see [SIGNING_SETUP.md](SIGNING_SETUP.md). Never copy, print or upload the private key.
+
+The owner prefers to upload and publish manually. The agent therefore runs the sign-only adaptation of `Complete-Release.ps1` below from the scratch folder, and hands over:
+
+- the **signed folder path**, `%TEMP%\Fyltrix-release-X.Y.Z-<guid>\signed`, containing `Fyltrix-release.json` and `Fyltrix-release.json.sig`
+- the **draft link**, from `gh release view vX.Y.Z -R imamulkadir/Fyltrix --json url`; draft URLs look like `.../releases/tag/untagged-<id>`
+
+Notes:
+
+- Sign **once**. ECDSA signatures differ on every run, so never re-sign to replace uploaded metadata.
+- The checkout may hold uncommitted verification notes. The script allows only the two progress docs, and builds the signing tool from a clean `git archive` of the tag.
+- In Windows PowerShell 5.1 `git` may not be on PATH (use the `Program Files` fallbacks), and `H`/`G`-style short function names can collide with built-in aliases (`H` = `Get-History`).
+
+```powershell
+#Requires -Version 5.1
+# Local-only adaptation of tools/Complete-Release.ps1 for one release: same source/tag/draft/checksum/provenance/signing
+# gates; builds the signing tool from a clean export of the tag (the checkout has uncommitted docs only); NEVER uploads
+# or publishes. The owner uploads the two signed files.
+param([Parameter(Mandatory=$true)][string]$Tag, [string]$Root = 'D:\Tools\Fyltrix')
+$ErrorActionPreference = 'Stop'
+$repo = 'imamulkadir/Fyltrix'
+$version = $Tag.TrimStart('v')
+$signing = Join-Path $env:LOCALAPPDATA 'Fyltrix-Signing'
+$KeyPath = Join-Path $signing 'fyltrix-release-private.pem'
+$PublicKeyPath = Join-Path $signing 'fyltrix-release-public.txt'
+if (-not (Test-Path -LiteralPath $KeyPath -PathType Leaf) -or -not (Test-Path -LiteralPath $PublicKeyPath -PathType Leaf)) { throw 'Signing key files missing.' }
+$git = (Get-Command git -ErrorAction SilentlyContinue).Source
+if (-not $git) { $git = Join-Path $env:ProgramFiles 'Git\cmd\git.exe' }
+$gh = (Get-Command gh -ErrorAction SilentlyContinue).Source
+if (-not $gh) { $gh = Join-Path $env:ProgramFiles 'GitHub CLI\gh.exe' }
+if (-not (Test-Path -LiteralPath $git) -or -not (Test-Path -LiteralPath $gh)) { throw "git/gh not found: $git / $gh" }
+function Invoke-RGit { $o = & $git -C $Root @args; if ($LASTEXITCODE -ne 0) { throw "git failed: $args" }; $o }
+function Invoke-RGh { $o = & $gh @args; if ($LASTEXITCODE -ne 0) { throw "gh failed: $args" }; $o }
+
+if ((Invoke-RGit branch --show-current) -cne 'master') { throw 'Run from master.' }
+$commit = Invoke-RGit rev-parse --verify "$Tag^{commit}"
+if ((Invoke-RGit rev-parse HEAD) -cne $commit) { throw 'HEAD must equal the release tag commit.' }
+$dirty = @(Invoke-RGit status --porcelain --untracked-files=all)
+$allowedDirty = @(' M docs/IMPLEMENTATION_STATUS.md', ' M docs/PROJECT_PROGRESS.md')
+foreach ($line in $dirty) { if ($line -cnotin $allowedDirty) { throw "Unexpected local change: $line" } }
+$remote = @(Invoke-RGit ls-remote origin "refs/tags/$Tag^{}")
+if ($remote.Count -ne 1 -or ($remote[0] -split '\s+')[0] -cne $commit) { throw 'Remote tag must resolve to the local tag commit.' }
+$release = & (Join-Path $Root 'tools\Test-Release.ps1') -Tag $Tag
+if ($release.Version -cne $version) { throw 'Version mismatch.' }
+
+$draft = Invoke-RGh release view $Tag --repo $repo --json 'isDraft,isPrerelease,assets' | ConvertFrom-Json
+if (-not $draft.isDraft -or $draft.isPrerelease) { throw 'Only an existing stable draft can be signed.' }
+$zipName = "Fyltrix-$version-win-x64.zip"
+$names = @($zipName, 'Fyltrix-Setup-win-x64.exe')
+$allowed = @($names + @($names | ForEach-Object { "$_.sha256" }))
+foreach ($asset in $draft.assets) { if ($asset.name -cnotin $allowed) { throw 'Draft already has manifest or unexpected assets; nothing is overwritten.' } }
+foreach ($name in $allowed) { if (@($draft.assets | Where-Object { $_.name -ceq $name }).Count -ne 1) { throw 'Draft missing a package/checksum.' } }
+
+$work = Join-Path ([IO.Path]::GetTempPath()) ('Fyltrix-release-' + $version + '-' + [guid]::NewGuid().ToString('N'))
+[IO.Directory]::CreateDirectory($work) | Out-Null
+Write-Host "WORKSPACE $work"
+$draft | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $work 'draft-before.json')
+foreach ($name in $names) {
+    Invoke-RGh release download $Tag --repo $repo --dir $work --pattern $name --pattern "$name.sha256" | Out-Null
+    $file = Join-Path $work $name
+    $sidecar = [IO.File]::ReadAllText($file + '.sha256').Trim()
+    if ($sidecar -cnotmatch ('\A([0-9a-f]{64})  ' + [regex]::Escape($name) + '\z')) { throw 'Invalid checksum file.' }
+    if ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant() -cne $Matches[1]) { throw 'Checksum mismatch.' }
+    Invoke-RGh attestation verify $file --repo $repo --signer-workflow "$repo/.github/workflows/release.yml" --source-ref "refs/tags/$Tag" --source-digest $commit --deny-self-hosted-runners | Out-Null
+    Write-Host "VERIFIED $name"
+}
+
+# Clean tagged source for the signing tool (identical to a clean checkout at the tag).
+$source = Join-Path $work 'source'
+[IO.Directory]::CreateDirectory($source) | Out-Null
+$archive = Join-Path $work 'source.zip'
+Invoke-RGit archive --format=zip -o $archive $Tag | Out-Null
+Expand-Archive -LiteralPath $archive -DestinationPath $source
+& dotnet build (Join-Path $source 'tools\Fyltrix.UpdateTool\Fyltrix.UpdateTool.csproj') -c Release --artifacts-path (Join-Path $work 'build') -o (Join-Path $work 'tool') --nologo -v q
+if ($LASTEXITCODE -ne 0) { throw 'Signing tool build failed.' }
+& dotnet (Join-Path $work 'tool\Fyltrix.UpdateTool.dll') sign-release $version $KeyPath $PublicKeyPath (Join-Path $work 'signed') (Join-Path $work $zipName) (Join-Path $work 'Fyltrix-Setup-win-x64.exe')
+if ($LASTEXITCODE -ne 0) { throw 'Signing refused.' }
+
+$again = Invoke-RGh release view $Tag --repo $repo --json 'isDraft,isPrerelease,assets' | ConvertFrom-Json
+if (($draft.assets | ConvertTo-Json -Depth 6 -Compress) -cne ($again.assets | ConvertTo-Json -Depth 6 -Compress)) { throw 'Draft assets changed during signing.' }
+Write-Host "SIGNED $(Join-Path $work 'signed')"
+Get-ChildItem (Join-Path $work 'signed') | ForEach-Object { "{0}  {1} bytes  sha256 {2}" -f $_.Name, $_.Length, (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
+Get-Content (Join-Path $work 'signed\Fyltrix-release.json')
+```
+
+Run it as:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File <scratch>\Sign-ReleaseLocal.ps1 -Tag vX.Y.Z
+```
+
+### 5. Upload and publish (owner)
+
+Open the draft link, then **Edit**. Attach the two signed files without touching the four existing ones, check that 6 assets are listed, keep "Set as the latest release" ticked, and **Publish**. Or upload from the command line, then publish on the page:
+
+```powershell
+gh release upload vX.Y.Z <signed>\Fyltrix-release.json <signed>\Fyltrix-release.json.sig -R imamulkadir/Fyltrix
+```
+
+### 6. After publication (agent, read-only)
+
+- Confirm the uploaded metadata bytes equal the local signed files.
+- Confirm the release is marked latest.
+- Confirm installed versions see the update, for example with the signing tool's `check` command against the public feed for the previous version.
+
+Owner acceptance: update the previous installed version in-app, then check that settings are preserved and that previews and Compare work.

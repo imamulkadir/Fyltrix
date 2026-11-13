@@ -4,6 +4,29 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.12 draft verification (2026-11-13)
+
+Status: **Draft verified; owner signing/publication pending.** Owner committed `ac23ffc` ("prepare v0.1.12") and pushed it. Manual run 43405510771 on that commit passed. Annotated tag `v0.1.12` (object `8a7185e`) points at `ac23ffc`, and tag run 43406484530 succeeded in every step (validation, tests, ZIP/installer, attestation, draft).
+
+Read-only checks of the stable draft (`gh release download` into a session scratch folder):
+
+- **Assets:** exactly four. `Fyltrix-0.1.12-win-x64.zip` (88,105,583 bytes, SHA-256 `70d3b06a7788804a9fad1017010ccb56cf55abffda7e65f34beec80f323596f9`) and `Fyltrix-Setup-win-x64.exe` (62,662,737 bytes, SHA-256 `2c2c999e2663932f23b1208bb2b5bbfd0250e06064f009f1be546ac82e2e5d61`), plus their `.sha256` files. The hashes match both the checksum files and GitHub's asset digests.
+- **Provenance:** `gh attestation verify` passes for both packages. Each is bound to repository `imamulkadir/Fyltrix`, workflow `.github/workflows/release.yml`, ref `refs/tags/v0.1.12`, commit `ac23ffc` and a GitHub-hosted runner.
+- **ZIP contents:**
+  - 500 entries; `current.json` → 0.1.12.
+  - `UPDATE_PROTOCOL` is byte-identical to 0.1.10's `Fyltrix.Update/1\nFileLens.Profile/1\n`, so installed 0.1.10 updaters accept it.
+  - `Fyltrix.dll` reports ProductVersion `0.1.12+ac23ffc…`. It contains `fyltrix.example`, the preview recovery strings and `Fyltrix file sharing`, and no `filelens.app`.
+  - `Fyltrix.Bootstrap.dll` contains the profile migration marker and mutex.
+- **Notes:** the draft body equals the `CHANGELOG.md` `[0.1.12]` section exactly.
+- **Local signing:** a sign-only adaptation of `Complete-Release.ps1` kept its gates: master, HEAD = tag commit, remote tag match, `Test-Release`, stable draft with exactly the four assets, checksum sidecars, and `gh attestation verify --deny-self-hosted-runners`. It built the signing tool from a clean `git archive` of `v0.1.12`, because the checkout held only these two uncommitted doc files. The pinned owner key (`%LocalAppData%/Fyltrix-Signing`) was used with `sign-release`, with no upload or publication.
+  - `Fyltrix-release.json`: 327 bytes, SHA-256 `441302967f4ca31ef9f1b678603bc991ac6664d24375b4022321046790ea53a5`; its package sizes and hashes match the draft.
+  - `Fyltrix-release.json.sig`: 88 bytes, SHA-256 `6401b8ced19d0472842704b9a85c6a59c65311c24d504b0fbeca9ec4419c34e9`.
+  - Workspace: `%TEMP%/Fyltrix-release-0.1.12-d6c30ccf8e8d45bbbf1a9ff1c5091168/signed`.
+  - Draft assets were unchanged before and after.
+- **Not run:** no installer was executed and nothing was uploaded or published by the agent. The owner uploads the two signed files.
+
+Next owner action: run `tools/Complete-Release.ps1 -Tag v0.1.12` with the pinned key (with `-Publish`, or without it to review first). Then request read-only verification of the uploaded manifest/signature and the public feed, and perform the post-publication acceptance: update 0.1.10 → 0.1.12, settings copied to `%AppData%\Fyltrix`, previews/Compare working.
+
 ### Release 0.1.12 preparation, superseding the failed v0.1.11 tag (2026-11-13)
 
 Status: **Prepared locally; owner commit/push/manual run/tag/sign/publish pending.** The owner's manual run 43404084382 on `master` at `b4dd020` (feature commits, version still 0.1.10) passed. The owner then pushed annotated tag `v0.1.11` (object `5eee702`) at that same commit before committing the release preparation. Tag run 43405083520 failed in "Validate tag, master ancestry, versions and changelog" (`Get-ReleaseNotes.ps1`: no `0.1.11` section). Build, tests, packaging, attestation and draft were skipped. `gh release view v0.1.11` reports no release, and published latest remains `v0.1.10`. Owner chose to fix forward: `v0.1.11` stays unused, as `v0.1.7` did.
