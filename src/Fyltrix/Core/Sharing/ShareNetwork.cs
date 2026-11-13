@@ -103,7 +103,9 @@ public sealed record FirewallReport(bool Known, bool Enabled, string Profiles, b
 /// <summary>Reads Windows Defender Firewall state (no admin needed) and adds a narrow allow rule with the user's consent (UAC).</summary>
 public static class ShareFirewall
 {
-    public const string RuleName = "FileLens file sharing";
+    public const string RuleName = "Fyltrix file sharing";
+    /// <summary>The name versions up to 0.1.10 gave the rule. An existing one is renamed (and narrowed) instead of left beside a new rule.</summary>
+    public const string LegacyRuleName = "FileLens file sharing";
     private const int ProfileDomain = 1, ProfilePrivate = 2, ProfilePublic = 4;
 
     public static FirewallReport Check(int port, string? exePath)
@@ -213,11 +215,18 @@ public static class ShareFirewall
     public static string UpdateRuleArguments(int port, string exePath) =>
         $"advfirewall firewall set rule name=\"{RuleName} (TCP {port})\" dir=in new {AllowScope(port, exePath)}";
 
+    /// <summary>One elevated call that renames the former FileLens rule to the Fyltrix name and applies the same narrow scope.</summary>
+    public static string RenameLegacyRuleArguments(int port, string exePath) =>
+        $"advfirewall firewall set rule name=\"{LegacyRuleName} (TCP {port})\" dir=in new name=\"{RuleName} (TCP {port})\" {AllowScope(port, exePath)}";
+
     private static string AllowScope(int port, string exePath) =>
         $"action=allow program=\"{exePath}\" protocol=TCP localport={port} remoteip=localsubnet profile=private,domain enable=yes";
 
     /// <summary>Read only, and only used when the user asks to authorize sharing. Null means inspection failed.</summary>
-    public static bool? HasOwnedRule(int port)
+    public static bool? HasOwnedRule(int port) => HasOwnedRule(port, RuleName);
+
+    /// <summary>Read only: whether an inbound rule named "<paramref name="ruleName"/> (TCP port)" exists. Null means inspection failed.</summary>
+    public static bool? HasOwnedRule(int port, string ruleName)
     {
         object? policy = null, rules = null;
         try
@@ -231,7 +240,7 @@ public static class ShareFirewall
             {
                 try
                 {
-                    if (Get<string>(rule, "Name") == $"{RuleName} (TCP {port})" && Get<int>(rule, "Direction") == 1) return true;
+                    if (Get<string>(rule, "Name") == $"{ruleName} (TCP {port})" && Get<int>(rule, "Direction") == 1) return true;
                 }
                 finally { if (Marshal.IsComObject(rule)) Marshal.ReleaseComObject(rule); }
             }

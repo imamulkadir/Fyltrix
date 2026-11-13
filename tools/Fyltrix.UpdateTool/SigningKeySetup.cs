@@ -56,8 +56,8 @@ internal static class SigningKeySetup
         if (!Path.IsPathFullyQualified(value) || value.StartsWith(@"\\", StringComparison.Ordinal)) throw new ArgumentException("Use a local absolute signing directory.");
         string path = Path.TrimEndingDirectorySeparator(Path.GetFullPath(value));
         if (path == Path.GetPathRoot(path) || File.Exists(path) || Directory.Exists(path)) throw new IOException("Signing destinations must be new and will never be overwritten.");
-        foreach (var parent in new[] { Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) })
-            if (Within(path, Path.Combine(parent, "FileLens"))) throw new ArgumentException("Existing application data is protected.");
+        foreach (var data in Fyltrix.Launcher.DataFolders.Protected)
+            if (Within(path, data)) throw new ArgumentException("Existing application data is protected.");
         for (var info = new DirectoryInfo(path); info != null; info = info.Parent)
         {
             if (info.Exists && (info.Attributes & FileAttributes.ReparsePoint) != 0) throw new IOException("Signing paths cannot traverse links.");

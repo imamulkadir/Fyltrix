@@ -85,6 +85,7 @@ public sealed class DownloadTests : IDisposable
     }
     [Theory]
     [InlineData("checkout")] [InlineData("roaming")] [InlineData("local")] [InlineData("relative")] [InlineData("application")]
+    [InlineData("fyltrix-roaming")] [InlineData("fyltrix-cache")]
     public async Task Protected_destinations_are_refused_before_copying(string kind)
     {
         using var fixture = new Fixture();
@@ -98,6 +99,8 @@ public sealed class DownloadTests : IDisposable
         {
             "roaming" => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FileLens", "MustNotCreate"),
             "local" => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "MustNotCreate"),
+            "fyltrix-roaming" => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Fyltrix", "MustNotCreate"),
+            "fyltrix-cache" => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Fyltrix", "WebView2", "MustNotCreate"),
             "relative" => "relative-staging", _ => Path.Combine(target, "staging")
         };
         byte[] manifest = fixture.Manifest, sig = fixture.Signature(manifest);

@@ -36,7 +36,7 @@ public sealed class FileTemplate
 /// <summary>A file type Windows registered under HKCR\.ext\…\ShellNew (Explorer's New menu).</summary>
 public sealed record ShellNewEntry(string Extension, string Name, string? TemplateFile, byte[]? Data, bool NullFile);
 
-/// <summary>Built-in templates, the user's template list (%AppData%\FileLens\templates.json) and file creation.</summary>
+/// <summary>Built-in templates, the user's template list (%AppData%\Fyltrix\templates.json) and file creation.</summary>
 public static class FileTemplates
 {
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };

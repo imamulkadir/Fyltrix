@@ -4,6 +4,24 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### FileLens → Fyltrix data folders, error log and firewall rule (2026-11-13)
+
+Status: **Implemented and verified with automated tests on the development PC; real upgrade from installed 0.1.10 not yet exercised.** Owner direction: "everything should be Fyltrix, not FileLens; the error log should be saved under Fyltrix."
+
+- **Data folders:** new shared `src/Fyltrix.Bootstrap/DataFolders.cs` defines `%AppData%\Fyltrix` (settings, tags, templates, automation, shares, sync, `error.log`, crashes) and `%LocalAppData%\Fyltrix` (`WebView2`, `Thumbs`, `ArchiveCache`, existing `Updates`). `AppSettings.Folder`, `PreviewPane.WebDataFolder`, `ThumbnailService.DiskCacheFolder` and `ArchiveBrowser.CacheBase` use it, so `Diagnostics.LogPath` is now `%AppData%\Fyltrix\error.log`.
+- **Migration:** on a normal start with the default profile (never in update trials, tests or startup hooks), `DataFolders.MigrateRoaming` **copies** `%AppData%\FileLens` into a temporary sibling, moves it to `%AppData%\Fyltrix`, then writes the `.fyltrix-profile` marker. It is serialized by a named mutex. Links/junctions are not followed. On failure, the legacy folder is used for that session and the copy is retried next start. The legacy folder is only read, so rollback to 0.1.10 keeps working. Local caches are not copied (regenerated); stale entries of dead processes in the legacy archive cache are still cleaned.
+- **Updater/installer/tools:** `UpdateApplier.Profile` snapshots `DataFolders.CurrentRoaming()` (Fyltrix once marked, otherwise legacy). Staging, layout validation, signing-key setup, `Fyltrix.iss`, `Build-Installer.ps1` and `Publish-Layout.ps1` protect both Fyltrix and legacy folders. Staging protects only the Fyltrix data subfolders beside its `Updates` root. The installer still never deletes user data.
+- **Unchanged on purpose:** the `UPDATE_PROTOCOL` token `FileLens.Profile/1` (installed 0.1.10 updaters accept only that exact text; changing it would block every existing user's update) and detection of legacy `FileLens` process names during update shutdown.
+- **Firewall:** rule renamed to `Fyltrix file sharing (TCP port)`. An existing `FileLens file sharing` rule is renamed and narrowed in the same single UAC-approved `netsh … set rule … new name=` call (no duplicate open rule).
+- **Manifest:** app assembly identity `FileLens.app` → `Fyltrix.app`.
+- **Text:** code comments, the Automation log label, `INSTALLATION.txt`, `LAYOUT.txt` notes and the README storage table now name Fyltrix. Dated notes were added to `INSTALLER.md`, `RELEASE_LAYOUT.md` and `MANUAL_UPDATES.md`.
+
+Tests: new `DataFolderMigrationTests` (copy with legacy byte-identical, fresh install creates no FileLens folder, copy once, interrupted attempt completed, locked-file failure falls back then retries, junction not followed, staging protection). Updated `RebrandingTests`, `ShareServerTests` (rename call), `DownloadTests` (Fyltrix roaming/cache staging refused), `InstallerStartupHook`. Results: updater **136/136**, packaging **39/39**, application **605/605** (all suites, final build). Test isolation fix: the first full run created an empty real `%LocalAppData%`/Fyltrix/Thumbs folder (a pre-existing gap: tests never redirected the thumbnail/archive caches and used to write the real FileLens caches). `TestSetup` now redirects both to the disposable test folder; the empty folder was removed, and the rerun (605/605) left the real Fyltrix/FileLens folders untouched.
+
+Not verified: a real installed 0.1.10 → new version update (old updater + trial + migration) and rollback on a real or Sandbox install; a real UAC firewall rename. Both need owner approval (Sandbox/installer run, elevation prompt).
+
+Suggested commit: `feat(data): store data under Fyltrix and migrate from FileLens folders`.
+
 ### Preview reliability: engine recovery and Fyltrix preview origin (2026-11-13)
 
 Status: **Implemented and verified on the development PC; affected-PC and clean-environment acceptance pending.** A user's `v0.1.10` (installer and portable ZIP) previews worked, then stopped; Compare failed too. Investigation (`docs/PREVIEW_RELIABILITY_INVESTIGATION.md`) confirmed by isolated reproduction that `PreviewPane` never recovered a WebView2 engine failure: after a browser-process exit every selection threw `The WebView control is no longer valid because the browser process crashed` (error dialog, pane dead until restart); one failed engine start was cached process-wide (`_envTask`) and per pane (`_failed`), disabling Preview and every later Compare/Quick View; a hung page froze its pane. Packaging was verified correct (published ZIP hash, WebView2 loader/wrappers, all embedded viewer resources). The trigger on the affected PC is **not** known; diagnostics are requested from that machine.

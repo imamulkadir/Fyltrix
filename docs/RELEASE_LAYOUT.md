@@ -60,7 +60,7 @@ The previous-pointer behavior is a **missing-payload fallback**, not health-base
 
 ## Data preservation
 
-Settings and persisted application data stay under `%AppData%\FileLens`; caches stay under `%LocalAppData%\FileLens`. The launcher never reads or migrates preferences. The archive contains the application payload, not the user's data, history, Favourites, or window state.
+Settings and persisted application data stay under `%AppData%\FileLens`; caches stay under `%LocalAppData%\FileLens`. The launcher never reads or migrates preferences. The archive contains the application payload, not the user's data, history, Favourites, or window state. **Update (2026-11-13):** from the version after 0.1.10, data lives in `%AppData%\Fyltrix` and `%LocalAppData%\Fyltrix`; settings are copied once from `%AppData%\FileLens` on the first normal start (the old folder is left unchanged and stays protected). The `FileLens.Profile/1` update-contract token is unchanged so installed 0.1.10 updaters still accept the new package. See `src/Fyltrix.Bootstrap/DataFolders.cs`.
 
 The existing application, its source/configuration defaults, and its normal shutdown behavior are unchanged. Installer IDs, registry entries, and update trust/signing keys are not introduced in this stage.
 

@@ -17,9 +17,12 @@ public static class ArchiveBrowser
     private static readonly Dictionary<string, string> Passwords = new(StringComparer.OrdinalIgnoreCase); // session only, never saved
     private static readonly object Gate = new();
 
-    public static string CacheBase { get; private set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "ArchiveCache");
+    public static string CacheBase { get; private set; } = Launcher.DataFolders.ArchiveCache;
     public static string CacheRoot { get; private set; } = Path.Combine(CacheBase, Environment.ProcessId.ToString());
-    internal static void SetTrialCache(string folder) { CacheBase = Path.GetFullPath(folder); CacheRoot = Path.Combine(CacheBase, Environment.ProcessId.ToString()); }
+    /// <summary>The cache older versions (FileLens folder) used: only stale entries of instances that are no longer running
+    /// are removed from it; nothing new is ever written there. Null for update trials.</summary>
+    internal static string? LegacyCacheBase { get; private set; } = Launcher.DataFolders.LegacyArchiveCache;
+    internal static void SetTrialCache(string folder) { CacheBase = Path.GetFullPath(folder); CacheRoot = Path.Combine(CacheBase, Environment.ProcessId.ToString()); LegacyCacheBase = null; }
 
     /// <summary>Splits a virtual path into the archive file and the folder inside it ('/'-separated, "" = root).</summary>
     public static bool TryParse(string path, out string archiveFile, out string inner)
@@ -129,13 +132,16 @@ public static class ArchiveBrowser
     /// <summary>Removes this process's cache (on exit) and caches left behind by instances that are no longer running.</summary>
     public static void CleanupCache(bool includeOwn)
     {
-        if (!Directory.Exists(CacheBase)) return;
-        foreach (var dir in Directory.EnumerateDirectories(CacheBase))
+        foreach (var cacheBase in new[] { CacheBase, LegacyCacheBase })
         {
-            bool own = dir.Equals(CacheRoot, StringComparison.OrdinalIgnoreCase);
-            if (own && !includeOwn) continue;
-            if (!own && int.TryParse(Path.GetFileName(dir), out var pid) && IsRunningApplication(pid)) continue;
-            DeleteTree(dir);
+            if (cacheBase == null || !Directory.Exists(cacheBase)) continue;
+            foreach (var dir in Directory.EnumerateDirectories(cacheBase))
+            {
+                bool own = dir.Equals(CacheRoot, StringComparison.OrdinalIgnoreCase);
+                if (own && !includeOwn) continue;
+                if (!own && int.TryParse(Path.GetFileName(dir), out var pid) && IsRunningApplication(pid)) continue;
+                DeleteTree(dir);
+            }
         }
     }
 

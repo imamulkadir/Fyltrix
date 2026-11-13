@@ -235,12 +235,23 @@ public class ShareServerTests
     public void Firewall_upgrade_updates_the_owned_rule_without_adding_a_duplicate_or_widening_access()
     {
         var args = ShareFirewall.UpdateRuleArguments(8765, @"C:\Apps with spaces\Fyltrix\Fyltrix.exe");
-        Assert.StartsWith("advfirewall firewall set rule name=\"FileLens file sharing (TCP 8765)\" dir=in new ", args);
+        Assert.StartsWith("advfirewall firewall set rule name=\"Fyltrix file sharing (TCP 8765)\" dir=in new ", args);
         Assert.Contains("program=\"C:\\Apps with spaces\\Fyltrix\\Fyltrix.exe\"", args);
         Assert.Contains("protocol=TCP localport=8765 remoteip=localsubnet profile=private,domain enable=yes", args);
         Assert.DoesNotContain("add rule", args);
         Assert.DoesNotContain("public", args);
         _ = ShareFirewall.HasOwnedRule(8765); // Read-only COM path; no elevation or policy writes.
+    }
+
+    [Fact]
+    public void Firewall_rule_from_FileLens_versions_is_renamed_in_one_call_without_widening_access()
+    {
+        var args = ShareFirewall.RenameLegacyRuleArguments(8765, @"C:\Apps\Fyltrix\Fyltrix.exe");
+        Assert.StartsWith("advfirewall firewall set rule name=\"FileLens file sharing (TCP 8765)\" dir=in new name=\"Fyltrix file sharing (TCP 8765)\" ", args);
+        Assert.Contains("protocol=TCP localport=8765 remoteip=localsubnet profile=private,domain enable=yes", args);
+        Assert.DoesNotContain("add rule", args);
+        Assert.DoesNotContain("public", args);
+        _ = ShareFirewall.HasOwnedRule(8765, ShareFirewall.LegacyRuleName); // read-only lookup of the old name
     }
 
     /// <summary>

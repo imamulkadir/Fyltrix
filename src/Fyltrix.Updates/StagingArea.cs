@@ -1,3 +1,4 @@
+using Fyltrix.Launcher;
 using System.Text;
 using System.Runtime.InteropServices;
 
@@ -18,9 +19,9 @@ public static class StagingArea
         RejectLinks(root);
         root = CanonicalPath(root);
         if (root == Path.GetPathRoot(root)) throw new ArgumentException("Do not stage at a drive root.");
-        foreach (var kind in new[] { Environment.SpecialFolder.ApplicationData, Environment.SpecialFolder.LocalApplicationData })
+        foreach (var data in DataFolders.ProtectedFromStaging)
         {
-            string profile = CanonicalPath(Path.Combine(Environment.GetFolderPath(kind), "FileLens"));
+            string profile = CanonicalPath(data);
             if (Within(root, profile) || Within(profile, root)) throw new ArgumentException("Staging must not overlap existing application data.");
         }
         RejectLinks(root);

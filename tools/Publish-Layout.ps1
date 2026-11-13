@@ -43,6 +43,8 @@ if ((Is-Within $OutputRoot $root) -and -not (Is-Within $OutputRoot $allowedWorks
     throw 'Inside the checkout, output must stay under artifacts\distribution; the development copy is protected.'
 }
 foreach ($profile in @(
+    (Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'Fyltrix'),
+    (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Fyltrix'),
     (Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'FileLens'),
     (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'FileLens')
 )) {
@@ -90,7 +92,7 @@ Fyltrix versioned release layout ($Version, win-x64)
 
 Launch the root Fyltrix.exe. It forwards folder arguments to app-$Version\Fyltrix.exe.
 Keep this whole layout together. It can be moved or extracted to another writable or read-only directory.
-Settings remain in %AppData%\FileLens; caches remain in %LocalAppData%\FileLens.
+Settings are kept in %AppData%\Fyltrix; caches in %LocalAppData%\Fyltrix. Settings from 0.1.10 and earlier (%AppData%\FileLens) are copied there on first start; that folder is left unchanged.
 WebView2 Runtime and optional preview codecs are still required separately.
 
 This layout supports protocol-1 update handover, isolated health checks, and rollback/recovery.

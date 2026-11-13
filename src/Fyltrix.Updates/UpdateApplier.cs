@@ -12,7 +12,8 @@ public sealed record ApplyResult(ApplyStatus Status, string Reason);
 internal enum ApplyPoint { JournalWritten, PayloadExtracted, TrialPassed, PointerSwitched, Committed }
 internal sealed class ApplyOptions
 {
-    internal string Profile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FileLens");
+    /// <summary>The live roaming profile (Fyltrix, or the former FileLens folder before its first copy).</summary>
+    internal string Profile = DataFolders.CurrentRoaming();
     internal TimeSpan HealthTimeout = TimeSpan.FromSeconds(60);
     internal bool Sandbox;
     internal Action<ApplyPoint>? Checkpoint;

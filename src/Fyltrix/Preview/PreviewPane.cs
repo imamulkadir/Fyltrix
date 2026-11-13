@@ -169,7 +169,7 @@ public sealed class PreviewPane : Grid
     /// <summary>WebView2's profile folder. Tests use their own, so they never share (and wait on) the browser process of a
     /// Fyltrix the user has open.</summary>
     internal static string WebDataFolder { get; set; } =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "WebView2");
+        Launcher.DataFolders.WebView2;
 
     /// <summary>One environment (one browser process) for every preview in the process. A failed attempt is not kept:
     /// the next preview creates the environment again instead of failing for the rest of the session.</summary>

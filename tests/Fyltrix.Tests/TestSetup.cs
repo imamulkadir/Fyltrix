@@ -20,6 +20,9 @@ internal static class TestSetup
         // A browser/controller belongs to its test host and desktop. Never reconnect another
         // test process to an earlier host's cached profile or still-exiting browser process.
         Fyltrix.Preview.PreviewPane.WebDataFolder = Path.Combine(settings, "WebView2");
+        // Caches too: tests must never write into (or clean) the user's real %LocalAppData%\Fyltrix or FileLens caches.
+        Fyltrix.Core.Media.ThumbnailService.DiskCacheFolder = Path.Combine(settings, "Thumbs");
+        Fyltrix.Core.Archives.ArchiveBrowser.SetTrialCache(Path.Combine(settings, "ArchiveCache"));
         Fyltrix.UI.MainWindow.ClipboardFactory = () => new MemoryFileClipboard();
         Fyltrix.UI.MainWindow.NotificationsFactoryForTests = session => new Fyltrix.Core.UpdateNotifications(session,
             new Fyltrix.Core.UpdateNotificationStore(Path.Combine(Fyltrix.Core.AppSettings.Folder, "test-update-metadata")));

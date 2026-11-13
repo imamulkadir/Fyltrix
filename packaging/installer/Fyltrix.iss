@@ -203,6 +203,11 @@ var
   Ancestor, Parent, DataDir: String;
 begin
   Result := '';
+  DataDir := ExpandConstant('{userappdata}\Fyltrix');
+  if Within(Directory, DataDir) or Within(DataDir, Directory) then begin Result := 'Installation must not overlap roaming application data.'; Exit; end;
+  DataDir := ExpandConstant('{localappdata}\Fyltrix');
+  if Within(Directory, DataDir) or Within(DataDir, Directory) then begin Result := 'Installation must not overlap local application data.'; Exit; end;
+  { Folders of versions 0.1.10 and earlier stay protected user data. }
   DataDir := ExpandConstant('{userappdata}\FileLens');
   if Within(Directory, DataDir) or Within(DataDir, Directory) then begin Result := 'Installation must not overlap roaming application data.'; Exit; end;
   DataDir := ExpandConstant('{localappdata}\FileLens');

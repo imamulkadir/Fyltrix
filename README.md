@@ -512,15 +512,14 @@ Fyltrix is designed around local file management.
 - Update checks communicate with GitHub when enabled or requested.
 - Recent history and other application preferences can be controlled through Settings.
 
-Preferences are stored in the Windows user profile even for portable copies. Fyltrix deliberately retains these legacy filesystem identifiers to preserve existing data after rebranding:
+Preferences are stored in the Windows user profile, even for portable copies:
 
-| Compatibility location           | Purpose                                                                                                                      |
+| Location                         | Purpose                                                                                                                      |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `%AppData%\FileLens`             | Settings, tabs, Favourites, Recent, templates, tags, automation, sharing records, synchronization baselines, and diagnostics |
-| `%LocalAppData%\FileLens`        | WebView2, thumbnail, and archive-preview caches                                                                              |
-| `%LocalAppData%\Fyltrix\Updates` | Separate update staging and notification/check metadata                                                                      |
+| `%AppData%\Fyltrix`              | Settings, tabs, Favourites, Recent, templates, tags, automation, sharing records, synchronization baselines, and diagnostics (`error.log`) |
+| `%LocalAppData%\Fyltrix`         | WebView2, thumbnail, and archive-preview caches, plus separate update staging (`Updates`)                                    |
 
-These are internal persistence paths, not the current application name. **Do not rename them manually.** Moving the checkout or executable does not require a profile migration.
+Versions 0.1.10 and earlier used `%AppData%\FileLens` and `%LocalAppData%\FileLens`. On its first start, a newer version **copies** the settings from `%AppData%\FileLens` into `%AppData%\Fyltrix` and then uses only the Fyltrix folders. The old folders are left unchanged, so an older version restored by an update rollback still finds its settings, and nothing new is written there. Once you no longer need to roll back to 0.1.10 or earlier, you may delete the old `FileLens` folders yourself. Moving the checkout or executable does not require a profile migration.
 
 HTML preview scripts are off by default. Previewing network-dependent content or opening external links can contact remote services. Sharing serves selected content from this computer only when requested.
 

@@ -58,6 +58,14 @@ public sealed class App : Application
         { startup?.Dispose(); Environment.ExitCode = 4; return; }
         using var startupLease = startup;
         using var trialLease = trial;
+        // One-time copy of settings from the former %AppData%\FileLens folder into %AppData%\Fyltrix. Only for a normal start
+        // on the default profile: never for update trials (they run on a snapshot) or when a test/hook chose another folder.
+        if (trial == null && string.Equals(AppSettings.Folder, DataFolders.Roaming, StringComparison.OrdinalIgnoreCase))
+        {
+            var notes = new List<string>();
+            AppSettings.Folder = DataFolders.MigrateRoaming(DataFolders.Roaming, DataFolders.LegacyRoaming, notes.Add);
+            foreach (var note in notes) Diagnostics.Info("Profile", note);
+        }
         // Anything that would end the process is written to a crash report first (native faults included,
         // when the runtime surfaces them as SEHException on the way out).
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>

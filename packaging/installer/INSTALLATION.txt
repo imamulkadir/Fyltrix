@@ -1,7 +1,7 @@
 Fyltrix per-user installation
 
 Launch Fyltrix.exe in this installation's root directory. Keep the versioned payload directories with it.
-Settings and saved data remain in %AppData%\FileLens. Caches remain in %LocalAppData%\FileLens.
+Settings and saved data are kept in %AppData%\Fyltrix; caches in %LocalAppData%\Fyltrix. Settings from 0.1.10 and earlier (%AppData%\FileLens) are copied there on first start; that folder is left unchanged.
 Uninstall never deletes those data stores. It uses the installer log plus the owner-bound updater file inventory. Unknown files and modified updater-owned files remain.
 
 Close this installed copy before a manual upgrade or uninstall. Setup never force-closes applications.

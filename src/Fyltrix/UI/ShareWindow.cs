@@ -312,17 +312,20 @@ public sealed class ShareWindow : ToolWindow
         if (exe == null) return;
         int port = _host.Port;
         var existing = ShareFirewall.HasOwnedRule(port);
-        if (existing == null)
+        // a rule made by a version that still used the FileLens name is renamed rather than duplicated
+        bool? legacy = existing == false ? ShareFirewall.HasOwnedRule(port, ShareFirewall.LegacyRuleName) : false;
+        if (existing == null || legacy == null)
         {
             Dialogs.Error(this, "Allow through Windows Firewall", "The existing application rule couldn't be inspected. Check Windows Defender Firewall before adding or changing a rule.");
             return;
         }
         if (!Dialogs.Confirm(this, "Allow through Windows Firewall",
-                $"{ProductBranding.Name} will ask Windows (administrator approval) to {(existing.Value ? "update the existing" : "add one")} firewall rule:\n\n" +
+                $"{ProductBranding.Name} will ask Windows (administrator approval) to {(existing.Value || legacy.Value ? "update the existing" : "add one")} firewall rule:\n\n" +
                 $"• incoming TCP connections on port {port} only\n• to {ProductBranding.Name} (Fyltrix.exe) only\n• from your local subnet only\n• on Private and Domain networks (never Public)\n\n" +
                 $"You can remove it any time in Windows Defender Firewall → Advanced settings → Inbound rules (\"{ShareFirewall.RuleName} (TCP {port})\").\n\nContinue?", defaultNo: false))
             return;
-        var error = ShareFirewall.RunElevated(existing.Value ? ShareFirewall.UpdateRuleArguments(port, exe) : ShareFirewall.AddRuleArguments(port, exe));
+        var error = ShareFirewall.RunElevated(existing.Value ? ShareFirewall.UpdateRuleArguments(port, exe)
+            : legacy.Value ? ShareFirewall.RenameLegacyRuleArguments(port, exe) : ShareFirewall.AddRuleArguments(port, exe));
         if (error != null) Dialogs.Error(this, "Allow through Windows Firewall", "The rule wasn't added: " + error);
         CheckFirewall();
     }

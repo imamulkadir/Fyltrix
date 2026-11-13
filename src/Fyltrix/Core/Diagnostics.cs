@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace Fyltrix.Core;
 
 /// <summary>
-/// The one place errors are written down: %AppData%\FileLens\error.log (rolled over at 2 MB to error.old.log), plus a
+/// The one place errors are written down: %AppData%\Fyltrix\error.log (rolled over at 2 MB to error.old.log), plus a
 /// separate crash-*.txt report under crashes\ when the process is about to die. Entries carry the time, app version,
 /// component, operation, exception type, message, stack and inner exceptions. Share tokens are masked. Never throws.
 /// </summary>

@@ -111,7 +111,7 @@ public sealed class ShareHost : IDisposable
     private CancellationTokenSource? _listenCts;
     private bool _listeningLan, _disposed;
 
-    /// <summary>The app-wide host (store in %AppData%\FileLens\shares.json).</summary>
+    /// <summary>The app-wide host (store in %AppData%\Fyltrix\shares.json).</summary>
     public static ShareHost Current => _current ??= new ShareHost(Path.Combine(AppSettings.Folder, "shares.json"), DefaultPort);
 
     public ShareHost(string? storePath, int preferredPort)

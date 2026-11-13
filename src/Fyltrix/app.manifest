@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
   <!-- Retained compatibility identity; executable/product branding is Fyltrix. -->
-  <assemblyIdentity version="0.1.0.0" name="FileLens.app" />
+  <assemblyIdentity version="0.1.0.0" name="Fyltrix.app" />
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">

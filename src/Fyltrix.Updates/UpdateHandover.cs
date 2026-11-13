@@ -212,9 +212,9 @@ public static class UpdateHandover
         for (var parent = new DirectoryInfo(root); parent != null; parent = parent.Parent)
             if (Directory.Exists(Path.Combine(parent.FullName, ".git")) || File.Exists(Path.Combine(parent.FullName, ".git"))
                 || File.Exists(Path.Combine(parent.FullName, "publish.ps1"))) return null;
-        foreach (var kind in new[] { Environment.SpecialFolder.ApplicationData, Environment.SpecialFolder.LocalApplicationData })
+        foreach (var data in DataFolders.Protected)
         {
-            string profile = StagingArea.CanonicalPath(Path.Combine(Environment.GetFolderPath(kind), "FileLens"));
+            string profile = StagingArea.CanonicalPath(data);
             if (StagingArea.Within(root, profile) || StagingArea.Within(profile, root)) return null;
         }
         var resolved = ReleaseLayout.Resolve(root);

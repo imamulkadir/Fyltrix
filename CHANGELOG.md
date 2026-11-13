@@ -15,6 +15,16 @@ The release workflow uses that exact section as the GitHub release notes.
 - Engine problems are now recorded in `error.log` (failure kind, exit code, WebView2 Runtime version, file kind —
   no file paths or contents), so a preview failure on another computer can be diagnosed.
 
+### Changed
+
+- Fyltrix now keeps its data under its own name: settings, tags, templates, automation, shares and `error.log` in
+  `%AppData%\Fyltrix`, and caches in `%LocalAppData%\Fyltrix`. On the first start, settings from earlier versions are
+  copied from `%AppData%\FileLens`; that folder is left unchanged (an older version restored by an update rollback
+  still finds its settings) and nothing new is written there. If the copy can't be made, the old folder keeps being
+  used and the copy is retried at the next start.
+- The Windows Firewall rule for file sharing is now named "Fyltrix file sharing". An existing "FileLens file
+  sharing" rule is renamed (in the same administrator-approved step) instead of a second rule being added.
+
 ### Security
 
 - The internal preview address moved from `filelens.app` (a real internet domain owned by a third party) to

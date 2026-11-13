@@ -10,7 +10,7 @@ public enum PreviewStartup { Remember, Show, Hide }
 public enum NewTabTarget { CurrentFolder, StartupFolder, ThisPC }
 public enum UpdateMode { ManualOnly, NotifyOnly, DownloadAutomatically, InstallOnExit }
 
-/// <summary>Per-user settings stored in %AppData%\FileLens\settings.json (no registry, no admin).</summary>
+/// <summary>Per-user settings stored in %AppData%\Fyltrix\settings.json (no registry, no admin).</summary>
 public sealed class AppSettings
 {
     [System.Text.Json.Serialization.JsonConverter(typeof(UpdateModeConverter))]
@@ -264,9 +264,9 @@ public sealed class AppSettings
         MaxRatio = Math.Max(2, ArchiveMaxRatio),
     };
 
-    /// <summary>Where settings and logs live. Tests point this at a temporary folder.</summary>
-    public static string Folder { get; set; } =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FileLens");
+    /// <summary>Where settings and logs live (%AppData%\Fyltrix; see <see cref="Launcher.DataFolders"/> for the one-time copy
+    /// from the former FileLens folder). Tests point this at a temporary folder.</summary>
+    public static string Folder { get; set; } = Launcher.DataFolders.Roaming;
 
     private static string FilePath => Path.Combine(Folder, "settings.json");
 

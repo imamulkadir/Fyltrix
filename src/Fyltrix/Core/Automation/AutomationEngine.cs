@@ -11,7 +11,7 @@ public enum TriggerKind { NewFile, NewOrChangedFile, Manual, Interval }
 
 public enum RuleAction { Move, Copy, Rename, ExtractArchive, CompressToZip, ConvertImage, OrganizeByDate, RunCommand }
 
-/// <summary>"When a matching file appears in a folder, do something with it." Stored in %AppData%\FileLens\automation.json.</summary>
+/// <summary>"When a matching file appears in a folder, do something with it." Stored in %AppData%\Fyltrix\automation.json.</summary>
 public sealed class AutomationRule
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");

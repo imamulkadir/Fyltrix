@@ -11,7 +11,7 @@ public sealed class TagEntry
 }
 
 /// <summary>
-/// Tags and colour labels, kept in %AppData%\FileLens\tags.json keyed by full path. Files are never modified.
+/// Tags and colour labels, kept in %AppData%\Fyltrix\tags.json keyed by full path. Files are never modified.
 /// Moves and renames done in Fyltrix carry the tags along; items deleted or moved elsewhere can be cleaned up.
 /// </summary>
 public sealed class TagStore

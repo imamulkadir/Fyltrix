@@ -220,7 +220,7 @@ public static class FolderSync
 
     // ------------------------------------------------------------------ two-way baseline
 
-    /// <summary>State of both folders after the last sync, kept in %AppData%\FileLens\sync.</summary>
+    /// <summary>State of both folders after the last sync, kept in %AppData%\Fyltrix\sync.</summary>
     public sealed class Baseline
     {
         public sealed class Entry

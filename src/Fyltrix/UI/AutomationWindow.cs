@@ -80,7 +80,7 @@ public sealed class AutomationWindow : ToolWindow
         DockPanel.SetDock(_ruleList, Dock.Top);
         root.Children.Add(_ruleList);
 
-        var logHeader = Dialogs.Label("Activity (also saved to %AppData%\\FileLens\\automation.log)");
+        var logHeader = Dialogs.Label("Activity (also saved to %AppData%\\Fyltrix\\automation.log)");
         DockPanel.SetDock(logHeader, Dock.Top);
         root.Children.Add(logHeader);
         _logList = List(Column("Time", nameof(LogRow.Time), 80, brush: "Fg2"), Column("Rule", nameof(LogRow.Rule), 150), Column("File", nameof(LogRow.File), 220),

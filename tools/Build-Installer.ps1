@@ -76,7 +76,7 @@ if (-not $OutputDirectory) { $OutputDirectory = Join-Path $ReleaseDirectory "ins
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 if ((Within $OutputDirectory $root) -and -not (Within $OutputDirectory (Join-Path $root 'artifacts\distribution'))) { throw 'Installer output inside the checkout must stay under artifacts\distribution.' }
 if (Within $OutputDirectory $layout) { throw 'Installer output must be separate from the source layout.' }
-foreach ($store in @((Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'FileLens'),(Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'FileLens'))) {
+foreach ($store in @((Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'Fyltrix'),(Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Fyltrix'),(Join-Path ([Environment]::GetFolderPath('ApplicationData')) 'FileLens'),(Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'FileLens'))) {
     if ((Within $OutputDirectory $store) -or (Within $store $OutputDirectory)) { throw 'Installer output must not overlap user data.' }
 }
 $ancestor = New-Object IO.DirectoryInfo($OutputDirectory)

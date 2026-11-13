@@ -30,7 +30,7 @@ public sealed class ThumbnailRequest
 ///    a folder doesn't regenerate anything and a changed file gets a fresh thumbnail;
 ///  • a bounded, coalesced queue on a few worker threads, prioritizing visible tiles over prefetch;
 ///  • for videos Windows can't thumbnail (e.g. no codec extension), one frame from FFmpeg when it is installed,
-///    cached on disk under %LocalAppData%\FileLens\Thumbs (bounded, oldest removed first).
+///    cached on disk under %LocalAppData%\Fyltrix\Thumbs (bounded, oldest removed first).
 /// </summary>
 public sealed class ThumbnailService : IDisposable
 {
@@ -56,7 +56,7 @@ public sealed class ThumbnailService : IDisposable
     internal int PendingCount { get { lock (_gate) return _subscriptions; } }
     internal int WorkingCount { get { lock (_gate) return _working; } }
 
-    public static string DiskCacheFolder { get; set; } = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "Thumbs");
+    public static string DiskCacheFolder { get; set; } = Launcher.DataFolders.Thumbs;
     public static long DiskCacheBudgetBytes { get; set; } = 256L * 1024 * 1024;
     /// <summary>ffmpeg.exe for video frames Windows can't make; null = don't use FFmpeg.</summary>
     public static Func<string?> FfmpegPath { get; set; } = () => null;

@@ -36,7 +36,8 @@ public class RebrandingTests
         // The private preview origin is Fyltrix-branded and can never resolve on a real network (reserved TLD).
         Assert.Equal("fyltrix.example", PreviewUrls.Host);
         Assert.DoesNotContain("filelens", PreviewUrls.Origin, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal("FileLens file sharing", ShareFirewall.RuleName);
+        Assert.Equal("Fyltrix file sharing", ShareFirewall.RuleName);
+        Assert.Equal("FileLens file sharing", ShareFirewall.LegacyRuleName); // only ever renamed, never created
         using var icon = assembly.GetManifestResourceStream("Assets/Fyltrix.ico")!;
         Assert.DoesNotContain("Assets/FileLens.ico", assembly.GetManifestResourceNames());
         Assert.Equal("77AE6883F66A7FD51A9E0B81C51A2E1AEE7974229FC4E6DB1519DD737479D907", Convert.ToHexString(SHA256.HashData(icon)));
@@ -57,9 +58,18 @@ public class RebrandingTests
     }
 
     [Fact]
-    public void Existing_archive_cache_location_is_retained_without_migration()
+    public void Data_and_cache_folders_are_named_Fyltrix()
     {
-        Assert.Equal(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileLens", "ArchiveCache"), Core.Archives.ArchiveBrowser.CacheBase);
+        string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string roaming = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        // (the test host redirects the live caches to a temporary folder, so the defaults are checked at their source)
+        Assert.Equal(Path.Combine(local, "Fyltrix", "ArchiveCache"), Launcher.DataFolders.ArchiveCache);
+        Assert.Equal(Path.Combine(local, "FileLens", "ArchiveCache"), Launcher.DataFolders.LegacyArchiveCache); // stale entries cleaned only
+        Assert.Equal(Path.Combine(roaming, "Fyltrix"), Launcher.DataFolders.Roaming);
+        Assert.Equal(Path.Combine(local, "Fyltrix", "WebView2"), Launcher.DataFolders.WebView2);
+        Assert.Equal(Path.Combine(local, "Fyltrix", "Thumbs"), Launcher.DataFolders.Thumbs);
+        // The update contract token stays: installed 0.1.10 updaters accept only this exact text.
+        Assert.Equal("Fyltrix.Update/1\nFileLens.Profile/1\n", Launcher.UpdateProtocol.Capability);
     }
 
     private static (string First, string Second, JsonObject Json) LegacyProfile(TempDir t)

@@ -20,8 +20,8 @@ public static class StartupHook
         var installed = Directory.GetParent(AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar))!.FullName;
         if (!File.ReadAllText(Path.Combine(installed, ".fyltrix-install.ini")).Contains("AppId=Fyltrix.Sandbox.PerUser"))
             throw new InvalidOperationException("The startup hook may run only in the sandbox installation.");
-        var expected = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FileLens");
-        if (AppSettings.Folder != expected) throw new InvalidOperationException("The legacy profile default changed.");
+        var expected = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Fyltrix");
+        if (AppSettings.Folder != expected) throw new InvalidOperationException("The profile default changed.");
         AppSettings.Folder = Path.Combine(root, "profile");
         PreviewPane.WebDataFolder = Path.Combine(root, "webview2");
         ThumbnailService.DiskCacheFolder = Path.Combine(root, "thumbs");

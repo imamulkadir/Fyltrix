@@ -57,7 +57,7 @@ The same exclusive file handle is used to write and verify the complete package.
 
 ## Separate staging data
 
-Default root: `%LocalAppData%\Fyltrix\Updates`. This is new updater-only storage. Existing settings stay in `%AppData%\FileLens`, and existing caches stay in `%LocalAppData%\FileLens`; nothing is moved or reset.
+Default root: `%LocalAppData%\Fyltrix\Updates`. This is new updater-only storage. Existing settings stay in `%AppData%\FileLens`, and existing caches stay in `%LocalAppData%\FileLens`; nothing is moved or reset. **Update (2026-11-13):** from the version after 0.1.10, data lives in `%AppData%\Fyltrix` and `%LocalAppData%\Fyltrix`; settings are copied once from `%AppData%\FileLens` on the first normal start (the old folder is left unchanged and stays protected). The `FileLens.Profile/1` update-contract token is unchanged so installed 0.1.10 updaters still accept the new package. See `src/Fyltrix.Bootstrap/DataFolders.cs`.
 
 Each operation gets a unique directory:
 
