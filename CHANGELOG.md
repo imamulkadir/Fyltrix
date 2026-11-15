@@ -6,6 +6,15 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+
+- PDF comments in the Preview pane: a **Comments** button appears for previewed PDFs that have comments.
+- A comment card: **Show** opens the chosen comment with its author, date, page and all replies as selectable plain text, next to the PDF it belongs to (each side of Compare has its own).
+
+### Changed
+
+- PDF comment lists thread replies under the comment they answer and show replace-text edits (strikeout plus replacement) as one item, so review documents are no longer dominated by separate "done" replies. A partly unreadable document still shows how many comments were read.
+
 ## [0.1.12] - 2026-11-13
 
 ### Fixed

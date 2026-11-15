@@ -18,6 +18,13 @@ internal sealed class PdfCommentsPanel : DockPanel
     private bool _navigationAvailable;
     private IReadOnlyList<double> _heights = Array.Empty<double>();
     internal event Action<int, IReadOnlyList<double>>? PageRequested;
+    /// <summary>The user chose a comment (Show button, double-click or Enter): show it, and navigate when possible.</summary>
+    internal event Action<PdfComment>? CommentRequested;
+    /// <summary>Visible box and rotation of every page of the loaded document (empty until loaded).</summary>
+    internal IReadOnlyList<PdfPageGeometry> PageGeometry { get; private set; } = Array.Empty<PdfPageGeometry>();
+    internal IReadOnlyList<double> PageHeights => _heights;
+    /// <summary>False while a PDF's comments have not been read yet (large files in the Preview pane are read on demand).</summary>
+    internal bool HasResult { get; private set; }
     internal event EventHandler? StateChanged;
     internal IReadOnlyList<PdfComment> Comments { get; private set; } = Array.Empty<PdfComment>();
     internal string Status => _state.Text;
@@ -61,20 +68,47 @@ internal sealed class PdfCommentsPanel : DockPanel
         text.SetValue(TextBox.BackgroundProperty, Theme.Brush("Bg2"));
         text.SetValue(TextBox.ForegroundProperty, Theme.Brush("Fg1"));
         item.AppendChild(text);
-        var page = new FrameworkElementFactory(typeof(Button));
-        page.SetValue(ContentControl.ContentProperty, "Go to page");
-        page.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
-        page.SetValue(ToolTipProperty, "Scroll to this comment's page position. Native page controls remain available.");
-        page.SetBinding(IsEnabledProperty, new Binding(nameof(NavigationAvailable)) { Source = this });
-        page.AddHandler(Button.ClickEvent, new RoutedEventHandler((sender, _) =>
+        // Replies (/IRT) are threaded under the comment they answer, never listed as separate comments.
+        var replies = new FrameworkElementFactory(typeof(TextBlock));
+        replies.SetBinding(TextBlock.TextProperty, new Binding(nameof(PdfComment.RepliesSummary)));
+        replies.SetValue(TextBlock.ForegroundProperty, Theme.Brush("Fg2"));
+        replies.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
+        replies.SetValue(MarginProperty, new Thickness(10, 0, 0, 4));
+        var hideEmpty = new Style(typeof(TextBlock));
+        hideEmpty.Triggers.Add(new DataTrigger { Binding = new Binding(nameof(PdfComment.RepliesSummary)), Value = "", Setters = { new Setter(VisibilityProperty, Visibility.Collapsed) } });
+        replies.SetValue(StyleProperty, hideEmpty);
+        item.AppendChild(replies);
+        var show = new FrameworkElementFactory(typeof(Button));
+        show.SetValue(ContentControl.ContentProperty, "Show");
+        show.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
+        show.SetValue(ToolTipProperty, "Show this comment and scroll to it. Native page controls remain available.");
+        show.AddHandler(Button.ClickEvent, new RoutedEventHandler((sender, _) =>
         {
-            if (sender is FrameworkElement { DataContext: PdfComment comment } && _navigationAvailable)
-                PageRequested?.Invoke(comment.Page, _heights);
+            if (sender is FrameworkElement { DataContext: PdfComment comment }) Request(comment);
         }));
-        item.AppendChild(page);
+        item.AppendChild(show);
         _comments.ItemTemplate = new DataTemplate { VisualTree = item };
         Children.Add(_comments);
+        _comments.MouseDoubleClick += (_, _) => { if (_comments.SelectedItem is PdfComment c) Request(c); };
+        _comments.KeyDown += (_, e) =>
+        {
+            if (e.Key != System.Windows.Input.Key.Enter || _comments.SelectedItem is not PdfComment c) return;
+            e.Handled = true; Request(c);
+        };
         Unloaded += (_, _) => StopLoading();
+    }
+
+    /// <summary>Shows a comment: page navigation first (when the native viewer allows it), then the comment itself.</summary>
+    internal void Request(PdfComment comment)
+    {
+        if (_navigationAvailable) PageRequested?.Invoke(comment.Page, _heights);
+        CommentRequested?.Invoke(comment);
+    }
+
+    private string RepliesNote()
+    {
+        int replies = Comments.Sum(c => c.Replies.Count);
+        return replies == 0 ? "" : $" and {replies} repl{(replies == 1 ? "y" : "ies")}";
     }
 
     internal void StopLoading() { ++_version; _loadCancellation?.Cancel(); }
@@ -88,7 +122,11 @@ internal sealed class PdfCommentsPanel : DockPanel
         set { _navigationAvailable = value; SetValue(NavigationAvailableProperty, value); }
     }
 
-    internal void ShowFile(string path)
+    internal void ShowFile(string path) => ShowFile(path, load: true);
+
+    /// <summary>Shows the comments of <paramref name="path"/>. With <paramref name="load"/> false a PDF is only marked
+    /// (nothing is read) until the comments are opened.</summary>
+    internal void ShowFile(string path, bool load)
     {
         int version = ++_version;
         _loadCancellation?.Cancel();
@@ -97,6 +135,8 @@ internal sealed class PdfCommentsPanel : DockPanel
         Comments = Array.Empty<PdfComment>();
         _comments.ItemsSource = Comments;
         _heights = Array.Empty<double>();
+        PageGeometry = Array.Empty<PdfPageGeometry>();
+        HasResult = false;
         NavigationAvailable = false;
         bool pdf = FileKinds.KindFor(path, false) == PreviewKind.Pdf;
         Visibility = pdf ? Visibility.Visible : Visibility.Collapsed;
@@ -104,6 +144,7 @@ internal sealed class PdfCommentsPanel : DockPanel
         _heading.Text = "Comments — " + Path.GetFileName(path);
         AutomationProperties.SetName(_comments, _heading.Text);
         _heading.ToolTip = path;
+        if (!load) { _state.Text = "Open Comments to read this document's comments."; LoadTask = Task.CompletedTask; StateChanged?.Invoke(this, EventArgs.Empty); return; }
         _state.Text = "Reading comments…";
         LoadTask = Load(path, version, _loadCancellation.Token);
         StateChanged?.Invoke(this, EventArgs.Empty);
@@ -120,15 +161,19 @@ internal sealed class PdfCommentsPanel : DockPanel
             if (version != _version) return;
             Comments = result.Items;
             _heights = result.PageHeights;
+            PageGeometry = result.Pages;
+            HasResult = true;
             _comments.ItemsSource = Comments;
-            _state.Text = result.Partial ? "Some annotation metadata was unreadable or exceeded the metadata limits."
-                : Comments.Count == 0 ? "No comments in this document." : $"{Comments.Count} comment{(Comments.Count == 1 ? "" : "s")} · read-only";
+            // One malformed annotation must not hide how many comments were read.
+            _state.Text = (Comments.Count == 0 ? "No comments in this document." : $"{Comments.Count} comment{(Comments.Count == 1 ? "" : "s")}{RepliesNote()} · read-only")
+                + (result.Partial ? (Comments.Count == 0 ? " " : ". ") + "Some annotation metadata was unreadable or exceeded the metadata limits." : "");
             StateChanged?.Invoke(this, EventArgs.Empty);
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
             if (version != _version) return;
+            HasResult = true;
             _state.Text = ex is PdfPasswordException
                 ? "Comments are password-protected. The native viewer can still request the PDF password."
                 : "Comments could not be read. The native PDF viewer remains available.";

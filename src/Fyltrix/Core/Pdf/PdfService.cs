@@ -2,15 +2,67 @@ using System.Text;
 using System.Windows.Media.Imaging;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
+using PdfSharp.Pdf.Advanced;
 
 namespace Fyltrix.Core.Pdf;
 
 public sealed record PdfInfo(int Pages, int Version, bool Encrypted, bool Signed, IReadOnlyList<(string Label, string Value)> Metadata);
+/// <summary>A rectangle in PDF user space (points, origin bottom-left), normalized so Left ≤ Right and Bottom ≤ Top.</summary>
+public readonly record struct PdfRect(double Left, double Bottom, double Right, double Top)
+{
+    public double Width => Right - Left;
+    public double Height => Top - Bottom;
+
+    /// <summary>Normalizes the four numbers of a PDF rectangle; null when they can't describe a real area.</summary>
+    public static PdfRect? From(double x1, double y1, double x2, double y2)
+    {
+        if (!double.IsFinite(x1) || !double.IsFinite(y1) || !double.IsFinite(x2) || !double.IsFinite(y2)) return null;
+        var r = new PdfRect(Math.Min(x1, x2), Math.Min(y1, y2), Math.Max(x1, x2), Math.Max(y1, y2));
+        // Untrusted input: reject empty and absurd extents (PDF implementations limit coordinates to about ±32767).
+        if (r.Width <= 0 || r.Height <= 0 || Math.Abs(r.Left) > 1e6 || Math.Abs(r.Right) > 1e6 || Math.Abs(r.Bottom) > 1e6 || Math.Abs(r.Top) > 1e6) return null;
+        return r;
+    }
+
+    public PdfRect Union(PdfRect other) => new(Math.Min(Left, other.Left), Math.Min(Bottom, other.Bottom), Math.Max(Right, other.Right), Math.Max(Top, other.Top));
+}
+
+/// <summary>The visible page box (CropBox within MediaBox) and its rotation, as the viewer displays it.</summary>
+public sealed record PdfPageGeometry(PdfRect Box, int Rotate)
+{
+    public double DisplayWidth => Rotate is 90 or 270 ? Box.Height : Box.Width;
+    public double DisplayHeight => Rotate is 90 or 270 ? Box.Width : Box.Height;
+}
+
 public sealed record PdfComment(int Page, string Type, string Author, string Text, DateTime? Modified)
 {
-    public string Heading => $"Page {Page} · {Type}" + (Author.Length == 0 ? "" : $" · {Author}");
+    /// <summary>Stable within the document: the annotation's /NM name, else its object number, else page and position.</summary>
+    public string Id { get; init; } = "";
+    /// <summary>The annotation's /Rect; null when missing or invalid.</summary>
+    public PdfRect? Rect { get; init; }
+    /// <summary>Bounding boxes of the marked-up text (/QuadPoints of this annotation and of grouped markups such as a
+    /// replace-text strikeout).</summary>
+    public IReadOnlyList<PdfRect> Quads { get; init; } = Array.Empty<PdfRect>();
+    public DateTime? Created { get; init; }
+    /// <summary>Replies (/IRT) to this annotation, oldest first. Replies never appear as separate comments.</summary>
+    public IReadOnlyList<PdfComment> Replies { get; init; } = Array.Empty<PdfComment>();
+
+    /// <summary>Where the comment is on its page: the marked-up text when known, else the annotation rectangle.</summary>
+    public PdfRect? Target => Quads.Count > 0 ? Quads.Aggregate((a, b) => a.Union(b)) : Rect;
+
+    public string Heading => $"Page {Page} · {Type}" + (Author.Length == 0 ? "" : $" · {Author}")
+        + (Replies.Count == 0 ? "" : $" · {Replies.Count} repl{(Replies.Count == 1 ? "y" : "ies")}");
+
+    /// <summary>One line per reply for the list (full text is in the comment popup).</summary>
+    public string RepliesSummary => Replies.Count == 0 ? ""
+        : string.Join("\n", Replies.Take(5).Select(r => "↳ " + (r.Author.Length == 0 ? "" : r.Author + ": ") + (r.Text.Length > 140 ? r.Text[..140] + "…" : r.Text)))
+          + (Replies.Count > 5 ? $"\n↳ … {Replies.Count - 5} more" : "");
 }
-public sealed record PdfComments(IReadOnlyList<PdfComment> Items, IReadOnlyList<double> PageHeights, bool Partial);
+
+public sealed record PdfComments(IReadOnlyList<PdfComment> Items, IReadOnlyList<double> PageHeights, bool Partial)
+{
+    /// <summary>Visible box and rotation of every page (same order as <see cref="PageHeights"/>).</summary>
+    public IReadOnlyList<PdfPageGeometry> Pages { get; init; } = Array.Empty<PdfPageGeometry>();
+}
 
 public sealed class PdfPasswordException : Exception
 {
@@ -30,8 +82,9 @@ public static class PdfService
     {
         cancellation.ThrowIfCancellationRequested();
         using var document = Open(path, PdfDocumentOpenMode.Import, password);
-        var comments = new List<PdfComment>();
         var heights = new List<double>();
+        var pages = new List<PdfPageGeometry>();
+        var entries = new List<AnnotationEntry>();
         bool partial = false;
         string ReadString(PdfDictionary annotation, string key)
         {
@@ -39,18 +92,24 @@ public static class PdfService
             catch (Exception ex) when (ex is InvalidCastException or InvalidOperationException or ArgumentException)
             { partial = true; return ""; }
         }
+        DateTime? ReadDate(PdfDictionary annotation, string key)
+        {
+            try { var d = annotation.Elements.GetDateTime(key, DateTime.MinValue); return d == DateTime.MinValue ? null : d; }
+            catch (Exception ex) when (ex is FormatException or ArgumentException or InvalidCastException) { partial = true; return null; }
+        }
         for (int page = 0; page < document.PageCount; page++)
         {
             cancellation.ThrowIfCancellationRequested();
             var current = document.Pages[page];
             heights.Add(Math.Max(1, current.Height.Point));
+            pages.Add(PageGeometry(current));
             var annotations = current.Elements.GetArray("/Annots");
             if (annotations == null) continue;
             for (int index = 0; index < annotations.Elements.Count; index++)
             {
                 cancellation.ThrowIfCancellationRequested();
                 // Bound untrusted metadata separately from native PDF rendering.
-                if (comments.Count >= 10000) { partial = true; break; }
+                if (entries.Count >= MaxAnnotationEntries) { partial = true; break; }
                 try
                 {
                     var annotation = annotations.Elements.GetDictionary(index);
@@ -59,24 +118,158 @@ public static class PdfService
                     if (subtype == "Popup") continue; // parent annotation owns its content
                     string text = CleanComment(ReadString(annotation, "/Contents"));
                     if (text.Length == 0) text = RichCommentText(ReadString(annotation, "/RC"));
-                    if (text.Length == 0) continue; // links/widgets without comments are not comments
-                    var modified = DateTime.MinValue;
-                    try { modified = annotation.Elements.GetDateTime("/M", DateTime.MinValue); }
-                    catch (Exception ex) when (ex is FormatException or ArgumentException) { partial = true; }
-                    string type = subtype switch
+                    PdfReference? irt = annotation.Elements["/IRT"] as PdfReference;
+                    // Links/widgets without comments are not comments, but a text-less markup can still own replies
+                    // or be part of a group (e.g. the strikeout of a replace-text edit), so it is kept for threading.
+                    if (text.Length == 0 && irt == null && !CanOwnThread(subtype)) continue;
+                    entries.Add(new AnnotationEntry
                     {
-                        "Text" => "Sticky note", "FreeText" => "Free text", "StrikeOut" => "Strikeout",
-                        "Highlight" or "Underline" or "Ink" or "Square" or "Circle" or "Line" or "Stamp" or "Caret" => subtype,
-                        _ => subtype.Length == 0 ? "Unknown annotation" : subtype + " (other annotation)",
-                    };
-                    comments.Add(new PdfComment(page + 1, type, CleanComment(ReadString(annotation, "/T")), text,
-                        modified == DateTime.MinValue ? null : modified));
+                        Page = page + 1, Order = entries.Count, Subtype = subtype, Text = text,
+                        Author = CleanComment(ReadString(annotation, "/T")),
+                        Modified = ReadDate(annotation, "/M"), Created = ReadDate(annotation, "/CreationDate"),
+                        Key = annotation.Reference is { } r ? r.ObjectID.ToString() : null,
+                        ParentKey = irt?.ObjectID.ToString(),
+                        Group = annotation.Elements.GetName("/RT") == "/Group",
+                        Name = CleanComment(ReadString(annotation, "/NM")),
+                        Rect = ReadRect(annotation.Elements.GetArray("/Rect")),
+                        Quads = ReadQuads(annotation.Elements.GetArray("/QuadPoints"), ref partial),
+                    });
                 }
                 catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or InvalidCastException or FormatException)
                 { partial = true; } // one malformed annotation must not hide other comments
             }
         }
-        return new PdfComments(comments, heights, partial);
+        var comments = ThreadComments(entries, ref partial);
+        return new PdfComments(comments, heights, partial) { Pages = pages };
+    }
+
+    private const int MaxAnnotationEntries = 20000, MaxComments = 10000, MaxQuads = 2000, MaxThreadDepth = 32;
+
+    private sealed class AnnotationEntry
+    {
+        public int Page, Order;
+        public string Subtype = "", Text = "", Author = "", Name = "";
+        public DateTime? Modified, Created;
+        public string? Key, ParentKey;
+        public bool Group;
+        public PdfRect? Rect;
+        public IReadOnlyList<PdfRect> Quads = Array.Empty<PdfRect>();
+        public readonly List<AnnotationEntry> Replies = new(), Members = new();
+    }
+
+    /// <summary>Markups that may carry their comment in a reply or in a grouped annotation instead of themselves.</summary>
+    private static bool CanOwnThread(string subtype) => subtype is "Highlight" or "Underline" or "StrikeOut" or "Squiggly" or "Caret"
+        or "Text" or "FreeText" or "Square" or "Circle" or "Line" or "Polygon" or "PolyLine" or "Ink" or "Stamp";
+
+    /// <summary>
+    /// Threads annotations: /IRT replies go under the annotation they answer (replies to replies under the same root),
+    /// and /RT /Group members (e.g. the strikeout and caret of a replace-text edit) become one comment with combined
+    /// marked-up geometry. Missing or cyclic references leave the annotation as its own comment.
+    /// </summary>
+    private static List<PdfComment> ThreadComments(List<AnnotationEntry> entries, ref bool partial)
+    {
+        var byKey = new Dictionary<string, AnnotationEntry>(StringComparer.Ordinal);
+        foreach (var e in entries) if (e.Key != null) byKey.TryAdd(e.Key, e);
+        AnnotationEntry? Parent(AnnotationEntry e) => e.ParentKey != null && byKey.TryGetValue(e.ParentKey, out var p) && p != e ? p : null;
+        AnnotationEntry Root(AnnotationEntry e)
+        {
+            var root = e;
+            for (int depth = 0; depth < MaxThreadDepth && Parent(root) is { } p; depth++) { if (p == e) return e; root = p; } // cycle: stand alone
+            return root;
+        }
+        var roots = new List<AnnotationEntry>();
+        foreach (var e in entries)
+        {
+            var root = Root(e);
+            if (root == e) { roots.Add(e); continue; }
+            if (e.Group && Parent(e) is { } direct && Root(direct) == root) root.Members.Add(e);
+            else root.Replies.Add(e);
+        }
+
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        string Id(AnnotationEntry e)
+        {
+            string id = e.Name.Length is > 0 and <= 200 ? e.Name : e.Key != null ? "obj:" + e.Key : $"p{e.Page}:{e.Order}";
+            string unique = id; int n = 1;
+            while (!names.Add(unique)) unique = $"{id}#{++n}";
+            return unique;
+        }
+        PdfComment Reply(AnnotationEntry r) => new(r.Page, "Reply", r.Author, r.Text, r.Modified) { Id = Id(r), Rect = r.Rect, Quads = r.Quads, Created = r.Created };
+
+        var comments = new List<PdfComment>();
+        foreach (var root in roots.OrderBy(r => r.Page).ThenBy(r => r.Order))
+        {
+            var group = new[] { root }.Concat(root.Members).ToList();
+            string text = root.Text.Length > 0 ? root.Text : group.Select(m => m.Text).FirstOrDefault(t => t.Length > 0) ?? "";
+            var replies = root.Replies.Where(r => r.Text.Length > 0)
+                .OrderBy(r => r.Created ?? r.Modified ?? DateTime.MaxValue).ThenBy(r => r.Order).ToList();
+            if (text.Length == 0 && replies.Count == 0) continue; // nothing to read: not a comment
+            if (comments.Count >= MaxComments) { partial = true; break; }
+            var subtypes = group.Select(m => m.Subtype).ToHashSet(StringComparer.Ordinal);
+            string type = subtypes.Contains("Caret") && subtypes.Contains("StrikeOut") ? "Replace text" : TypeLabel(root.Subtype);
+            var quads = group.SelectMany(m => m.Quads).Take(MaxQuads).ToList();
+            comments.Add(new PdfComment(root.Page, type, root.Author.Length > 0 ? root.Author : group.Select(m => m.Author).FirstOrDefault(a => a.Length > 0) ?? "",
+                text, root.Modified)
+            {
+                Id = Id(root), Rect = root.Rect, Quads = quads, Created = root.Created,
+                Replies = replies.Select(Reply).ToList(),
+            });
+        }
+        return comments;
+    }
+
+    private static string TypeLabel(string subtype) => subtype switch
+    {
+        "Text" => "Sticky note", "FreeText" => "Free text", "StrikeOut" => "Strikeout",
+        "Highlight" or "Underline" or "Ink" or "Square" or "Circle" or "Line" or "Stamp" or "Caret" => subtype,
+        _ => subtype.Length == 0 ? "Unknown annotation" : subtype + " (other annotation)",
+    };
+
+    private static PdfRect? ReadRect(PdfArray? array)
+    {
+        if (array == null || array.Elements.Count < 4) return null;
+        try { return PdfRect.From(array.Elements.GetReal(0), array.Elements.GetReal(1), array.Elements.GetReal(2), array.Elements.GetReal(3)); }
+        catch (Exception ex) when (ex is InvalidCastException or InvalidOperationException or ArgumentException or FormatException) { return null; }
+    }
+
+    /// <summary>Each quadrilateral (8 numbers) as its bounding box; malformed or excess points are ignored.</summary>
+    private static IReadOnlyList<PdfRect> ReadQuads(PdfArray? array, ref bool partial)
+    {
+        if (array == null) return Array.Empty<PdfRect>();
+        var quads = new List<PdfRect>();
+        try
+        {
+            int count = Math.Min(array.Elements.Count / 8, MaxQuads);
+            if (array.Elements.Count % 8 != 0 || array.Elements.Count / 8 > MaxQuads) partial = true;
+            for (int q = 0; q < count; q++)
+            {
+                double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
+                for (int p = 0; p < 4; p++)
+                {
+                    double x = array.Elements.GetReal(q * 8 + p * 2), y = array.Elements.GetReal(q * 8 + p * 2 + 1);
+                    minX = Math.Min(minX, x); maxX = Math.Max(maxX, x); minY = Math.Min(minY, y); maxY = Math.Max(maxY, y);
+                }
+                if (PdfRect.From(minX, minY, maxX, maxY) is { } r) quads.Add(r);
+            }
+        }
+        catch (Exception ex) when (ex is InvalidCastException or InvalidOperationException or ArgumentException or FormatException) { partial = true; }
+        return quads;
+    }
+
+    /// <summary>The visible page box (CropBox clipped to MediaBox; MediaBox when absent or invalid) and rotation (0/90/180/270).</summary>
+    private static PdfPageGeometry PageGeometry(PdfPage page)
+    {
+        PdfRect? Box(string key) => ReadRect(page.Elements.GetArray(key));
+        var media = Box("/MediaBox") ?? new PdfRect(0, 0, Math.Max(1, page.Width.Point), Math.Max(1, page.Height.Point));
+        var box = media;
+        if (Box("/CropBox") is { } crop
+            && PdfRect.From(Math.Max(crop.Left, media.Left), Math.Max(crop.Bottom, media.Bottom), Math.Min(crop.Right, media.Right), Math.Min(crop.Top, media.Top)) is { } visible)
+            box = visible;
+        int rotate = 0;
+        try { rotate = page.Elements.GetInteger("/Rotate"); } catch (Exception ex) when (ex is InvalidCastException or InvalidOperationException) { }
+        rotate = ((rotate % 360) + 360) % 360;
+        if (rotate % 90 != 0) rotate = 0; // the PDF specification only allows multiples of 90
+        return new PdfPageGeometry(box, rotate);
     }
 
     private static string CleanComment(string text)

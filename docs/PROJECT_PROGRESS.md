@@ -1,5 +1,54 @@
 # Installation and update infrastructure progress
 
+## PDF annotations Stage 2 — comment model, threading and comment card (2026-11-15)
+
+Status: **Implemented and verified with automated tests; on-screen look needs owner acceptance.** Owner approved Stage 2 after the investigation (`docs/PDF_ANNOTATION_INTERACTION_INVESTIGATION.md`), including the real-document test.
+
+**Implementation**
+- **`PdfService.ReadComments`:**
+  - Keeps every non-Popup annotation with text or that can own a thread, then threads them:
+    - `/IRT` replies (including replies to replies) go under their root, oldest first.
+    - `/RT /Group` members are merged; Caret + StrikeOut becomes **"Replace text"**.
+    - Orphan and cyclic references stay as their own comments, so nothing is lost.
+  - New init-only fields on `PdfComment` (existing callers and tests unchanged):
+    - `Id`: `/NM`, else object number, else page and position; made unique.
+    - `Rect`: normalized; invalid, zero-area or absurd rectangles become null.
+    - `Quads`: QuadPoints bounding boxes, combined across a group.
+    - `Created`, `Replies`, and `Target` (quads, else rect).
+    - Heading counts replies; `RepliesSummary` gives one line per reply.
+  - `PdfComments.Pages` holds the visible box (CropBox clipped to MediaBox) and normalized `/Rotate` (multiples of 90; others → 0).
+  - Bounds: 20,000 annotations scanned, 10,000 comments, 2,000 quads each, thread depth 32. Read-only, cancellable.
+- **`PdfAnnotationGeometry`** (new, pure): PDF point/rect → displayed-page fraction for 0/90/180/270 and crop offsets, `ToDisplay`, and a rotation-aware `MatchesAspect` guard. It's for Stage 3.
+- **`PdfAnnotationPopup`** (new): the themed comment card in a WPF `Popup` over the native viewer.
+  - Shows type, page, author, date, document name and a location note.
+  - The comment and each reply are selectable read-only plain text, scrollable up to 420 px.
+  - Closes on Close, Escape, a click outside, another comment, a document change, an owner move/resize/state change, the pane hiding, or dispose.
+  - Placed beside a given target rect (Stage 3); otherwise at the viewer's top-right below the native toolbar. WPF keeps it on screen. No `Topmost`; focus stays within Fyltrix.
+- **`PdfCommentsPanel`:**
+  - "Go to page" becomes **Show**, always enabled, as do double-click and Enter. It navigates by page when native navigation is available (unchanged estimate), then raises `CommentRequested`.
+  - Reply lines appear under each item.
+  - The status keeps the count and adds the partial-read warning instead of replacing it.
+  - Deferred mode `ShowFile(path, load: false)`; exposes `PageGeometry`, `PageHeights` and `HasResult`.
+- **`PdfCommentsFlyout`:**
+  - Owns one card per document, and choosing a comment closes the list and opens the card.
+  - The location note never claims precision: "Scrolled to the comment's page; the exact position isn't marked" in Compare, "Use the PDF's own page controls…" in Preview.
+  - `hideWhenEmpty` mode; `ShowDocument` for Preview, which reads PDFs ≤ 30 MB on preview and larger ones when Comments is opened.
+- **Preview:** `PreviewPane.FileShown` drives a Comments flyout in the main window's preview header, for PDFs with comments only. Compare's left and right flyouts each have their own card; swap or replace closes stale cards.
+
+**Owner's real PDF (copy; original SHA-256 unchanged, `5778cde6…7447`):** 95 flat entries are now **49 items**: 48 "Replace text" edits, each with its "done" reply, plus 1 sticky note. 46 replies are threaded. All 49 have target geometry and unique ids. Read in 75 ms.
+
+**Tests**
+- New `PdfAnnotationTests` (13): threading (replace text, replies, reply-to-reply, orphan, cycle, malformed quads → partial, source hash unchanged), id fallback and duplicate `/NM`, rect normalization/rejection, page geometry for 7 rotation inputs, mapping against the investigation's measured viewer numbers plus every rotation's corners, and the card (content, replies, read-only text, Escape, Close, beside-target placement).
+- New `PdfCommentsUiTests` (2): Preview button only for PDFs with comments (count 5, hidden for a comment-free PDF and for text), card follows the file, large-file deferred read on opening; Compare left/right cards own their side's data, and swap closes both.
+- A first group run showed an intermittent failure in `PdfCommentSyncTests`. The cause was the new UI test class missing `[Collection("UI")]` (it ran in parallel on the shared UI thread). After the fix the group passed 3/3, and without the new tests both the current and `HEAD` builds passed 3/3.
+- PDF/Compare/native-input/preview/recovery suites: **54/54 twice**. Full application suite, 623 cases: run 1 had **622/623**, the one failure being `PdfCommentSyncTests.Native_pdfs_synchronize_both_directions_without_feedback_and_can_be_disabled` ("Native PDF did not reach 19%"). Run 2 had **623/623**. An untouched `HEAD` build's full suite (610 cases) failed the **same test** ("Timed out waiting for: native accessibility ready"), so it is a pre-existing intermittent native-accessibility timing test under full-suite load, not caused by this stage. It was not changed or weakened, and it remains a known flaky test to address separately.
+
+**Not done in this stage:** exact scroll-to-annotation, the highlight, and card placement beside the annotation (Stage 3). No native icon clicks. The on-screen look of the card hasn't been seen; owner acceptance is needed.
+
+Files: `src/Fyltrix/Core/Pdf/PdfService.cs`, `src/Fyltrix/Core/Pdf/PdfAnnotationGeometry.cs` (new), `src/Fyltrix/UI/PdfAnnotationPopup.cs` (new), `src/Fyltrix/UI/PdfCommentsPanel.cs`, `src/Fyltrix/UI/PdfCommentsFlyout.cs`, `src/Fyltrix/Preview/PreviewPane.cs`, `src/Fyltrix/UI/MainWindow.cs`, `tests/Fyltrix.Tests/PdfAnnotationTests.cs` (new), `tests/Fyltrix.Tests/PdfCommentsUiTests.cs` (new), `README.md`, `CHANGELOG.md`, `docs/PDF_ANNOTATION_INTERACTION_INVESTIGATION.md`, this file, `docs/IMPLEMENTATION_STATUS.md`.
+
+Suggested commit: `feat(pdf): thread PDF comments and add contextual comment card`. **Stage 3 awaits owner approval.**
+
 ## Stage 1 — Non-blocking file operations (2026-11-15)
 
 Status: **Implemented and verified with automated tests; on-screen behavior needs owner acceptance.** Owner report: during copy/cut/paste the progress window took focus and stayed above Fyltrix, so browsing was impossible until the transfer ended.

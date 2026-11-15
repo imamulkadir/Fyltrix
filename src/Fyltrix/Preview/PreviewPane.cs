@@ -66,6 +66,8 @@ public sealed class PreviewPane : Grid
     public event EventHandler? SpacePressed;
     public event EventHandler<string>? PopOutRequested;
     public event EventHandler<string>? StatusMessage;
+    /// <summary>The previewed file changed (null: nothing, a folder, a message or a text diff is shown).</summary>
+    public event EventHandler<string?>? FileShown;
     /// <summary>-1 / +1 when the viewer asks for the previous / next file (arrow keys in the image viewer).</summary>
     public event EventHandler<int>? StepRequested;
     public event EventHandler<string>? ImageToolsRequested;
@@ -746,6 +748,7 @@ public sealed class PreviewPane : Grid
         ++_version;
         _shellHost?.Unload();
         _currentPath = null;
+        FileShown?.Invoke(this, null);
         _currentKind = PreviewKind.None;
         _title.Text = title;
         _title.ToolTip = null;
@@ -757,6 +760,7 @@ public sealed class PreviewPane : Grid
     {
         ++_version;
         _currentPath = null;
+        FileShown?.Invoke(this, null);
         _title.Text = "";
         ShowInfo("No file selected", "Select a file to preview it here.");
         UpdateActions();
@@ -784,6 +788,7 @@ public sealed class PreviewPane : Grid
         _shellHost?.Unload();
         _currentPath = path;
         if (path == null) { Clear(); return; }
+        FileShown?.Invoke(this, File.Exists(path) ? path : null);
 
         _title.Text = Path.GetFileName(path.TrimEnd('\\')) is { Length: > 0 } n ? n : path;
         _title.ToolTip = path;
@@ -887,6 +892,7 @@ public sealed class PreviewPane : Grid
     {
         _shellHost?.Unload();
         _currentPath = null;
+        FileShown?.Invoke(this, null);
         _currentKind = PreviewKind.Text;
         _failed = false; // an explicit request is a retry after an engine failure
         _title.Text = "Text compare";

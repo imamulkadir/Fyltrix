@@ -35,6 +35,8 @@ public sealed partial class MainWindow : Window, IFolderHost
     private readonly TextBlock _searchHint = new();
     private readonly StackPanel _sidebar = new();
     private readonly PreviewPane _preview = new();
+    private readonly PdfCommentsFlyout _previewComments;
+    internal PdfCommentsFlyout PreviewCommentsForTest => _previewComments;
     private readonly ColumnDefinition _sidebarCol = new(), _previewCol = new(), _previewSplitCol = new(), _sidebarSplitCol = new(), _listCol = new();
     /// <summary>Tab strip, navigation, command and status bars: hidden while the preview is fullscreen.</summary>
     private readonly List<UIElement> _chrome = new();
@@ -113,6 +115,7 @@ public sealed partial class MainWindow : Window, IFolderHost
             _quickView?.Close();
             foreach (var w in _compareWindows.ToList()) w.Close();
             foreach (var t in _tabs) t.View.Close();
+            _previewComments.Dispose();
             _preview.DisposeWeb();
             _automation?.Dispose();
             ArchiveBrowser.CleanupCache(includeOwn: true);
@@ -127,6 +130,9 @@ public sealed partial class MainWindow : Window, IFolderHost
         _undo.Changed += (_, _) => UpdateCommands();
         _preview.PopOutRequested += (_, path) => ToggleQuickView(path);
         _preview.StatusMessage += (_, msg) => SetStatus(msg);
+        // PDF comments for the previewed file: a header button only for PDFs that have comments.
+        _previewComments = new PdfCommentsFlyout(this, _preview, new PdfCommentsPanel(), () => _preview.CurrentPath ?? "", hideWhenEmpty: true);
+        _preview.FileShown += (_, path) => _previewComments.ShowDocument(path);
         _preview.SpacePressed += (_, _) => ToggleQuickView(null);
         _preview.StepRequested += (_, d) => StepSelection(d);
         _preview.ImageToolsRequested += (_, p) => OpenImageTools(p);
