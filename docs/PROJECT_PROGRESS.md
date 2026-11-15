@@ -1,5 +1,104 @@
 # Installation and update infrastructure progress
 
+## PDF comments list keeps its place after Show (2026-11-15)
+
+Status: **Fixed and verified with automated tests; owner re-check pending.**
+
+**Owner report:** after **Show**, the PDF scrolled to the comment and outlined it, but the Comments list then sat at its last item instead of where the user was.
+
+**Root causes (traced in a reproduction test):**
+1. Every reopen re-read the PDF (`Toggle` → `ShowFile`). That emptied the list and refilled it. A virtualized `ListBox` refilled after an empty reset re-anchors at its maximum offset, i.e. the end: 37/38 of 40/41 items in the trace, from a pure layout pass.
+2. A first fix remembered the position on the list popup's `Closed` event. WPF raised that event late (`Popup.DestroyWindow` from a dispatcher timer), after the next document had loaded and while the list was at its transient end position, so it saved the wrong offset.
+
+**Fix (`PdfCommentsPanel`, `PdfCommentsFlyout`):**
+- Reopening re-reads only when the file's last-write time or size changed (`IsCurrent`).
+- Re-reading the same document keeps the old items on screen until the new list arrives; a new document still starts empty.
+- The position is tracked from the user's own actions:
+  - scroll changes of the list's own scroller with unchanged extent and viewport (layout re-anchoring is ignored)
+  - the selected or shown comment's stable id
+- It is restored after layout, and again at `ContextIdle`, with a synchronous `UpdateLayout`. The comment is matched by id after a re-read. A new document scrolls to the top.
+
+**Two related bugs found while stabilizing the test (same deferred-WPF timing family):**
+- **Comment count could stay missing:** `PdfCommentsPanel` cancelled its read on `Unloaded`. The panel lives in the list popup, whose unload WPF raises late after the list closes, so closing the list and quickly selecting another PDF discarded that PDF's read (button left as plain "Comments"). The `Unloaded` cancellation is removed; owners stop loading on dispose and each new document supersedes the previous read.
+- **Comment card could close by itself:** the card used capture-based `StaysOpen = false`, so the list popup releasing capture just after the card opened could close the card and cancel its reveal. The card now stays open until deliberately dismissed: Close, Esc, another comment, a document/window change, or any click elsewhere in the Fyltrix window (`PreviewMouseDown`). Clicks in the PDF keep it open, so it can be read while scrolling. A regression assertion covers the outside-click close.
+- A test-only artifact was also removed: the list test wrote PDFs into the folder the test window browses, so the listing refreshed and cleared the directly driven preview. The PDFs now live in a separate folder.
+
+After these fixes, `PdfCommentsListTests` + `PdfCommentsUiTests` (+ `PdfAnnotationTests`) passed **20/20 consecutive runs**; before them, timeouts occurred in about 1–2 of every 10–15 runs.
+
+**Tests:** new `PdfCommentsListTests`, 40/41 comments:
+- scroll to the middle, Show comment 20, reopen → same offset, same first visible row, comment 20 selected
+- file changed on disk → re-read, `c20` selected, same first row
+- another PDF → top, nothing selected
+
+It **failed before the fix** (selection lost, then end-of-list positions) and passed **6/6 consecutive runs** after it. Suite results: PDF group 52/52; full application suite **628/628 in two consecutive runs** (after the related fixes below).
+
+Files: `src/Fyltrix/UI/PdfCommentsPanel.cs`, `src/Fyltrix/UI/PdfCommentsFlyout.cs`, `src/Fyltrix/UI/PdfAnnotationPopup.cs`, `tests/Fyltrix.Tests/PdfCommentsListTests.cs` (new), `tests/Fyltrix.Tests/PdfAnnotationTests.cs`, `CHANGELOG.md`, this file, `docs/IMPLEMENTATION_STATUS.md`.
+
+Suggested commit: `fix(pdf): keep the comments list position after showing a comment` (or include it in the Stage 3 commit).
+
+## PDF annotations Stage 3 — exact reveal, outline and card beside the comment (2026-11-15)
+
+Status: **Implemented and verified with automated off-screen tests, including all 49 comments of the owner's real PDF; visible on-screen acceptance pending owner approval.**
+
+**Implementation**
+- **`NativePdfLocator`** (new): public UI Automation only, on `NativePdfAccess`'s existing MTA worker (`OnWorker`).
+  1. **Find the pages.** Pages are found **structurally**: a document whose group children are exactly the PDF's pages, each matching rotation/CropBox-aware proportions within 3%. No localized names or internal ids are used. The scroller is the nearest scroll-capable ancestor document.
+  2. **Scroll.** Measure → `ScrollPattern.SetScrollPercent` → re-measure, at most 4 attempts. Each starts from a layout at rest (bounded `WaitUntilStill`), so a superseded animation or a just-loaded viewer can't skew the calculation. It stops when the comment is within 15% of the viewport centre or the document edge prevents more.
+  3. **Check and report the level reached:**
+     - **Exact:** the comment is vertically in view, the page proportions match, and the page sits centred as laid out (bounds trusted horizontally) with the comment inside the visible width.
+     - **Vertical:** vertically confirmed, horizontal not trusted (zoomed wider than the viewer, or bounds lagging a resize).
+     - **Page:** layout found but no geometry, or the comment wasn't confirmed in view.
+     - **Unavailable:** no layout within 8 s, a mismatch, or cancellation.
+  4. **Prewarm** (layout query only) when the Comments list opens, so the first reveal doesn't wait for the browser's accessibility start-up.
+- **`PdfAnnotationHighlight`** (new): a click-through outline popup (transparent apart from a 2 px accent border), drawn only for **Exact**. Removed after 2.5 s, on another comment, a document change, a window move/resize/state change, the pane hiding, the card closing or dispose. Never drawn on the PDF.
+- **`PdfCommentsFlyout`:**
+  - Show opens the card at once ("Finding the comment…") and reveals asynchronously with cancellation and a generation check (`Card.Comment`/`DocumentPath` must still match), so stale results are dropped.
+  - Placement and note by level:
+
+    | Level | Card | Outline | Note |
+    |---|---|---|---|
+    | Exact | beside the comment | yes | none |
+    | Vertical | at the comment's height by the viewer edge | no | "Its horizontal position couldn't be confirmed, so it isn't outlined." |
+    | Page / Unavailable | top of the viewer | no | names the page and says the position couldn't be confirmed |
+
+  - Page / Unavailable also falls back to Compare's page estimate, and a diagnostics INFO entry (level and reason) is logged.
+  - Screen pixels → viewer DIPs via `PointFromScreen` (per-monitor DPI-aware).
+- **`PdfCommentsPanel`:** `Request` only raises `CommentRequested`; `RequestPage` is the page-estimate fallback. **`PreviewPane.ShowsNativePdf`** is new.
+- **Compare:** `NativeScrolling` → `PreferNativeInput(side)` before a reveal scrolls (otherwise scroll sync pulled the side back to 0% during testing). `NativeScrolled` → `AlignPeerAfterReveal(side)` aligns the peer under the existing sync rules. The card and outline appear only on the chosen side. `NativePdfAccess` gains only these two hooks; its sync paths are unchanged.
+
+**Real document (copy; original SHA-256 `5778cde6…7447` unchanged):** all **49/49 comments revealed Exact** and confirmed in view, visited in scattered order. Median 566 ms; max 3.16 s (the first reveal, during accessibility start-up).
+
+**Tests**
+- New `PdfAnnotationRevealTests` (4):
+  - every comment of a 4-page fixture (top/bottom notes, highlight, rotated page, cropped page) revealed **Exact** and in view, with on-screen size following the page scale and the highlight outline on its text
+  - page data that doesn't match the document → Unavailable with no invented position; no geometry → Page; cancellation → stops cleanly
+  - Preview: a quick second choice wins; Exact gives an outline beside which the card sits; the outline disappears after its time; another file removes card and outline
+  - Compare: the reveal confirms on the chosen side only
+- `PdfCommentsUiTests` now asserts the card's note matches the achieved level.
+- During development, reveals failed at Page level in Preview and Compare (a superseded scroll still animating; sync pulling a side back; a first scroll ignored right after load) and once at Unavailable (accessibility start-up longer than 4 s). They were fixed with settle-before-measure, an iterative bounded scroll, the Compare input preference, prewarm and an 8 s bound. Afterwards the reveal tests passed **4/4 in four consecutive runs**.
+- PDF/Compare/preview/recovery groups: 58/58, then 57/58; the one failure was the known pre-existing `PdfCommentSyncTests` flake ("native accessibility ready", identical to the untouched `HEAD` failure).
+- Full application suite: **627/627**.
+
+**Limits**
+- No native note-icon clicks; the viewer exposes no such nodes or events.
+- After the user zooms the PDF wider than the viewer, or right after a window resize, the result is Vertical (no outline) by design until on-screen accuracy is verified.
+- Tagged PDFs whose accessibility tree differs and older runtimes fall back honestly; only runtime 157 has been tested.
+- Visible appearance, DPI scaling and multi-monitor placement have not been seen on screen; owner-approved on-screen acceptance is still pending.
+
+Files:
+- `src/Fyltrix/UI/NativePdfLocator.cs` (new)
+- `src/Fyltrix/UI/PdfAnnotationPopup.cs` (adds `PdfAnnotationHighlight`)
+- `src/Fyltrix/UI/PdfCommentsFlyout.cs`
+- `src/Fyltrix/UI/PdfCommentsPanel.cs`
+- `src/Fyltrix/UI/NativePdfAccess.cs`
+- `src/Fyltrix/UI/CompareWindow.cs`
+- `src/Fyltrix/Preview/PreviewPane.cs`
+- `tests/Fyltrix.Tests/PdfAnnotationRevealTests.cs` (new)
+- `tests/Fyltrix.Tests/PdfCommentsUiTests.cs`
+- `README.md`, `CHANGELOG.md`, this file, `docs/IMPLEMENTATION_STATUS.md`, `docs/PDF_ANNOTATION_INTERACTION_INVESTIGATION.md`
+
+Suggested commit: `feat(pdf): reveal and outline selected comments in the native viewer`. **Stage 4 (optional markers) is not planned without separate approval.**
+
 ## PDF annotations Stage 2 — comment model, threading and comment card (2026-11-15)
 
 Status: **Implemented and verified with automated tests; on-screen look needs owner acceptance.** Owner approved Stage 2 after the investigation (`docs/PDF_ANNOTATION_INTERACTION_INVESTIGATION.md`), including the real-document test.

@@ -89,6 +89,8 @@ public sealed class PreviewPane : Grid
     internal bool IsReady => _ready;
     internal event EventHandler? NativePdfLoaded;
     internal bool HasNativePdfInput => _hostInputEnabled && _currentKind == PreviewKind.Pdf;
+    /// <summary>The native PDF viewer is showing <see cref="CurrentPath"/> (so its page layout can be read).</summary>
+    internal bool ShowsNativePdf => _ready && !_failed && _currentKind == PreviewKind.Pdf && _currentPath != null && _web.Visibility == Visibility.Visible;
     internal void AddHeaderAction(Button button) => _actions.Children.Insert(0, button);
 
     public PreviewPane(bool showHeader = true, bool showPopOut = true, bool nativePdfInput = false)

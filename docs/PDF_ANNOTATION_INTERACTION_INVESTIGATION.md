@@ -191,3 +191,7 @@ Conclusions for this file:
 ## Stage 2 — implemented (2026-11-15)
 
 The comment model, reply/group threading, page geometry, the pure mapping helper, the comment card and the Preview Comments button are implemented. Details and test evidence: `docs/PROJECT_PROGRESS.md` ("PDF annotations Stage 2"). Stage 3 (exact reveal, highlight and card beside the annotation) still needs owner approval.
+
+## Stage 3 — implemented (2026-11-15)
+
+Exact reveal (structural page discovery, iterative bounded scroll, consistency checks), the click-through outline for Exact results, card placement by level and the Compare sync hooks are implemented. The owner's real PDF: 49/49 comments revealed Exact. Details: `docs/PROJECT_PROGRESS.md` ("PDF annotations Stage 3"). Native note-icon clicks remain unsupported (no supported mechanism).

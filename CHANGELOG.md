@@ -9,10 +9,13 @@ The release workflow uses that exact section as the GitHub release notes.
 ### Added
 
 - PDF comments in the Preview pane: a **Comments** button appears for previewed PDFs that have comments.
+- PDF comment navigation: **Show** scrolls the PDF to the comment itself (not just its page), outlines it for a moment when its on-screen position is confirmed, and places the comment card beside it. When the exact position can't be confirmed, the card says so instead of guessing.
 - A comment card: **Show** opens the chosen comment with its author, date, page and all replies as selectable plain text, next to the PDF it belongs to (each side of Compare has its own).
 
 ### Changed
 
+- Reopening a PDF's Comments list returns to where you were, with the comment you last showed selected (it no longer jumps to the end). The PDF is re-read only when it changed on disk.
+- The comment card no longer closes by itself right after opening, and a PDF's comment count no longer goes missing when the list is closed and another PDF is selected quickly. The card closes with Close, Esc, another comment or a click elsewhere in Fyltrix; clicking in the PDF keeps it open.
 - PDF comment lists thread replies under the comment they answer and show replace-text edits (strikeout plus replacement) as one item, so review documents are no longer dominated by separate "done" replies. A partly unreadable document still shows how many comments were read.
 
 ## [0.1.12] - 2026-11-13

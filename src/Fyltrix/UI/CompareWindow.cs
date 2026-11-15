@@ -143,6 +143,11 @@ public sealed class CompareWindow : Window
         _sideBySide.Children.Add(_rightPane);
         _leftComments.PageRequested += (page, heights) => _pdfAccess?.GoToPage(0, page, heights);
         _rightComments.PageRequested += (page, heights) => _pdfAccess?.GoToPage(1, page, heights);
+        // A comment reveal scrolled one side natively: the other side follows under the usual sync rules.
+        _leftFlyout.NativeScrolling += () => _pdfAccess?.PreferNativeInput(0);
+        _rightFlyout.NativeScrolling += () => _pdfAccess?.PreferNativeInput(1);
+        _leftFlyout.NativeScrolled += () => _pdfAccess?.AlignPeerAfterReveal(0);
+        _rightFlyout.NativeScrolled += () => _pdfAccess?.AlignPeerAfterReveal(1);
         _leftPane.NativePdfLoaded += (_, _) => RefreshPdfAccess(0);
         _rightPane.NativePdfLoaded += (_, _) => RefreshPdfAccess(1);
         body.Children.Add(_sideBySide);

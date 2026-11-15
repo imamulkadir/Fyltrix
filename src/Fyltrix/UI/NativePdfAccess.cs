@@ -95,6 +95,20 @@ internal sealed class NativePdfAccess : IDisposable
         Enqueue(Start);
     }
 
+    /// <summary>Runs accessibility work on the shared MTA worker (never on the UI thread).</summary>
+    internal static Task<T> OnWorker<T>(Func<T> work) => Worker.Value.InvokeAsync(work).Task;
+
+    /// <summary>After a comment reveal scrolled one side natively: align the other side under the usual sync rules
+    /// (the reveal is an explicit navigation, like Go to page).</summary>
+    internal void AlignPeerAfterReveal(int side)
+    {
+        PreferNativeInput(side);
+        Enqueue(() =>
+        {
+            if (_enabled && _scroll[side] != null) Synchronize(side, _scroll[side]!.Current.VerticalScrollPercent);
+        });
+    }
+
     private void Enqueue(Action action)
     {
         if (_stopped) return;

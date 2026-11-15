@@ -60,7 +60,10 @@ internal sealed class PdfAnnotationPopup : IDisposable
         System.Windows.Automation.AutomationProperties.SetName(card, "PDF comment");
         Popup = new Popup
         {
-            PlacementTarget = viewer, Placement = PlacementMode.Relative, StaysOpen = false,
+            // Stays open until deliberately dismissed (Close, Esc, another comment, document/window change, or a click
+            // elsewhere in the Fyltrix window, handled below). WPF's capture-based closing could also fire when the
+            // comments list popup released capture just after the card opened, closing the card by itself.
+            PlacementTarget = viewer, Placement = PlacementMode.Relative, StaysOpen = true,
             AllowsTransparency = true, PopupAnimation = PopupAnimation.None, Child = card,
         };
         card.PreviewKeyDown += (_, e) =>
@@ -124,14 +127,83 @@ internal sealed class PdfAnnotationPopup : IDisposable
             Popup.VerticalOffset = 44; // below the native viewer toolbar
         }
         Popup.IsOpen = true; // WPF keeps a popup inside the screen's work area
+        WatchOutsideClicks(true);
     }
+
+    private Window? _watched;
+
+    /// <summary>A click anywhere else in the Fyltrix window closes the card (clicks inside the card's own popup window
+    /// never reach it). Clicks in the PDF itself keep it open, so the comment can be read while scrolling.</summary>
+    private void WatchOutsideClicks(bool on)
+    {
+        if (_watched != null) { _watched.PreviewMouseDown -= OutsideClick; _watched = null; }
+        if (on && Window.GetWindow(_viewer) is { } window) { _watched = window; window.PreviewMouseDown += OutsideClick; }
+    }
+
+    private void OutsideClick(object sender, MouseButtonEventArgs e) => Close();
 
     internal void Close()
     {
+        WatchOutsideClicks(false);
         Popup.IsOpen = false;
         Comment = null;
         DocumentPath = null;
     }
 
     public void Dispose() => Close();
+}
+
+/// <summary>
+/// A brief outline around a comment's confirmed on-screen position. Drawn above the native viewer in its own
+/// click-through popup (transparent except a thin border), never on the PDF itself. Shown only for an exact reveal and
+/// removed after <see cref="Duration"/> or whenever the comment, document or window changes.
+/// </summary>
+internal sealed class PdfAnnotationHighlight : IDisposable
+{
+    internal static TimeSpan Duration = TimeSpan.FromSeconds(2.5);
+    private const double Pad = 3;
+    private readonly Popup _popup;
+    private readonly Border _box;
+    private readonly System.Windows.Threading.DispatcherTimer _timer;
+    internal bool IsShown => _popup.IsOpen;
+    /// <summary>The outlined area relative to the viewer (device-independent units), including padding.</summary>
+    internal Rect Area { get; private set; } = Rect.Empty;
+
+    internal PdfAnnotationHighlight(FrameworkElement viewer)
+    {
+        var accent = Theme.Brush("Accent");
+        var fill = accent is SolidColorBrush s ? new SolidColorBrush(Color.FromArgb(0x26, s.Color.R, s.Color.G, s.Color.B)) : Brushes.Transparent;
+        _box = new Border { BorderBrush = accent, BorderThickness = new Thickness(2), CornerRadius = new CornerRadius(3), Background = fill, IsHitTestVisible = false };
+        _popup = new Popup
+        {
+            PlacementTarget = viewer, Placement = PlacementMode.Relative, AllowsTransparency = true, StaysOpen = true,
+            IsHitTestVisible = false, PopupAnimation = PopupAnimation.None, Child = _box, Focusable = false,
+        };
+        _timer = new System.Windows.Threading.DispatcherTimer { Interval = Duration };
+        _timer.Tick += (_, _) => Hide();
+    }
+
+    /// <param name="area">The comment's rectangle relative to the viewer, in device-independent units.</param>
+    internal void Show(Rect area)
+    {
+        Area = new Rect(area.X - Pad, area.Y - Pad, Math.Max(6, area.Width + 2 * Pad), Math.Max(6, area.Height + 2 * Pad));
+        _popup.IsOpen = false;
+        _popup.HorizontalOffset = Area.X;
+        _popup.VerticalOffset = Area.Y;
+        _box.Width = Area.Width;
+        _box.Height = Area.Height;
+        _popup.IsOpen = true;
+        _timer.Stop();
+        _timer.Interval = Duration;
+        _timer.Start();
+    }
+
+    internal void Hide()
+    {
+        _timer.Stop();
+        _popup.IsOpen = false;
+        Area = Rect.Empty;
+    }
+
+    public void Dispose() => Hide();
 }

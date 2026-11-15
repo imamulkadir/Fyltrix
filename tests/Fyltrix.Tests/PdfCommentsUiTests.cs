@@ -36,7 +36,12 @@ public class PdfCommentsUiTests
                 Assert.True(flyout.Card.Popup.IsOpen);
                 Assert.Equal("edit-1", flyout.Card.Comment!.Id);
                 Assert.Equal(review, flyout.Card.DocumentPath);
-                Assert.Contains("page controls", flyout.Card.LocationNote); // never claims a precise position it didn't reach
+                Sta.WaitUntil(() => flyout.RevealTask.IsCompleted && flyout.LastReveal != null, "reveal finished", 30000);
+                // The note always matches what was achieved; it never claims a precise position it didn't reach.
+                var level = flyout.LastReveal!.Level;
+                if (level == Fyltrix.UI.RevealLevel.Exact) Assert.Equal("", flyout.Card.LocationNote);
+                else if (level == Fyltrix.UI.RevealLevel.Vertical) Assert.Contains("isn't outlined", flyout.Card.LocationNote);
+                else Assert.Contains("couldn't be confirmed", flyout.Card.LocationNote);
                 Assert.False(flyout.Popup.IsOpen);                            // the list made room for the card
 
                 preview.Show(t["plain.pdf"], delayMs: 0);                    // another file: the card never stays on it

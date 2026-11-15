@@ -25,6 +25,13 @@ internal sealed class PdfCommentsPanel : DockPanel
     internal IReadOnlyList<double> PageHeights => _heights;
     /// <summary>False while a PDF's comments have not been read yet (large files in the Preview pane are read on demand).</summary>
     internal bool HasResult { get; private set; }
+    internal ListBox CommentList => _comments;
+    // Where the user was in the list, kept per document so reopening it (or a re-read after the file changed)
+    // returns to the same place with the last shown comment selected.
+    private string? _path;
+    private (DateTime, long)? _stamp;
+    private string? _keepId;
+    private double _keepOffset = -1;
     internal event EventHandler? StateChanged;
     internal IReadOnlyList<PdfComment> Comments { get; private set; } = Array.Empty<PdfComment>();
     internal string Status => _state.Text;
@@ -95,14 +102,72 @@ internal sealed class PdfCommentsPanel : DockPanel
             if (e.Key != System.Windows.Input.Key.Enter || _comments.SelectedItem is not PdfComment c) return;
             e.Handled = true; Request(c);
         };
-        Unloaded += (_, _) => StopLoading();
+        // No cancellation on Unloaded: this panel lives in a popup, which unloads it (late, from a dispatcher timer)
+        // whenever the list closes; that discarded the read of the document selected next. Its owner stops loading on
+        // dispose, and every new document supersedes the previous read.
+        // Remember where the user puts the list: their own scrolling (the list's scroller, with unchanged content
+        // size, so a re-layout after the items were replaced doesn't count) and the comment they select.
+        _comments.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler((_, e) =>
+        {
+            if (e.OriginalSource is ScrollViewer own && own.TemplatedParent == _comments && HasResult && Comments.Count > 0
+                && e.ExtentHeightChange == 0 && e.ViewportHeightChange == 0 && e.VerticalChange != 0)
+                _keepOffset = e.VerticalOffset;
+        }));
+        _comments.SelectionChanged += (_, _) => { if (_comments.SelectedItem is PdfComment selected) _keepId = selected.Id; };
     }
 
-    /// <summary>Shows a comment: page navigation first (when the native viewer allows it), then the comment itself.</summary>
+    /// <summary>Shows a comment (its card finds and reveals it in the native viewer).</summary>
     internal void Request(PdfComment comment)
     {
-        if (_navigationAvailable) PageRequested?.Invoke(comment.Page, _heights);
+        _comments.SelectedItem = comment;
+        RememberPosition();
         CommentRequested?.Invoke(comment);
+    }
+
+    /// <summary>True when <paramref name="path"/>'s comments are already read and the file hasn't changed since.</summary>
+    internal bool IsCurrent(string path) => HasResult && string.Equals(_path, path, StringComparison.OrdinalIgnoreCase) && Stamp(path) == _stamp;
+
+    private static (DateTime, long)? Stamp(string path)
+    {
+        try { var f = new FileInfo(path); return f.Exists ? (f.LastWriteTimeUtc, f.Length) : null; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException) { return null; }
+    }
+
+    private ScrollViewer? Scroller() => VisualTree.FindDescendants<ScrollViewer>(_comments).FirstOrDefault();
+
+    /// <summary>Notes the list's scroll position and selected comment (when a comment is shown).</summary>
+    internal void RememberPosition()
+    {
+        if (Comments.Count == 0) return;
+        if (Scroller() is { } scroller) _keepOffset = scroller.VerticalOffset;
+        if (_comments.SelectedItem is PdfComment selected) _keepId = selected.Id;
+    }
+
+    /// <summary>Returns the list to the remembered place once it has been laid out (the comment is matched by its
+    /// stable id, so this also works after the document was re-read).</summary>
+    internal void RestorePosition()
+    {
+        // Applied after layout, then once more when the dispatcher is idle: a virtualized list re-anchors in its own
+        // deferred layout passes (notably after its items were replaced while closed) and could override one attempt.
+        foreach (var priority in new[] { System.Windows.Threading.DispatcherPriority.Loaded, System.Windows.Threading.DispatcherPriority.ContextIdle })
+            Dispatcher.BeginInvoke(priority, new Action(ApplyPosition));
+    }
+
+    private void ApplyPosition()
+    {
+        if (Comments.Count == 0 || !IsVisible) return;
+        if (_keepId != null && Comments.FirstOrDefault(c => c.Id == _keepId) is { } keep) _comments.SelectedItem = keep;
+        _comments.UpdateLayout();
+        if (_keepOffset >= 0 && Scroller() is { } scroller) scroller.ScrollToVerticalOffset(_keepOffset);
+        else if (_comments.SelectedItem != null) _comments.ScrollIntoView(_comments.SelectedItem);
+        else Scroller()?.ScrollToTop(); // a document opened for the first time starts at its first comment
+        _comments.UpdateLayout();
+    }
+
+    /// <summary>Page-level navigation (Compare's estimate), used when the exact position can't be revealed.</summary>
+    internal void RequestPage(PdfComment comment)
+    {
+        if (_navigationAvailable) PageRequested?.Invoke(comment.Page, _heights);
     }
 
     private string RepliesNote()
@@ -129,11 +194,20 @@ internal sealed class PdfCommentsPanel : DockPanel
     internal void ShowFile(string path, bool load)
     {
         int version = ++_version;
+        bool sameDocument = string.Equals(_path, path, StringComparison.OrdinalIgnoreCase);
+        if (!sameDocument) { _keepId = null; _keepOffset = -1; } // another document: start at the top
+        _path = path;
+        _stamp = null;
         _loadCancellation?.Cancel();
         _loadCancellation?.Dispose();
         _loadCancellation = new CancellationTokenSource();
-        Comments = Array.Empty<PdfComment>();
-        _comments.ItemsSource = Comments;
+        // Re-reading the same document keeps its current list on screen until the new one arrives: emptying it would
+        // reset the virtualized list, which then jumps to its end.
+        if (!sameDocument || !load)
+        {
+            Comments = Array.Empty<PdfComment>();
+            _comments.ItemsSource = Comments;
+        }
         _heights = Array.Empty<double>();
         PageGeometry = Array.Empty<PdfPageGeometry>();
         HasResult = false;
@@ -162,7 +236,9 @@ internal sealed class PdfCommentsPanel : DockPanel
             Comments = result.Items;
             _heights = result.PageHeights;
             PageGeometry = result.Pages;
+            _stamp = Stamp(path);
             HasResult = true;
+            RestorePosition();
             _comments.ItemsSource = Comments;
             // One malformed annotation must not hide how many comments were read.
             _state.Text = (Comments.Count == 0 ? "No comments in this document." : $"{Comments.Count} comment{(Comments.Count == 1 ? "" : "s")}{RepliesNote()} · read-only")

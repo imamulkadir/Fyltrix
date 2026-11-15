@@ -208,6 +208,13 @@ public class PdfAnnotationTests
                 var close = VisualTree.FindDescendants<Button>(card.Popup.Child).First();
                 close.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
                 Assert.False(card.Popup.IsOpen);
+
+                // A click elsewhere in the Fyltrix window closes it; the card doesn't close on its own otherwise.
+                card.Show(edit, path);
+                Sta.DoEvents(200);
+                Assert.True(card.Popup.IsOpen);
+                viewer.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left) { RoutedEvent = UIElement.PreviewMouseDownEvent });
+                Assert.False(card.Popup.IsOpen);
             }
             finally { card.Dispose(); w.Close(); }
         });
