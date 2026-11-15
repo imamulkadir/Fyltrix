@@ -4,6 +4,29 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.13 draft verification and local signing (2026-11-15)
+
+Status: **Draft verified and metadata signed locally; owner upload/publication pending.**
+
+- **Commit and runs:** owner committed `d1a4dbb` ("prepare v0.1.13") and pushed it. Manual run 43686508739 on `d1a4dbb` passed (confirmed before tagging). Annotated tag `v0.1.13` (`85d48ea`) points at `d1a4dbb`, and tag run 43687128862 succeeded in every step.
+- **Sign-only adaptation of `Complete-Release.ps1`** (runbook in `docs/RELEASING.md`):
+  - It checked master, HEAD = tag, the remote tag, `Test-Release`, a stable draft with exactly four assets, the checksum sidecars and `gh attestation verify --deny-self-hosted-runners` for both packages.
+  - It built the signing tool from a clean `git archive` of `v0.1.13` and signed with the pinned key; no upload.
+  - Workspace: `%TEMP%/Fyltrix-release-0.1.13-f31cd30ebc644ed1905bb65aa7d963d7`.
+- **Packages:**
+  - ZIP: 88,125,054 bytes, SHA-256 `a60422b3ee073048fe945509a4be4ecf773414a69578269d3baf83fce4039ed2`.
+  - Setup: 62,688,264 bytes, SHA-256 `83d31433b5f17976f5ec495bc6eaee081c667a75f63f1cfee203dd0c872a8275`.
+- **Signed metadata:**
+  - `Fyltrix-release.json`: 327 bytes, SHA-256 `6b92adfca50f7acba749787a588c919a57d5b3b0fbc2f938c7106c3ebfe2a27a`; sizes and hashes match the draft.
+  - `Fyltrix-release.json.sig`: 88 bytes, SHA-256 `c82f67bfecebd6e99eef27261d295ca881992623e8e0e81584e1b8bfad433aee`.
+- **ZIP contents:**
+  - 500 entries; `UPDATE_PROTOCOL` byte-identical (`Fyltrix.Update/1\nFileLens.Profile/1\n`); `current.json` → 0.1.13.
+  - `Fyltrix.dll` ProductVersion `0.1.13+d1a4dbb…` contains the background file operation, comment reveal and preview recovery strings and `fyltrix.example`, and no `filelens.app`.
+- **Release notes:** the draft body equals the `[0.1.13]` changelog section.
+- **Not done by the agent:** nothing was uploaded, published or installed.
+
+Next owner action: upload the two signed files to the draft, then publish; then request post-publication checks.
+
 ### Release 0.1.13 preparation (2026-11-15)
 
 Status: **Prepared locally; owner commit/push/manual run/tag/sign/publish pending.**
