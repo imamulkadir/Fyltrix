@@ -4,6 +4,23 @@ Keep this file current. An agent resuming after context compaction should read i
 
 ## Current state (read first)
 
+### Release 0.1.13 preparation (2026-11-15)
+
+Status: **Prepared locally; owner commit/push/manual run/tag/sign/publish pending.**
+
+- **Published state:** `v0.1.12` is Latest. No `v0.1.13` tag exists. `master` = `origin/master` at `1e8055b`, which contains `acc3260` (background file operations), `7445127` (PDF comment threading/card) and `1e8055b` (exact reveal plus comments-list fixes).
+- **`CHANGELOG.md`:** Unreleased moved to `[0.1.13] - 2026-11-15`. The background copy/move change was missing from the notes and has been added under Changed.
+- **Version:** `Set-ReleaseVersion.ps1 -Version 0.1.13` set Version/FileVersion/AssemblyVersion. `Test-Release.ps1 -Tag v0.1.13` passed.
+- **Checks on this source:**
+  - Release configuration: updater **136/136**, packaging **39/39**, installer guard 10/10, release tooling 14/14.
+  - Application suite **628/628 twice** on the identical code (only the version changed afterwards).
+  - No local package build this time; GitHub builds, attests and drafts the official packages.
+- **Not verified:**
+  - on-screen acceptance of background transfers and PDF comment reveal
+  - a real 0.1.12 → 0.1.13 update
+
+Suggested owner commit: `chore(release): prepare v0.1.13`.
+
 ### PDF comments list keeps its place after Show (2026-11-15)
 
 Status: **Fixed and verified with automated tests; owner re-check pending.**

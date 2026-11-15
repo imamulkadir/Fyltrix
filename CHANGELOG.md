@@ -6,6 +6,8 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-11-15
+
 ### Added
 
 - PDF comments in the Preview pane: a **Comments** button appears for previewed PDFs that have comments.
@@ -14,6 +16,11 @@ The release workflow uses that exact section as the GitHub release notes.
 
 ### Changed
 
+- Copying and moving files (paste and drag-and-drop) now runs in the background, like File Explorer: keep browsing,
+  switching tabs and previewing while files transfer, and bring Fyltrix in front of Windows' progress window at any
+  time. Name conflicts are still asked without blocking the rest of Fyltrix. Closing Fyltrix waits until running
+  transfers finish or are cancelled in their progress window. Archive and other progress windows no longer stay on top
+  of Fyltrix or take the keyboard focus.
 - Reopening a PDF's Comments list returns to where you were, with the comment you last showed selected (it no longer jumps to the end). The PDF is re-read only when it changed on disk.
 - The comment card no longer closes by itself right after opening, and a PDF's comment count no longer goes missing when the list is closed and another PDF is selected quickly. The card closes with Close, Esc, another comment or a click elsewhere in Fyltrix; clicking in the PDF keeps it open.
 - PDF comment lists thread replies under the comment they answer and show replace-text edits (strikeout plus replacement) as one item, so review documents are no longer dominated by separate "done" replies. A partly unreadable document still shows how many comments were read.
