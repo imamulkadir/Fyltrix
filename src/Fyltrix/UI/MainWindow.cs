@@ -85,6 +85,18 @@ public sealed partial class MainWindow : Window, IFolderHost
         PreviewKeyDown += OnKeyDown;
         Closing += (_, e) =>
         {
+            // Copies/moves run in the background; closing must not cut one off half-way. They can be cancelled in
+            // Windows' progress window.
+            if (_activeTransfers > 0)
+            {
+                e.Cancel = true;
+                var n = _activeTransfers;
+                if (TransferCloseBlockedForTest is { } blocked) { blocked(n); return; }
+                MessageBox.Show(this, $"{(n == 1 ? "A copy or move is" : $"{n} copies or moves are")} still running.\n\n" +
+                    "Wait for it to finish, or cancel it in its progress window, then close Fyltrix.",
+                    ProductBranding.Name, MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
             if (!_exitForReal && !_exitUpdateClosing && Settings.ConfirmCloseTabs && _tabs.Count > 1 && !ConfirmCloseTabs(_tabs.Count, closingWindow: true)) { e.Cancel = true; return; }
             // A modal confirmation can pump messages; recheck update-only safety after it returns.
             if (_updateCloseRequested && UpdateCloseProblem() != null) { e.Cancel = true; return; }
@@ -746,8 +758,11 @@ public sealed partial class MainWindow : Window, IFolderHost
     public void DropFiles(FolderView view, string[] files, string targetDir, DragDropEffects effect)
     {
         if (effect is not (DragDropEffects.Copy or DragDropEffects.Move)) return;
-        Dispatcher.BeginInvoke(new Action(() => Transfer(files, targetDir, effect == DragDropEffects.Move)));
+        // after the drag-and-drop loop has returned; the transfer itself runs off the UI thread
+        Dispatcher.BeginInvoke(new Action(() => DropTask = TransferAsync(files, targetDir, effect == DragDropEffects.Move)));
     }
+
+    internal Task DropTask { get; private set; } = Task.CompletedTask;
 
     public void SetStatus(string message)
     {
@@ -1023,19 +1038,65 @@ public sealed partial class MainWindow : Window, IFolderHost
         }
         catch (Exception ex) { SetStatus("Couldn't read the clipboard: " + ex.Message); return; }
 
-        var result = Transfer(files, targetDir, move);
+        var result = await TransferAsync(files, targetDir, move);
         if (move) CompleteCutPaste(files, result);
     }
 
     internal Func<string, (ConflictChoice choice, bool applyToAll)>? ConflictForTest { get; set; }
+    /// <summary>Copies/moves in progress (each on its own shell thread). Closing Fyltrix waits for them.</summary>
+    private int _activeTransfers;
+    internal int ActiveTransferCount => _activeTransfers;
+    /// <summary>Tests: runs on the shell thread at the start of each transfer (e.g. to hold it open while the UI is used).</summary>
+    internal Action? TransferStartedForTest { get; set; }
+    /// <summary>Tests: replaces the "still running" message shown when closing is refused during a transfer.</summary>
+    internal Action<int>? TransferCloseBlockedForTest { get; set; }
 
-    private TransferResult Transfer(IList<string> files, string targetDir, bool move)
+    /// <summary>Called on a transfer's shell thread: shows the prompt on the UI thread (non-modal) and waits only this
+    /// transfer for the answer.</summary>
+    private (ConflictChoice, bool) AskConflictFromShellThread(string target)
+    {
+        var answer = new TaskCompletionSource<(ConflictChoice, bool)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        Dispatcher.BeginInvoke(new Action(() =>
+        {
+            try
+            {
+                if (ConflictForTest is { } test) answer.TrySetResult(test(target));
+                else ConflictDialog.Prompt(this, target, (choice, all) => answer.TrySetResult((choice, all)));
+            }
+            catch (Exception ex) { answer.TrySetException(ex); }
+        }));
+        return answer.Task.GetAwaiter().GetResult();
+    }
+
+    private async Task<TransferResult> TransferAsync(IList<string> files, string targetDir, bool move)
     {
         using var updateWork = TrackUpdateWork();
         if (files.Count == 0) return new TransferResult();
-        if (move) ReleasePreviews(files);
-        var result = FileOps.Transfer(files, targetDir, move, Hwnd, target =>
-            ConflictForTest?.Invoke(target) ?? ConflictDialog.Ask(this, target));
+        // The sources and destination are fixed now: navigating, switching tabs or a new clipboard selection while
+        // the transfer runs does not change what it does.
+        var sources = files.ToArray();
+        if (move) ReleasePreviews(sources);
+        _activeTransfers++;
+        TransferResult result;
+        try
+        {
+            // Off the UI thread, with no owner window: Fyltrix stays usable and its window can be brought above the
+            // shell's progress dialog. Name conflicts are still asked on the UI thread, one at a time.
+            var startedForTest = TransferStartedForTest;
+            result = await FileOps.RunOnShellThreadAsync(() =>
+            {
+                startedForTest?.Invoke();
+                return FileOps.Transfer(sources, targetDir, move, IntPtr.Zero, AskConflictFromShellThread);
+            });
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            // Report what is known; whatever already reached the destination is refreshed below.
+            Diagnostics.Log("File operation", ex, move ? "move" : "copy");
+            result = new TransferResult { Cancelled = true };
+            result.Errors.Add($"The {(move ? "move" : "copy")} stopped: {ex.Message}");
+        }
+        finally { _activeTransfers--; }
         foreach (var (from, to) in result.Moved) Core.Tools.TagStore.Shared.Move(from, to);
 
         var verb = move ? "Move" : "Copy";

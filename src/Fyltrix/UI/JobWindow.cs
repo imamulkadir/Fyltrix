@@ -30,19 +30,22 @@ public sealed class JobWindow : Window
     private JobWindow(Window owner, string title, CancellationTokenSource cts, bool cancellable)
     {
         _cts = cts;
-        Owner = owner;
+        // Not owned: an owned window always stays above its owner, so the user couldn't bring the window they're
+        // working in back to the front. Its own taskbar button brings it back; it is placed over the starting window.
         Title = title;
         Width = 460;
         SizeToContent = SizeToContent.Height;
         ResizeMode = ResizeMode.NoResize;
-        WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        ShowInTaskbar = false;
-        ShowActivated = true;
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        ShowInTaskbar = true;
+        ShowActivated = false; // appearing must not take the keyboard away from what the user is doing
         Background = Theme.Brush("Bg2");
         Foreground = Theme.Brush("Fg1");
         FontFamily = new System.Windows.Media.FontFamily("Segoe UI");
         FontSize = 13;
-        SourceInitialized += (_, _) => Shell.UseDarkTitleBar(this);
+        SourceInitialized += (_, _) => { Shell.UseDarkTitleBar(this); TaskbarIdentity.Apply(this); AppIcon.ApplyToHwnd(this); };
+        Loaded += (_, _) => { if (owner.IsLoaded && owner.WindowState != WindowState.Minimized) WindowPlacement.CenterOn(this, owner); };
+        Icon = AppIcon.ForWindow();
 
         var sp = new StackPanel { Margin = new Thickness(20, 16, 20, 16) };
         _status.Text = title;

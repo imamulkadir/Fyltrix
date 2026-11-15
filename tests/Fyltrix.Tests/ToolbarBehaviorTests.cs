@@ -188,7 +188,9 @@ public class ToolbarBehaviorTests
                 Assert.True(File.Exists(Path.Combine(source, "a.txt")));
                 Assert.Single(Directory.GetFiles(target, "Screenshot *.png"));
                 // A second real file is cut through the same keyboard command as production, then pasted.
-                w.View!.Navigate(source); Sta.WaitUntil(() => w.View.CurrentPath == source && w.View.Items.Any(i => i.Name == "a.txt"), "source");
+                // Wait for the source listing itself: the target listing also holds an "a.txt" (the copy pasted above).
+                w.View!.Navigate(source); Sta.WaitUntil(() => w.View.CurrentPath == source
+                    && w.View.Items.Any(i => string.Equals(i.FullPath, Path.Combine(source, "a.txt"), StringComparison.OrdinalIgnoreCase)), "source");
                 w.View.SelectPaths(new[] { Path.Combine(source, "a.txt") }); w.HandleFileShortcut(Key.X, true, false);
                 var moved = t.Dir("move target");
                 w.View.Navigate(moved); Sta.WaitUntil(() => w.View.CurrentPath == moved && w.View.Items.Count == 0 && Button(w, "paste").IsEnabled, "move target");

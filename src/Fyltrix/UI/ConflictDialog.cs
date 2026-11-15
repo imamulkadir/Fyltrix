@@ -55,7 +55,11 @@ public sealed class ConflictDialog : Window
                 Content = text, MinWidth = 92, Margin = new Thickness(6, 0, 0, 0), Padding = new Thickness(12, 6, 12, 6),
                 Background = primary ? Theme.Brush("Sel") : Theme.Brush("Bg3"), IsDefault = primary, IsCancel = c == ConflictChoice.Cancel,
             };
-            b.Click += (_, _) => { Choice = c; ApplyToAll = all.IsChecked == true; DialogResult = true; };
+            b.Click += (_, _) =>
+            {
+                Choice = c; ApplyToAll = all.IsChecked == true; _answered = true;
+                if (_modal) DialogResult = true; else Close();
+            };
             buttons.Children.Add(b);
         }
         Add("Replace", ConflictChoice.Replace);
@@ -66,9 +70,26 @@ public sealed class ConflictDialog : Window
         Content = stack;
     }
 
+    private bool _answered, _modal;
+
     public static (ConflictChoice, bool) Ask(Window owner, string target)
     {
-        var d = new ConflictDialog(owner, target);
+        var d = new ConflictDialog(owner, target) { _modal = true };
         return d.ShowDialog() == true ? (d.Choice, d.ApplyToAll) : (ConflictChoice.Cancel, false);
+    }
+
+    /// <summary>
+    /// Asks without blocking anything else: only the transfer that hit the conflict waits for the answer, while the
+    /// rest of Fyltrix stays usable (ShowDialog would disable every Fyltrix window). Closing the prompt = Cancel.
+    /// </summary>
+    public static void Prompt(Window owner, string target, Action<ConflictChoice, bool> answered)
+    {
+        var d = new ConflictDialog(owner, target);
+        d.Closed += (_, _) =>
+        {
+            if (d._answered) answered(d.Choice, d.ApplyToAll);
+            else answered(ConflictChoice.Cancel, false);
+        };
+        d.Show();
     }
 }

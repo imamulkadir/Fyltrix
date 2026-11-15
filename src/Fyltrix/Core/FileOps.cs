@@ -19,6 +19,25 @@ public static class FileOps
 {
     public static bool Exists(string path) => File.Exists(path) || Directory.Exists(path);
 
+    /// <summary>
+    /// Runs a shell file operation on its own STA thread (the shell's progress and error UI needs one) so the caller's
+    /// UI thread keeps running: like Explorer, the user can go on browsing while files are copied or moved. Pass
+    /// <see cref="IntPtr.Zero"/> as the owner inside <paramref name="work"/>: an owned progress dialog would stay above,
+    /// and disable, the window that started it.
+    /// </summary>
+    public static Task<T> RunOnShellThreadAsync<T>(Func<T> work)
+    {
+        var done = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try { done.SetResult(work()); }
+            catch (Exception ex) { done.SetException(ex); }
+        }) { IsBackground = false, Name = "Fyltrix file operation" }; // never cut off mid-copy by process exit
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return done.Task;
+    }
+
     public static bool RunMulti(uint func, IList<string> from, IList<string> to, IntPtr owner)
     {
         if (from.Count == 0) return true;

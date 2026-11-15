@@ -125,6 +125,7 @@ Manage files without constantly switching between different tools.
 
 - Cut, copy, paste, rename, move, and delete files.
 - Cut and delete mixed multi-selections through the toolbar, context menu or keyboard. If a cut/paste move is skipped or only partly completed, pending items remain cut for another attempt.
+- Copies and moves (paste and drag-and-drop) run in the background with Windows' own progress window, as in File Explorer: keep browsing, switching tabs and previewing while files transfer, and bring Fyltrix in front of the progress window at any time. Name conflicts are still asked, without blocking the rest of Fyltrix. Closing Fyltrix waits until running transfers finish or are cancelled in their progress window.
 - Undo supported copy, move, rename, creation, extraction, compression, conversion, and Recycle Bin deletion operations. Permanent deletion cannot be undone.
 - Press `F2` or choose Rename with multiple items selected to enter a common base name: `Holiday (1).jpg`, `Holiday (2).png`, and so on. Numbering follows the visible order and keeps each file's extension; occupied names are skipped without overwriting files. Single-item Rename stays inline.
 - Batch rename with a live plan, templates, padded counters, find/replace or regex, case changes, prefixes/suffixes, extension changes, and conflict detection; optionally include folders.

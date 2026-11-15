@@ -10,7 +10,7 @@ public sealed partial class MainWindow
 
     // Deliberately stricter than ordinary closing: do not cancel file work or change sharing/automation preferences.
     internal string? UpdateCloseProblem() => !IsEnabled || OwnedWindows.Count > 0 ? "Close other Fyltrix dialogs and tool windows first."
-        : JobWindow.RunningCount > 0 || UpdateWork.RunningCount > 0 || _updateCriticalWork > 0 || _updatePastes > 0 ? "Wait for file operations to finish."
+        : JobWindow.RunningCount > 0 || UpdateWork.RunningCount > 0 || _updateCriticalWork > 0 || _updatePastes > 0 || _activeTransfers > 0 ? "Wait for file operations to finish."
         : Settings.AutomationEnabled || _automation != null ? "Turn off automation before preparing an update."
         : InBackground || ShareHost.Current.ActiveSessions.Count > 0 ? "Stop active shares before preparing an update."
         : null;

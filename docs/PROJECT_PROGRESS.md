@@ -1,5 +1,81 @@
 # Installation and update infrastructure progress
 
+## Stage 1 — Non-blocking file operations (2026-11-15)
+
+Status: **Implemented and verified with automated tests; on-screen behavior needs owner acceptance.** Owner report: during copy/cut/paste the progress window took focus and stayed above Fyltrix, so browsing was impossible until the transfer ended.
+
+**Root cause (from source):**
+- Paste and drag-and-drop called `FileOps.Transfer` → `SHFileOperation` **synchronously on the WPF UI thread**, with `hwnd` = the main window (`MainWindow.Transfer`).
+- The UI thread was therefore inside the shell call for the whole transfer: no navigation, tabs or preview.
+- The shell's progress dialog was owned by the main window, so it was kept above it, and the shell disables the owner during the operation.
+- `ConflictDialog.Ask` used `ShowDialog()`, which disables every Fyltrix window.
+- Secondary: `JobWindow` (archive extract/compress, PDF, folder compare) was already non-modal but owned (`Owner = owner`, `ShowActivated = true`). An owned window always stays above its owner.
+
+**Fix (smallest change, same shell engine):**
+- `FileOps.RunOnShellThreadAsync`: runs the unchanged `FileOps.Transfer` on a dedicated **STA** thread (the shell UI needs one), marked as a foreground thread so process exit never cuts a copy off.
+- `MainWindow.TransferAsync` replaces the synchronous `Transfer`.
+  - Sources and destination are captured at start, so later navigation, tab or clipboard changes don't affect the running transfer.
+  - The owner hwnd is now `IntPtr.Zero`, giving an Explorer-like free-standing progress window that Fyltrix can be brought in front of.
+  - Tags, undo, refresh and status run on the UI thread after completion, as before.
+  - Failures are logged and reported instead of being lost.
+- Paste and `DropFiles` use it; `DropTask` is exposed for tests.
+- **Name conflicts:** the shell thread waits on a task while the UI thread shows `ConflictDialog.Prompt` **non-modally**. No nested message loop; other Fyltrix windows stay enabled; closing the prompt = Cancel; nothing is overwritten without a choice. `Ask` (modal) is kept for compatibility.
+- **Shutdown:** while `_activeTransfers > 0`, closing the main window is refused with an explanation: wait, or cancel in the progress window. `UpdateCloseProblem` also counts active transfers, so an update never closes Fyltrix mid-transfer. Cancellation remains the shell progress window's Cancel. Undo and cut-clipboard completion logic are unchanged.
+- **JobWindow:**
+  - not owned
+  - `ShowActivated = false`
+  - own taskbar button with Fyltrix identity and icon
+  - placed once over the starting window with `SWP_NOACTIVATE`/`SWP_NOZORDER`
+  - no repeated `Activate`/`Topmost`/`SetWindowPos` calls
+- **Not changed:** Delete still calls `SHFileOperation` synchronously (unchanged behavior; not reported). Undo of moves and recycle-bin restore are unchanged.
+
+**Tests:** new `BackgroundFileOperationTests` (5). A transfer is held open on its shell thread by a gate while the test:
+- checks that the UI thread pumps, the window stays enabled, the work runs on a separate STA thread, and the active-transfer count is right
+- navigates elsewhere and replaces the clipboard
+- checks that the update guard reports active work, and that `Close()` is refused (hook instead of a message box) while the window stays loaded
+
+Results that follow:
+- The copy lands in the original target, never the folder browsed to.
+- A cut completes into its target and keeps the newer clipboard selection.
+- The conflict callback runs on the UI thread while the main window stays enabled; KeepBoth never overwrites.
+- Drag-and-drop runs in the background.
+- `JobWindow` is unowned, not activated, and shows in the taskbar.
+
+`ToolbarBehaviorTests.Png_bytes_are_preserved...` had a wait condition (`Items.Any(Name == "a.txt")`) that a stale target listing could satisfy once paste became asynchronous; it now waits for the source item by full path.
+
+Results:
+- new tests 6/6 (with the fixed test) in three repeated runs
+- operation suites (`MultiFileOperationsTests`, `ToolbarBehaviorTests`, `SettingsCustomizationTests`, `UpdateShutdownTests`) passed
+- full application suite **610/610**
+- real `%AppData%`/`%LocalAppData%` Fyltrix folders untouched
+
+**Performance:** the copy engine is unchanged (same `SHFileOperation` call), so transfer throughput is unchanged by design; no benchmark was run. One extra thread is used per running transfer. UI responsiveness during a held transfer is proven by the tests above; screen-level responsiveness during a real large copy is not measured.
+
+**Manual acceptance (owner, not performed):**
+1. Paste a large folder.
+2. While it copies:
+   - click Fyltrix and confirm it comes in front of the Windows progress window
+   - browse, open a tab and preview a file
+   - Alt+Tab and the taskbar both reach the progress window
+3. Cancel in the progress window.
+4. Repeat with cut/paste and drag-and-drop.
+5. Paste onto an existing name and confirm the prompt works and Fyltrix stays usable.
+6. Try closing Fyltrix mid-copy and confirm the explanation appears.
+7. Extract a large archive and confirm its progress window can go behind Fyltrix.
+
+Files:
+- `src/Fyltrix/Core/FileOps.cs`
+- `src/Fyltrix/UI/MainWindow.cs`
+- `src/Fyltrix/UI/MainWindow.UpdateShutdown.cs`
+- `src/Fyltrix/UI/ConflictDialog.cs`
+- `src/Fyltrix/UI/JobWindow.cs`
+- `tests/Fyltrix.Tests/BackgroundFileOperationTests.cs` (new)
+- `tests/Fyltrix.Tests/ToolbarBehaviorTests.cs`
+- `README.md`
+- this file and `docs/IMPLEMENTATION_STATUS.md`
+
+Suggested commit: `fix(operations): allow navigation during background file transfers`. **Stage 2 awaits owner approval.**
+
 ## Release 0.1.12 draft verification (2026-11-13)
 
 Status: **Draft verified; owner signing/publication pending.** Owner committed `ac23ffc` ("prepare v0.1.12") and pushed it. Manual run 43405510771 on that commit passed. Annotated tag `v0.1.12` (object `8a7185e`) points at `ac23ffc`, and tag run 43406484530 succeeded in every step (validation, tests, ZIP/installer, attestation, draft).
